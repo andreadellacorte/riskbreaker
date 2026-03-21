@@ -1,3 +1,16 @@
 scratch
 .DS_Store
 bins/
+
+node_modules
+dist
+coverage
+*.tsbuildinfo
+.turbo
+.direnv
+
+# Nix: `nix build` / flake output symlinks (`result`, `result-doc`, …)
+/result
+/result-*
+result
+result-*

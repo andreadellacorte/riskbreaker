@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@riskbreaker/shared-types": ["packages/shared-types/src/index.ts"],
+      "@riskbreaker/shared-utils": ["packages/shared-utils/src/index.ts"],
+      "@riskbreaker/plugin-sdk": ["packages/plugin-sdk/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/shared-config/src/**/*.ts",
+    "packages/shared-types/src/**/*.ts",
+    "packages/shared-utils/src/**/*.ts",
+    "packages/plugin-sdk/src/**/*.ts"
+  ]
+}

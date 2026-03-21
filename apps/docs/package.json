@@ -1,0 +1,9 @@
+{
+  "name": "@riskbreaker/docs",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "echo 'Docs app lands in Harness 05/08.' && exit 0",
+    "build": "echo 'Docs build lands in Harness 05/08.' && exit 0"
+  }
+}

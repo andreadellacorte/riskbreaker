@@ -1,0 +1,12 @@
+node_modules
+dist
+coverage
+.pnpm-store
+pnpm-lock.yaml
+
+# Vendored agent skills and groove state (avoid mass reformat)
+.agents/
+.cursor/
+.groove/
+.beans.yml
+bins/

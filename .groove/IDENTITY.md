@@ -1,0 +1,1 @@
+Load project-spec.md and tasks from bean to see what we are doing. 

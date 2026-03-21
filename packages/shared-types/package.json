@@ -1,0 +1,24 @@
+{
+  "name": "@riskbreaker/shared-types",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Core domain and infrastructure types for Riskbreaker",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

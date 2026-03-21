@@ -1,6 +1,3 @@
-memory/
-tasks/
-
 # cache — always local
 .cache/*
 !.cache/.gitkeep

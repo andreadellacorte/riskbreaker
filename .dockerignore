@@ -1,0 +1,13 @@
+.git
+.github
+**/.DS_Store
+node_modules
+dist
+coverage
+.turbo
+*.tsbuildinfo
+.groove
+bins
+.cursor
+.agents
+scratch

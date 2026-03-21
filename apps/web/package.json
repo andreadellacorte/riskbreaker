@@ -1,0 +1,9 @@
+{
+  "name": "@riskbreaker/web",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "echo 'Vite app lands in Harness 05.' && exit 0",
+    "build": "echo 'Vite build lands in Harness 05.' && exit 0"
+  }
+}
