@@ -17,3 +17,9 @@ blob-report/
 /result-*
 result
 result-*
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log

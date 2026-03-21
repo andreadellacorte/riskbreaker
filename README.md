@@ -4,11 +4,11 @@
 
 ## Stack (intended from day one)
 
-| Layer      | Role                                                                                                                               |
-| ---------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| **pnpm**   | Workspace installs and scripts (`packageManager` pinned in root `package.json`).                                                   |
-| **Nix**    | Reproducible dev shell: **Node 25**, **pnpm 10** (corepack), git, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`). |
-| **Docker** | CI image from official **`docker.io/nixos/nix`** + `nix develop` → pnpm build/test (`infra/docker/Dockerfile`).                    |
+| Layer      | Role                                                                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| **pnpm**   | Workspace installs and scripts (`packageManager` pinned in root `package.json`).                                                          |
+| **Nix**    | Reproducible dev shell: **Node 25**, **pnpm 10** (corepack), git, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`).        |
+| **Docker** | Multi-stage: **`web`** (nginx + `apps/web` dist) and **`ci`** (Nix + pnpm test) — [`infra/docker/Dockerfile`](./infra/docker/Dockerfile). |
 
 ## Prerequisites
 
@@ -30,7 +30,11 @@ pnpm install
 **Docker build** (from repo root; requires Docker daemon):
 
 ```bash
-docker build -f infra/docker/Dockerfile -t riskbreaker:local .
+# Static `apps/web` (nginx) — default Dockerfile target
+docker build -f infra/docker/Dockerfile -t riskbreaker:web .
+
+# Full Nix CI image (same as GitHub Actions Docker job)
+docker build -f infra/docker/Dockerfile --target ci -t riskbreaker:ci .
 ```
 
 See [`infra/docker/README.md`](./infra/docker/README.md). On macOS, use Docker Desktop or Colima for the daemon; the Nix shell provides the `docker-compose` CLI, not the Docker engine.
@@ -73,7 +77,19 @@ pnpm e2e
 [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) runs on **push** and **pull_request** to `main`:
 
 1. **Nix** — `nix develop` → `pnpm install` → `playwright install --with-deps chromium` → lint, typecheck, Vitest, build, Playwright.
-2. **Docker** — `docker build` with [`infra/docker/Dockerfile`](./infra/docker/Dockerfile), then Vitest and Playwright **inside** the same Nix-based image (validates the CI container path).
+2. **Docker** — `docker build --target ci` with [`infra/docker/Dockerfile`](./infra/docker/Dockerfile), then Vitest and Playwright **inside** the same Nix-based image (validates the CI container path).
+3. **Terraform** — `terraform fmt -check` and `validate` on [`infra/terraform/environments/example`](./infra/terraform/environments/example) (no cloud credentials; placeholder `random` provider).
+
+## Infrastructure (Harness 07)
+
+| Area           | Location                                 | Notes                                                                                              |
+| -------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 25, pnpm via corepack, git, docker-compose, kubectl, terraform.                    |
+| **Docker**     | [`infra/docker/`](./infra/docker/)       | **`web`** target = static `apps/web`; **`ci`** target = Nix + pnpm (tests).                        |
+| **Kubernetes** | [`infra/k8s/base/`](./infra/k8s/base/)   | Kustomize base (namespace, placeholder Deployment/Service) — customize image/ingress before apply. |
+| **Terraform**  | [`infra/terraform/`](./infra/terraform/) | Example env validates tooling; **`modules/`** reserved for real stacks.                            |
+
+**Hosting:** Product intent may include **AWS ECS** or a **simpler** static/CDN layout — **owner decision pending** before any real `terraform apply` or cloud backends. The scaffold stays provider-agnostic until then (see [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md)).
 
 ## Layout (target)
 
