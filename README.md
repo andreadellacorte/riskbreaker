@@ -4,11 +4,11 @@
 
 ## Stack (intended from day one)
 
-| Layer      | Role                                                                                                                                      |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **pnpm**   | Workspace installs and scripts (`packageManager` pinned in root `package.json`).                                                          |
-| **Nix**    | Reproducible dev shell: **Node 25**, **pnpm 10** (corepack), git, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`).        |
-| **Docker** | Multi-stage: **`web`** (nginx + `apps/web` dist) and **`ci`** (Nix + pnpm test) — [`infra/docker/Dockerfile`](./infra/docker/Dockerfile). |
+| Layer      | Role                                                                                                                                                |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **pnpm**   | Workspace installs and scripts (`packageManager` pinned in root `package.json`).                                                                    |
+| **Nix**    | Reproducible dev shell: **Node 25**, **pnpm 10** (corepack), git, **netlify-cli**, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`). |
+| **Docker** | Multi-stage: **`web`** (nginx + `apps/web` dist) and **`ci`** (Nix + pnpm test) — [`infra/docker/Dockerfile`](./infra/docker/Dockerfile).           |
 
 ## Prerequisites
 
@@ -84,13 +84,15 @@ pnpm e2e
 
 | Area           | Location                                 | Notes                                                                                                       |
 | -------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 25, pnpm via corepack, git, docker-compose, kubectl, terraform.                             |
+| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 25, pnpm via corepack, git, **netlify-cli** (nixpkgs), docker-compose, kubectl, terraform.  |
 | **Docker**     | [`infra/docker/`](./infra/docker/)       | **`web`** target = static `apps/web`; **`ci`** target = Nix + pnpm (tests).                                 |
 | **Kubernetes** | [`infra/k8s/base/`](./infra/k8s/base/)   | Kustomize base (namespace, placeholder Deployment/Service) — customize image/ingress before apply.          |
 | **Terraform**  | [`infra/terraform/`](./infra/terraform/) | Example env validates tooling; **`modules/`** reserved for real stacks.                                     |
 | **Netlify**    | [`netlify.toml`](./netlify.toml)         | Static **`apps/web`** — pnpm monorepo build + SPA redirect. Connect the repo in the Netlify UI (see below). |
 
 **Hosting:** **Netlify** is configured for the Vite app ([`netlify.toml`](./netlify.toml)). **AWS ECS**, **S3+CloudFront**, etc. remain options later; Terraform stays optional until you choose a provider. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md).
+
+**Why keep Docker / Kubernetes if Netlify serves static assets?** **Netlify** covers **production CDN** for the built SPA. **Docker** is still useful: the **CI job** reproduces “same image everywhere,” you can run **Vitest/Playwright** in that image locally, and later you may containerize **non-static** pieces (API workers, emulator tooling, etc.). **Kubernetes** is **not** required for a static-only Netlify setup; the [`infra/k8s/base`](./infra/k8s/base/) manifests are an **optional scaffold** for future services, self-hosted previews, or a different hosting story — safe to ignore until you need them.
 
 ### Netlify (static `apps/web`)
 
@@ -100,7 +102,7 @@ This environment cannot log into your Netlify account. You link the site once:
 2. Leave **base directory** empty (build runs from the **repository root**; [`netlify.toml`](./netlify.toml) sets command and publish dir).
 3. Deploy: Netlify runs **`pnpm install --frozen-lockfile`** and **`pnpm --filter @riskbreaker/web build`**, publishes **`apps/web/dist`**. Node **25** is set via `netlify.toml` and [`.nvmrc`](./.nvmrc).
 
-**CLI (optional, local):** [`netlify-cli`](https://cli.netlify.com/) with a personal access token — run `netlify login` and `netlify init` / `netlify deploy` on your machine; do not commit tokens.
+**CLI:** With **`nix develop`**, the **`netlify`** command comes from **nixpkgs** (`netlify-cli` in [`flake.nix`](./flake.nix)) — no separate npm global install. Run `netlify login` / `netlify deploy` locally; do not commit tokens.
 
 ## Layout (target)
 
