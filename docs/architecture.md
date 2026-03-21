@@ -156,7 +156,7 @@ sequenceDiagram
 
 ## Playable emulator spike (not integrated yet)
 
-A **browser PS1 emulator** proof-of-concept lives at **`/play/spike`** in [`apps/web`](../apps/web) using vendored **WASMpsx** (MIT). It is **not** connected to `SessionOrchestrator` or `psx-runtime` yet — see [`playable-emulator-spike.md`](./playable-emulator-spike.md).
+A **browser PS1 emulator** proof-of-concept lives at **`/play/spike`** in [`apps/web`](../apps/web) using vendored **[lrusso/PlayStation](https://github.com/lrusso/PlayStation)** (WASMpsx lineage). It is **not** connected to `SessionOrchestrator` or `psx-runtime` yet — see [`playable-emulator-spike.md`](./playable-emulator-spike.md).
 
 ---
 

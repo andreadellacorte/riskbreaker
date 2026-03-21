@@ -11,5 +11,6 @@ pnpm-lock.yaml
 .beans.yml
 bins/
 
-# Vendored WASMpsx browser bundle (upstream minified)
-apps/web/public/wasmpsx/
+# Vendored PlayStation browser bundle (upstream minified)
+apps/web/public/playstation/PlayStation.js
+apps/web/public/playstation/PlayStation.htm

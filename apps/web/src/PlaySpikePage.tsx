@@ -1,82 +1,24 @@
 import { Link } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
-
-type WasmpsxElement = HTMLElement & {
-  readFile?: (file: File) => void;
-  loadUrl?: (url: string) => void;
-};
-
-const PLAYER_ID = "rb-wasmpsx-player";
-
-function styleWasmpsxCanvas(): void {
-  const host = document.getElementById(PLAYER_ID);
-  const canvas = host?.shadowRoot?.querySelector("canvas");
-  if (!canvas) {
-    return;
-  }
-  canvas.style.border = "0";
-  canvas.style.backgroundColor = "black";
-  canvas.style.display = "block";
-  canvas.style.margin = "auto";
-  canvas.style.maxWidth = "100%";
-  canvas.style.height = "auto";
-}
-
-function loadWasmpsxScript(): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector<HTMLScriptElement>(
-      "script[data-riskbreaker-wasmpsx]",
-    );
-    if (existing) {
-      resolve();
-      return;
-    }
-    const s = document.createElement("script");
-    s.src = "/wasmpsx/wasmpsx.min.js";
-    s.async = true;
-    s.setAttribute("data-riskbreaker-wasmpsx", "");
-    s.onload = () => resolve();
-    s.onerror = () => reject(new Error("failed to load wasmpsx.min.js"));
-    document.body.append(s);
-  });
-}
+import { useCallback, useRef, useState } from "react";
 
 /**
- * WASMpsx attaches `readFile` / `loadUrl` to the *first* `wasmpsx-player` in the document
- * at the moment its bundle executes. With React 18 Strict Mode, the script must load *after*
- * the dev double-mount settles, or methods end up on a detached node — so we defer injection
- * and always resolve the live host via {@link PLAYER_ID}.
+ * lrusso/PlayStation (iframe) exposes `window.readFile` on the iframe's window once
+ * `PlayStation.htm` has loaded. Same-origin, so we forward the parent file picker.
  */
-function getWasmpsxHost(): WasmpsxElement | null {
-  return document.getElementById(PLAYER_ID) as WasmpsxElement | null;
-}
+type PlayStationWindow = Window & {
+  readFile?: (files: FileList) => void;
+};
 
 export default function PlaySpikePage() {
-  const [status, setStatus] = useState("Preparing emulator host…");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [status, setStatus] = useState("Loading emulator…");
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    const run = (): void => {
-      void (async () => {
-        try {
-          setStatus("Loading WASMpsx…");
-          await loadWasmpsxScript();
-          setStatus("WASMpsx loaded. Choose a disc image (see format notes below).");
-          setReady(true);
-          setTimeout(() => {
-            styleWasmpsxCanvas();
-            setTimeout(styleWasmpsxCanvas, 400);
-          }, 100);
-        } catch {
-          setStatus("Failed to load /wasmpsx/wasmpsx.min.js — check devtools Network tab.");
-        }
-      })();
-    };
-
-    const t = window.setTimeout(run, 0);
-    return () => {
-      window.clearTimeout(t);
-    };
+  const onIframeLoad = useCallback(() => {
+    setReady(true);
+    setStatus(
+      "Ready — choose a .bin below, or use Upload in the emulator. Sound: use the speaker icon in-frame.",
+    );
   }, []);
 
   const onDiscChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,17 +26,15 @@ export default function PlaySpikePage() {
     if (!file) {
       return;
     }
-    const host = getWasmpsxHost();
-    const read = host?.readFile;
-    if (typeof read === "function") {
-      read.call(host, file);
+    const w = iframeRef.current?.contentWindow as PlayStationWindow | null;
+    if (typeof w?.readFile === "function") {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      w.readFile(dt.files);
       setStatus(`Sent to emulator: ${file.name} …`);
-      setTimeout(styleWasmpsxCanvas, 200);
       return;
     }
-    setStatus(
-      "Emulator API not ready (no readFile on host). Hard-refresh the page and try again.",
-    );
+    setStatus("Emulator not ready yet — wait for the frame to finish loading.");
   }, []);
 
   return (
@@ -103,40 +43,53 @@ export default function PlaySpikePage() {
         <p style={{ marginBottom: "0.5rem" }}>
           <Link to="/">← Mock shell (default)</Link>
         </p>
-        <h1 style={{ fontWeight: 600, fontSize: "1.5rem" }}>Playable spike — WASM PS1</h1>
+        <h1 style={{ fontWeight: 600, fontSize: "1.5rem" }}>Playable spike — browser PS1</h1>
         <p style={{ color: "#9aa3b8" }}>
-          Bundled <strong>WASMpsx</strong> (MIT). There is no separate &quot;Play&quot; button —
-          choosing a file calls the upstream <code>readFile</code> hook immediately.
+          Embedded <strong>lrusso/PlayStation</strong> (WASM, based on WASMpsx). The in-frame UI
+          supports mute, fullscreen, and upload; the file input below forwards to the same{" "}
+          <code>readFile</code> hook.
         </p>
       </header>
 
-      {/* Host must be in the document before wasmpsx.min.js runs (see bundle line 1). */}
       <section style={{ marginTop: "1rem" }}>
-        <wasmpsx-player
-          id={PLAYER_ID}
-          style={{ display: "block", minHeight: 240, width: "100%" }}
+        <iframe
+          ref={iframeRef}
+          title="PlayStation emulator"
+          src="/playstation/PlayStation.htm"
+          onLoad={onIframeLoad}
+          style={{
+            width: "100%",
+            minHeight: "min(80vh, 720px)",
+            border: "1px solid #2a3344",
+            borderRadius: 8,
+            background: "#0a0c10",
+          }}
         />
       </section>
 
       <section className="panel" style={{ marginTop: "1rem" }}>
         <p style={{ marginBottom: "0.75rem" }}>{status}</p>
         <label style={{ display: "block", marginBottom: "0.5rem" }}>
-          <span style={{ marginRight: "0.5rem" }}>Disc image (local file)</span>
+          <span style={{ marginRight: "0.5rem" }}>Disc image (local .bin)</span>
           <input
-            accept=".bin,.img,.iso,.cue,.pbp"
+            accept=".bin"
             disabled={!ready}
             type="file"
             onChange={onDiscChange}
           />
         </label>
         <p style={{ fontSize: "0.85rem", color: "#9aa3b8" }}>
-          This WASMpsx build often works best with a single <strong>.bin</strong> or{" "}
-          <strong>.iso</strong> — a <strong>.cue</strong> alone usually fails here because the
-          browser only passes <em>one</em> file; cue sheets expect sibling track files on disk.
-          Use files you have the right to use; BIOS may be required (local <code>bins/</code>).
-          <strong> Sound:</strong> WASMpsx typically has <strong>no SPU audio</strong> in the
-          browser (same as upstream). Planned follow-up: Groove <strong>RSK-l7qs</strong>{" "}
-          (lrusso/PlayStation migration for audio).
+          This build only validates <strong>.bin</strong> in the upstream UI (same as{" "}
+          <a
+            href="https://lrusso.github.io/PlayStation/PlayStation.htm"
+            rel="noreferrer"
+            target="_blank"
+          >
+            the author&apos;s demo
+          </a>
+          ). <strong>.cue</strong> needs sibling track files; use a single <strong>.bin</strong> or{" "}
+          <strong>.iso</strong> workflow elsewhere until we extend validation. Use files you have the
+          right to use; BIOS may be required (local <code>bins/</code>).
         </p>
       </section>
     </div>

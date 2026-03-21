@@ -23,12 +23,12 @@ parent: RSK-9c07
 
 - [x] Spike lives under `apps/web` with a clear **route** `/play/spike` so mock flows stay the default.
 - [x] `pnpm dev` opens a page where the emulator **initializes** and can **attempt** boot with local files (file-picker + upstream `readFile`).
-- [x] No copyrighted assets in the repo; WASMpsx bundle is MIT-licensed; BIOS/disc only via local `bins/` + picker.
+- [x] No copyrighted assets in the repo; PlayStation bundle is vendored with notice; BIOS/disc only via local `bins/` + picker.
 - [x] README + [`docs/playable-emulator-spike.md`](../../docs/playable-emulator-spike.md): obtain/place BIOS and disc locally (legal use only).
 
 ## Delivered
 
-- **WASMpsx** (MIT) vendored under [`apps/web/public/wasmpsx/`](../../apps/web/public/wasmpsx/) with `LICENSE.wasmpsx.txt`.
+- **lrusso/PlayStation** vendored under [`apps/web/public/playstation/`](../../apps/web/public/playstation/) (see `LICENSE.playstation.txt`). Supersedes earlier WASMpsx-only spike.
 - [`apps/web/src/PlaySpikePage.tsx`](../../apps/web/src/PlaySpikePage.tsx), [`MockShellPage.tsx`](../../apps/web/src/MockShellPage.tsx), `react-router-dom` routes.
 - [`docs/playable-emulator-spike.md`](../../docs/playable-emulator-spike.md) — approach, trade-offs, limitations, legal.
 - Root README + [`docs/architecture.md`](../../docs/architecture.md) cross-links.

@@ -16,7 +16,7 @@ export default tseslint.config(
       "vitest.config.mts",
       "**/.turbo/**",
       "**/coverage/**",
-      "apps/web/public/wasmpsx/**",
+      "apps/web/public/playstation/**",
     ],
   },
   js.configs.recommended,
