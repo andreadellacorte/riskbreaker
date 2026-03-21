@@ -100,7 +100,7 @@ This environment cannot log into your Netlify account. You link the site once:
 
 1. In [Netlify](https://app.netlify.com/), **Add new site** → **Import an existing project** → connect **GitHub** and select **`riskbreaker`**.
 2. Leave **base directory** empty (build runs from the **repository root**; [`netlify.toml`](./netlify.toml) sets command and publish dir).
-3. Deploy: Netlify runs **`pnpm install --frozen-lockfile`** and **`pnpm --filter @riskbreaker/web build`**, publishes **`apps/web/dist`**. Node **25** is set via `netlify.toml` and [`.nvmrc`](./.nvmrc).
+3. Deploy: Netlify runs **`pnpm install --frozen-lockfile`** and **`pnpm --filter @riskbreaker/web build`**, publishes **`apps/web/dist`**. **Node 24.x** for Netlify builds ([`netlify.toml`](./netlify.toml), [`.nvmrc`](./.nvmrc)) — Netlify’s environment currently tops out at **24.x**; local **`nix develop`** still uses **Node 25** from [`flake.nix`](./flake.nix).
 
 **CLI:** With **`nix develop`**, the **`netlify`** command comes from **nixpkgs** (`netlify-cli` in [`flake.nix`](./flake.nix)) — no separate npm global install. Run `netlify login` / `netlify deploy` locally; do not commit tokens.
 

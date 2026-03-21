@@ -6,7 +6,8 @@
   publish = "apps/web/dist"
 
 [build.environment]
-  NODE_VERSION = "25"
+  # Netlify’s UI caps Node at 24.x; keep in sync with `.nvmrc`. Local `nix develop` may use 25 (flake).
+  NODE_VERSION = "24"
 
 # Client-side routing (Vite SPA) — safe for static pages too.
 [[redirects]]
