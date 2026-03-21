@@ -1,0 +1,15 @@
+# Monorepo: build from repository root so pnpm workspaces resolve.
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  command = "pnpm install --frozen-lockfile && pnpm --filter @riskbreaker/web build"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION = "25"
+
+# Client-side routing (Vite SPA) — safe for static pages too.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

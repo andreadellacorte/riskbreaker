@@ -82,14 +82,25 @@ pnpm e2e
 
 ## Infrastructure (Harness 07)
 
-| Area           | Location                                 | Notes                                                                                              |
-| -------------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 25, pnpm via corepack, git, docker-compose, kubectl, terraform.                    |
-| **Docker**     | [`infra/docker/`](./infra/docker/)       | **`web`** target = static `apps/web`; **`ci`** target = Nix + pnpm (tests).                        |
-| **Kubernetes** | [`infra/k8s/base/`](./infra/k8s/base/)   | Kustomize base (namespace, placeholder Deployment/Service) — customize image/ingress before apply. |
-| **Terraform**  | [`infra/terraform/`](./infra/terraform/) | Example env validates tooling; **`modules/`** reserved for real stacks.                            |
+| Area           | Location                                 | Notes                                                                                                       |
+| -------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 25, pnpm via corepack, git, docker-compose, kubectl, terraform.                             |
+| **Docker**     | [`infra/docker/`](./infra/docker/)       | **`web`** target = static `apps/web`; **`ci`** target = Nix + pnpm (tests).                                 |
+| **Kubernetes** | [`infra/k8s/base/`](./infra/k8s/base/)   | Kustomize base (namespace, placeholder Deployment/Service) — customize image/ingress before apply.          |
+| **Terraform**  | [`infra/terraform/`](./infra/terraform/) | Example env validates tooling; **`modules/`** reserved for real stacks.                                     |
+| **Netlify**    | [`netlify.toml`](./netlify.toml)         | Static **`apps/web`** — pnpm monorepo build + SPA redirect. Connect the repo in the Netlify UI (see below). |
 
-**Hosting:** Product intent may include **AWS ECS** or a **simpler** static/CDN layout — **owner decision pending** before any real `terraform apply` or cloud backends. The scaffold stays provider-agnostic until then (see [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md)).
+**Hosting:** **Netlify** is configured for the Vite app ([`netlify.toml`](./netlify.toml)). **AWS ECS**, **S3+CloudFront**, etc. remain options later; Terraform stays optional until you choose a provider. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md).
+
+### Netlify (static `apps/web`)
+
+This environment cannot log into your Netlify account. You link the site once:
+
+1. In [Netlify](https://app.netlify.com/), **Add new site** → **Import an existing project** → connect **GitHub** and select **`riskbreaker`**.
+2. Leave **base directory** empty (build runs from the **repository root**; [`netlify.toml`](./netlify.toml) sets command and publish dir).
+3. Deploy: Netlify runs **`pnpm install --frozen-lockfile`** and **`pnpm --filter @riskbreaker/web build`**, publishes **`apps/web/dist`**. Node **25** is set via `netlify.toml` and [`.nvmrc`](./.nvmrc).
+
+**CLI (optional, local):** [`netlify-cli`](https://cli.netlify.com/) with a personal access token — run `netlify login` and `netlify init` / `netlify deploy` on your machine; do not commit tokens.
 
 ## Layout (target)
 
