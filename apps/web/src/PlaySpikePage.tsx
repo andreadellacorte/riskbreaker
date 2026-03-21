@@ -1,53 +1,100 @@
 import { Link } from "react-router-dom";
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type WasmpsxElement = HTMLElement & {
   readFile?: (file: File) => void;
   loadUrl?: (url: string) => void;
 };
 
-export default function PlaySpikePage() {
-  const playerRef = useRef<WasmpsxElement | null>(null);
-  const [status, setStatus] = useState("Mounting emulator host…");
-  const [ready, setReady] = useState(false);
+const PLAYER_ID = "rb-wasmpsx-player";
 
-  useLayoutEffect(() => {
+function styleWasmpsxCanvas(): void {
+  const host = document.getElementById(PLAYER_ID);
+  const canvas = host?.shadowRoot?.querySelector("canvas");
+  if (!canvas) {
+    return;
+  }
+  canvas.style.border = "0";
+  canvas.style.backgroundColor = "black";
+  canvas.style.display = "block";
+  canvas.style.margin = "auto";
+  canvas.style.maxWidth = "100%";
+  canvas.style.height = "auto";
+}
+
+function loadWasmpsxScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
     const existing = document.querySelector<HTMLScriptElement>(
       "script[data-riskbreaker-wasmpsx]",
     );
     if (existing) {
-      setReady(true);
-      setStatus("WASMpsx script already present. Choose a disc image.");
+      resolve();
       return;
     }
     const s = document.createElement("script");
     s.src = "/wasmpsx/wasmpsx.min.js";
     s.async = true;
     s.setAttribute("data-riskbreaker-wasmpsx", "");
-    s.onload = () => {
-      setReady(true);
-      setStatus(
-        "WASMpsx loaded. Pick a PS1 disc image (.bin/.cue or similar) you legally own.",
-      );
-    };
-    s.onerror = () => {
-      setStatus("Failed to load /wasmpsx/wasmpsx.min.js — check that public assets exist.");
-    };
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error("failed to load wasmpsx.min.js"));
     document.body.append(s);
+  });
+}
+
+/**
+ * WASMpsx attaches `readFile` / `loadUrl` to the *first* `wasmpsx-player` in the document
+ * at the moment its bundle executes. With React 18 Strict Mode, the script must load *after*
+ * the dev double-mount settles, or methods end up on a detached node — so we defer injection
+ * and always resolve the live host via {@link PLAYER_ID}.
+ */
+function getWasmpsxHost(): WasmpsxElement | null {
+  return document.getElementById(PLAYER_ID) as WasmpsxElement | null;
+}
+
+export default function PlaySpikePage() {
+  const [status, setStatus] = useState("Preparing emulator host…");
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const run = (): void => {
+      void (async () => {
+        try {
+          setStatus("Loading WASMpsx…");
+          await loadWasmpsxScript();
+          setStatus("WASMpsx loaded. Choose a disc image (see format notes below).");
+          setReady(true);
+          setTimeout(() => {
+            styleWasmpsxCanvas();
+            setTimeout(styleWasmpsxCanvas, 400);
+          }, 100);
+        } catch {
+          setStatus("Failed to load /wasmpsx/wasmpsx.min.js — check devtools Network tab.");
+        }
+      })();
+    };
+
+    const t = window.setTimeout(run, 0);
+    return () => {
+      window.clearTimeout(t);
+    };
   }, []);
 
   const onDiscChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    const el = playerRef.current;
-    if (!file || !el) {
+    if (!file) {
       return;
     }
-    if (typeof el.readFile === "function") {
-      el.readFile(file);
-      setStatus(`Loading ${file.name}…`);
+    const host = getWasmpsxHost();
+    const read = host?.readFile;
+    if (typeof read === "function") {
+      read.call(host, file);
+      setStatus(`Sent to emulator: ${file.name} …`);
+      setTimeout(styleWasmpsxCanvas, 200);
       return;
     }
-    setStatus("Emulator API not ready yet — wait a moment and try again.");
+    setStatus(
+      "Emulator API not ready (no readFile on host). Hard-refresh the page and try again.",
+    );
   }, []);
 
   return (
@@ -58,10 +105,18 @@ export default function PlaySpikePage() {
         </p>
         <h1 style={{ fontWeight: 600, fontSize: "1.5rem" }}>Playable spike — WASM PS1</h1>
         <p style={{ color: "#9aa3b8" }}>
-          Bundled <strong>WASMpsx</strong> (MIT) — browser PlayStation emulator
-          proof-of-concept. Not wired into Riskbreaker engines yet.
+          Bundled <strong>WASMpsx</strong> (MIT). There is no separate &quot;Play&quot; button —
+          choosing a file calls the upstream <code>readFile</code> hook immediately.
         </p>
       </header>
+
+      {/* Host must be in the document before wasmpsx.min.js runs (see bundle line 1). */}
+      <section style={{ marginTop: "1rem" }}>
+        <wasmpsx-player
+          id={PLAYER_ID}
+          style={{ display: "block", minHeight: 240, width: "100%" }}
+        />
+      </section>
 
       <section className="panel" style={{ marginTop: "1rem" }}>
         <p style={{ marginBottom: "0.75rem" }}>{status}</p>
@@ -75,18 +130,11 @@ export default function PlaySpikePage() {
           />
         </label>
         <p style={{ fontSize: "0.85rem", color: "#9aa3b8" }}>
-          Use files you have the right to use. BIOS may be required depending on build — place
-          under <code>bins/</code> locally (see root README). This UI calls the upstream{" "}
-          <code>readFile</code> API only.
+          Many PS1 games need a <strong>.cue</strong> (or multi-track layout), not a raw{" "}
+          <strong>.bin</strong> alone — if nothing boots, try the <code>.cue</code> from your
+          rip. Use files you have the right to use. BIOS may be required; keep dumps under local{" "}
+          <code>bins/</code>. Audio is often missing in this upstream build (see docs).
         </p>
-      </section>
-
-      <section style={{ marginTop: "1rem" }}>
-        <wasmpsx-player
-          ref={playerRef}
-          id="rb-wasmpsx-player"
-          style={{ display: "block", minHeight: 240 }}
-        />
       </section>
     </div>
   );

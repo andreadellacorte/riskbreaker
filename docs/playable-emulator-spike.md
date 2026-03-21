@@ -29,6 +29,15 @@ We vendor the **WASMpsx** release bundle under [`apps/web/public/wasmpsx/`](../a
 - **Threads:** worker-backed WASM (`wasmpsx_worker.js` / `.wasm`) still depends on browser scheduling; background throttling affects tab-in-background.
 - **Safari / Firefox:** WebGL and audio policies differ; test on Chromium first.
 - **Security:** file input only reads **what you choose**; nothing is uploaded by this scaffold.
+- **Audio:** upstream WASMpsx often has **no working SPU output** in the browser (same as the [official demo](https://js-emulators.github.io/wasmpsx/)). For sound, plan the **lrusso/PlayStation** follow-up (see Groove bean **RSK-l7qs**).
+
+## Troubleshooting `/play/spike`
+
+| Symptom                                           | What to try                                                                                                                                                                                                                                  |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Tiny black box / nothing after picking a file** | The bundle binds to the `wasmpsx-player` node present when `wasmpsx.min.js` runs; the app **defers** script load to survive React 18 Strict Mode. **Hard-refresh** once. Prefer **`.cue`** over a lone **`.bin`** if your rip is multi-file. |
+| **No separate “Play” button**                     | Normal — choosing a file calls upstream **`readFile`** immediately ([upstream usage](https://js-emulators.github.io/wasmpsx/)).                                                                                                              |
+| **Still stuck**                                   | Open devtools **Console** for worker/WASM errors; try **Chromium**. Vite sets **COOP/COEP** headers to help `crossOriginIsolated` / pthreads — if something breaks, we can narrow headers.                                                   |
 
 ## Related
 

@@ -16,5 +16,19 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    // Helps some Emscripten worker builds (SharedArrayBuffer / crossOriginIsolated) in Chromium.
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      // `credentialless` is softer than `require-corp` for Vite HMR while still enabling
+      // `crossOriginIsolated` in Chromium (helps some WASM worker builds).
+      "Cross-Origin-Embedder-Policy": "credentialless",
+    },
+  },
+  preview: {
+    port: 5173,
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "credentialless",
+    },
   },
 });
