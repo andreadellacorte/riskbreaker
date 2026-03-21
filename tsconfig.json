@@ -4,19 +4,30 @@
   "compilerOptions": {
     "noEmit": true,
     "resolveJsonModule": true,
+    "types": ["node"],
     "baseUrl": ".",
     "paths": {
       "@riskbreaker/shared-types": ["packages/shared-types/src/index.ts"],
       "@riskbreaker/shared-utils": ["packages/shared-utils/src/index.ts"],
       "@riskbreaker/plugin-sdk": ["packages/plugin-sdk/src/index.ts"],
-      "@riskbreaker/plugin-vagrant-story": ["plugins/vagrant-story/src/index.ts"]
+      "@riskbreaker/plugin-vagrant-story": ["plugins/vagrant-story/src/index.ts"],
+      "@riskbreaker/psx-runtime": ["packages/psx-runtime/src/index.ts"],
+      "@riskbreaker/state-engine": ["packages/state-engine/src/index.ts"],
+      "@riskbreaker/domain-engine": ["packages/domain-engine/src/index.ts"],
+      "@riskbreaker/command-engine": ["packages/command-engine/src/index.ts"],
+      "@riskbreaker/asset-pipeline": ["packages/asset-pipeline/src/index.ts"],
+      "@riskbreaker/ux-platform": ["packages/ux-platform/src/index.ts"],
+      "@riskbreaker/save-service": ["packages/save-service/src/index.ts"],
+      "@riskbreaker/devtools": ["packages/devtools/src/index.ts"],
+      "@riskbreaker/app-shell": ["packages/app-shell/src/index.ts"]
     }
   },
   "include": [
-    "packages/shared-config/src/**/*.ts",
-    "packages/shared-types/src/**/*.ts",
-    "packages/shared-utils/src/**/*.ts",
-    "packages/plugin-sdk/src/**/*.ts",
-    "plugins/vagrant-story/src/**/*.ts"
+    "packages/*/src/**/*.ts",
+    "plugins/*/src/**/*.ts",
+    "tests/**/*.ts",
+    "e2e/**/*.ts",
+    "playwright.config.ts",
+    "apps/docs/vite.config.ts"
   ]
 }

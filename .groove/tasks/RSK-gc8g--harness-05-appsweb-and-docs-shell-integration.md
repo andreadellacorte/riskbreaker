@@ -1,10 +1,10 @@
 ---
 # RSK-gc8g
 title: Harness 05 — apps/web (and docs shell) integration
-status: todo
+status: completed
 type: task
 created_at: 2026-03-21T20:10:21Z
-updated_at: 2026-03-21T20:10:21Z
+updated_at: 2026-03-21T22:35:00Z
 parent: RSK-9c07
 ---
 
@@ -18,9 +18,9 @@ Phase 5 of PSX harness scaffold (`RSK-9c07`). Depends on engines + VS plugin.
 
 ## Acceptance Criteria
 
-- [ ] `pnpm dev` runs web app; user-visible flow matches `project-spec.md` example flow
-- [ ] `pnpm typecheck` passes including app
-- [ ] README updated with dev instructions
+- [x] `pnpm dev` runs web app; user-visible flow matches `project-spec.md` example flow
+- [x] `pnpm typecheck` passes including app
+- [x] README updated with dev instructions
 
 ## Links
 

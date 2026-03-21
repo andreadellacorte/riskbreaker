@@ -5,7 +5,7 @@ status: in-progress
 type: epic
 priority: normal
 created_at: 2026-03-21T20:09:47Z
-updated_at: 2026-03-21T20:47:54Z
+updated_at: 2026-03-21T23:00:00Z
 ---
 
 ## Context
@@ -37,3 +37,13 @@ Deliver a runnable pnpm workspace with typed packages, builds, tests, and README
 - Product: `project-spec.md`
 - Outcome spec: `.groove/memory/specs/psx-ux-remaster-harness.md`
 - Assets: `bins/` (ROM, BIOS — reference for later work)
+
+### Browser play (Phase 2 — real emulator, not in Harness 01–08)
+
+Ordered beans to reach **test the game in the browser** using local `bins/`:
+
+1. **`RSK-l7qp`** — Playable 01: emulator WASM/core spike in the browser (boot to menu/title).
+2. **`RSK-l7qr`** — Playable 02: dev-only loading from `bins/` + play page ergonomics.
+3. **`RSK-l7qs`** — Playable 03: `IRuntime` / session bridge (`EmulatorRuntimeAdapter` vs `MockRuntimeAdapter`).
+
+These depend on **Harness 05** (`RSK-gc8g`) for a real Vite shell; Playable 01 can start as a spike route in parallel if needed.

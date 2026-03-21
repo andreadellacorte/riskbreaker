@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  nix:
+    name: Nix — lint, typecheck, unit, build, Playwright
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@v21
+
+      - name: Cache Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@v8
+
+      - name: Install dependencies and run checks
+        run: |
+          nix develop --accept-flake-config --command bash -euxo pipefail -c \
+            "pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium && pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm e2e"
+
+  docker:
+    name: Docker — image build + tests in container
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build CI image
+        run: docker build -f infra/docker/Dockerfile -t riskbreaker:ci .
+
+      - name: Vitest in container (nix develop → pnpm test)
+        run: docker run --rm -e CI=true riskbreaker:ci pnpm test
+
+      - name: Playwright in container
+        run: |
+          docker run --rm -e CI=true riskbreaker:ci bash -lc \
+            'pnpm exec playwright install --with-deps chromium && pnpm e2e'

@@ -1,19 +1,25 @@
 {
   "name": "riskbreaker",
   "private": true,
+  "type": "module",
   "packageManager": "pnpm@10.32.1",
   "scripts": {
     "dev": "pnpm --filter @riskbreaker/web dev",
+    "dev:docs": "pnpm --filter @riskbreaker/docs dev",
     "build": "pnpm -r run build",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "e2e": "echo 'E2E ships in Harness 06.' && exit 0"
+    "e2e": "playwright test"
   },
   "devDependencies": {
+    "@types/node": "^25.0.0",
+    "@playwright/test": "^1.58.2",
+    "@riskbreaker/app-shell": "workspace:*",
+    "@riskbreaker/plugin-vagrant-story": "workspace:*",
     "@eslint/js": "^10.0.1",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",

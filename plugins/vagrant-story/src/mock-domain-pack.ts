@@ -32,8 +32,13 @@ type MockInvItem = {
 function mapItemsToRows(items: MockInvItem[]): Record<string, unknown>[] {
   return items.map((it) => {
     const detail =
-      it.durability != null ? `Durability ${it.durability}` : it.count != null ? `×${it.count}` : "";
-    const name = it.count != null && it.count > 1 ? `${it.name ?? "?"} ×${it.count}` : (it.name ?? "?");
+      it.durability != null
+        ? `Durability ${it.durability}`
+        : it.count != null
+          ? `×${it.count}`
+          : "";
+    const name =
+      it.count != null && it.count > 1 ? `${it.name ?? "?"} ×${it.count}` : (it.name ?? "?");
     return {
       slot: it.slot ?? 0,
       name,

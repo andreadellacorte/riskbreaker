@@ -1,10 +1,10 @@
 ---
 # RSK-t1mq
 title: Harness 04 — mock runtime, state, domain, command, app-shell
-status: todo
+status: completed
 type: task
 created_at: 2026-03-21T20:10:21Z
-updated_at: 2026-03-21T20:10:21Z
+updated_at: 2026-03-21T22:45:00Z
 parent: RSK-9c07
 ---
 
@@ -18,10 +18,10 @@ Implement **`packages/psx-runtime`** (`MockRuntimeAdapter` + contracts), **`pack
 
 ## Acceptance Criteria
 
-- [ ] Each package builds; **repo-wide `pnpm typecheck` passes**
-- [ ] Prefer mocks that exercise real interfaces (memory snapshot → decode → VM → command plan)
-- [ ] Dependency rules: generic packages do not import plugins
-- [ ] README(s) updated
+- [x] Each package builds; **repo-wide `pnpm typecheck` passes**
+- [x] Prefer mocks that exercise real interfaces (memory snapshot → decode → VM → command plan)
+- [x] Dependency rules: generic packages do not import plugins
+- [x] README(s) updated
 
 ## Links
 

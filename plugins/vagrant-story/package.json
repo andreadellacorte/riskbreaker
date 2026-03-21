@@ -11,7 +11,10 @@
     }
   },
   "types": "./dist/index.d.ts",
-  "files": ["dist", "src/fixtures"],
+  "files": [
+    "dist",
+    "src/fixtures"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rm -rf dist"

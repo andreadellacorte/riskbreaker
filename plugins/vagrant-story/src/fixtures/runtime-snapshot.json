@@ -1,8 +1,6 @@
 {
   "timestamp": 1700000000000,
-  "memorySegments": [
-    { "name": "main_ram", "offset": 0, "size": 2097152 }
-  ],
+  "memorySegments": [{ "name": "main_ram", "offset": 0, "size": 2097152 }],
   "registers": { "pc": 2147483648 },
   "activeScene": "lea_monde_town_01",
   "mockStateTag": "vagrant-story-fixture"

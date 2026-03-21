@@ -1,4 +1,10 @@
-import type { CommandPlan, GameManifest, GameSnapshot, RuntimeSnapshot, ViewModel } from "@riskbreaker/shared-types";
+import type {
+  CommandPlan,
+  GameManifest,
+  GameSnapshot,
+  RuntimeSnapshot,
+  ViewModel,
+} from "@riskbreaker/shared-types";
 
 import commandPlanEquip from "./fixtures/command-plan-equip.json" with { type: "json" };
 import commandPlanSort from "./fixtures/command-plan-sort.json" with { type: "json" };

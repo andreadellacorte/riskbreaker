@@ -55,7 +55,9 @@ describe("createVagrantStoryPlugin", () => {
 
   it("command pack returns structured plans", async () => {
     const pack = plugin.getCommandPack();
-    const equip = await Promise.resolve(pack!.plan({ kind: "EquipItem", itemId: "broadsword_rusty" }));
+    const equip = await Promise.resolve(
+      pack!.plan({ kind: "EquipItem", itemId: "broadsword_rusty" }),
+    );
     expect(equip?.mode).toBe("composite");
     const sort = await Promise.resolve(pack!.plan({ kind: "SortInventory" }));
     expect(sort?.mode).toBe("input-sequence");

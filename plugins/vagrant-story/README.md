@@ -12,7 +12,7 @@
 
 Matches when:
 
-- `manifest.titleId` is one of the known IDs (e.g. **SLUS-01040**, **SLES-02754**), or  
+- `manifest.titleId` is one of the known IDs (e.g. **SLUS-01040**, **SLES-02754**), or
 - `manifest.pluginHints` contains `vagrant-story`, `riskbreaker.plugin.vagrant-story`, or `com.riskbreaker.vagrant-story`.
 
 ## ROM / `bins/`

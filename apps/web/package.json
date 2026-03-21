@@ -2,8 +2,25 @@
   "name": "@riskbreaker/web",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "echo 'Vite app lands in Harness 05.' && exit 0",
-    "build": "echo 'Vite build lands in Harness 05.' && exit 0"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@riskbreaker/app-shell": "workspace:*",
+    "@riskbreaker/plugin-vagrant-story": "workspace:*",
+    "@riskbreaker/shared-types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
   }
 }

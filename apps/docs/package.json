@@ -2,8 +2,13 @@
   "name": "@riskbreaker/docs",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "scripts": {
-    "dev": "echo 'Docs app lands in Harness 05/08.' && exit 0",
-    "build": "echo 'Docs build lands in Harness 05/08.' && exit 0"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^7.3.1"
   }
 }

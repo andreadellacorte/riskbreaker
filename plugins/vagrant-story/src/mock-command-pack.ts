@@ -2,10 +2,7 @@ import type { CommandIntent, CommandPlan } from "@riskbreaker/shared-types";
 import type { ICommandPack } from "@riskbreaker/plugin-sdk";
 
 import { jsonClone } from "./clone.js";
-import {
-  getFixtureCommandPlanEquip,
-  getFixtureCommandPlanSort,
-} from "./load-fixtures.js";
+import { getFixtureCommandPlanEquip, getFixtureCommandPlanSort } from "./load-fixtures.js";
 
 const packId = "vagrant-story.command.mock";
 

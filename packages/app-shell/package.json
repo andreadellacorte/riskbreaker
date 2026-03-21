@@ -1,0 +1,36 @@
+{
+  "name": "@riskbreaker/app-shell",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Session orchestration, plugin resolution, engine glue",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@riskbreaker/asset-pipeline": "workspace:*",
+    "@riskbreaker/command-engine": "workspace:*",
+    "@riskbreaker/devtools": "workspace:*",
+    "@riskbreaker/domain-engine": "workspace:*",
+    "@riskbreaker/plugin-sdk": "workspace:*",
+    "@riskbreaker/psx-runtime": "workspace:*",
+    "@riskbreaker/save-service": "workspace:*",
+    "@riskbreaker/shared-types": "workspace:*",
+    "@riskbreaker/state-engine": "workspace:*",
+    "@riskbreaker/ux-platform": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
