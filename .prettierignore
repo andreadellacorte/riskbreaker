@@ -10,3 +10,6 @@ pnpm-lock.yaml
 .groove/
 .beans.yml
 bins/
+
+# Vendored WASMpsx browser bundle (upstream minified)
+apps/web/public/wasmpsx/

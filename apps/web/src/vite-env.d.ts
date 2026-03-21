@@ -1,5 +1,13 @@
 /// <reference types="vite/client" />
 
-declare module "*vite.workspace.mjs" {
-  export function workspaceAliases(monorepoRoot: string): Record<string, string>;
+import type { HTMLAttributes } from "react";
+
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "wasmpsx-player": React.DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement>;
+    }
+  }
 }
+
+export {};

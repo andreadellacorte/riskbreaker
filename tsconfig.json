@@ -28,6 +28,7 @@
     "tests/**/*.ts",
     "e2e/**/*.ts",
     "playwright.config.ts",
-    "apps/docs/vite.config.ts"
+    "apps/docs/vite.config.ts",
+    "vite.workspace.d.mts"
   ]
 }

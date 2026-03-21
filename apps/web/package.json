@@ -12,7 +12,8 @@
   "dependencies": {
     "@riskbreaker/app-shell": "workspace:*",
     "@riskbreaker/plugin-vagrant-story": "workspace:*",
-    "@riskbreaker/shared-types": "workspace:*"
+    "@riskbreaker/shared-types": "workspace:*",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

@@ -4,11 +4,12 @@
 
 ## Documentation
 
-| Doc                                                | Purpose                                                                                                         |
-| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| [**docs/architecture.md**](./docs/architecture.md) | **Package boundaries**, **plugin model**, **data flow**, **Mermaid diagrams** — read this for the system shape. |
-| [**docs/README.md**](./docs/README.md)             | Index of spec + memory links.                                                                                   |
-| [**project-spec.md**](./project-spec.md)           | Full Phase 1 product and technical spec.                                                                        |
+| Doc                                                                      | Purpose                                                                                                         |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| [**docs/architecture.md**](./docs/architecture.md)                       | **Package boundaries**, **plugin model**, **data flow**, **Mermaid diagrams** — read this for the system shape. |
+| [**docs/playable-emulator-spike.md**](./docs/playable-emulator-spike.md) | Browser PS1 spike (`/play/spike`), WASMpsx, BIOS / legal notes.                                                 |
+| [**docs/README.md**](./docs/README.md)                                   | Index of spec + memory links.                                                                                   |
+| [**project-spec.md**](./project-spec.md)                                 | Full Phase 1 product and technical spec.                                                                        |
 
 ## Stack (intended from day one)
 
@@ -51,6 +52,8 @@ See [`infra/docker/README.md`](./infra/docker/README.md). On macOS, use Docker D
 **direnv:** optional `.envrc` runs `use flake` — run `direnv allow` once if you use [direnv](https://direnv.net/).
 
 **Web app (Harness 05):** after `pnpm install`, run `pnpm dev` and open http://localhost:5173 . Click **Load mock session (Vagrant Story)** to run the mock pipeline (`SessionOrchestrator` + fixtures) in the browser: manifest, inventory view model, and a sample **EquipItem** command plan.
+
+**Playable emulator spike (Playable 01):** open http://localhost:5173/play/spike for a **WASM PS1** proof-of-concept (vendored WASMpsx, MIT). It is **not** wired to Riskbreaker engines yet — see [`docs/playable-emulator-spike.md`](./docs/playable-emulator-spike.md). **Do not commit** BIOS or disc images; keep dumps under local **`bins/`** only if you have the right to use them for testing.
 
 Root `tsconfig.json` maps `@riskbreaker/*` workspace packages to **source** `index.ts` files so `pnpm typecheck` works before `dist/` exists. Vite uses [`vite.workspace.mjs`](./vite.workspace.mjs) to resolve the same paths during `pnpm dev` / `pnpm build` without pre-building every package.
 
@@ -150,4 +153,6 @@ Work follows beans under epic **RSK-9c07** (see Groove task list). **Harness 01*
 
 ## Assets
 
-Local ROM/BIOS files for future integration live under `bins/` (ignored by git). Not used by the mock scaffold.
+Local ROM/BIOS files for future integration live under **`bins/`** (ignored by git). Not used by the **mock** scaffold.
+
+For the **`/play/spike`** browser emulator test, place **BIOS / disc images you may legally use** only on your machine (e.g. under `bins/`); the app reads discs via **file picker** — nothing is committed to the repo. See [`docs/playable-emulator-spike.md`](./docs/playable-emulator-spike.md).
