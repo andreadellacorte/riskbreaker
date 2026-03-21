@@ -2,6 +2,14 @@
 
 **Riskbreaker** is the working name for this **PSX UX remaster platform** (see [`project-spec.md`](./project-spec.md) and [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md)). This repo is a **pnpm monorepo**: TypeScript packages, React/Vite web app, and game plugins — starting with **Vagrant Story**.
 
+## Documentation
+
+| Doc                                                | Purpose                                                                                                         |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| [**docs/architecture.md**](./docs/architecture.md) | **Package boundaries**, **plugin model**, **data flow**, **Mermaid diagrams** — read this for the system shape. |
+| [**docs/README.md**](./docs/README.md)             | Index of spec + memory links.                                                                                   |
+| [**project-spec.md**](./project-spec.md)           | Full Phase 1 product and technical spec.                                                                        |
+
 ## Stack (intended from day one)
 
 | Layer      | Role                                                                                                                                                |
@@ -9,6 +17,7 @@
 | **pnpm**   | Workspace installs and scripts (`packageManager` pinned in root `package.json`).                                                                    |
 | **Nix**    | Reproducible dev shell: **Node 24**, **pnpm 10** (corepack), git, **netlify-cli**, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`). |
 | **Docker** | Multi-stage: **`web`** (nginx + `apps/web` dist) and **`ci`** (Nix + pnpm test) — [`infra/docker/Dockerfile`](./infra/docker/Dockerfile).           |
+| **Docs**   | [`docs/architecture.md`](./docs/architecture.md) — architecture + diagrams; [`apps/docs`](./apps/docs/) optional Vite placeholder.                  |
 
 ## Prerequisites
 
@@ -109,9 +118,11 @@ This environment cannot log into your Netlify account. You link the site once:
 Aligned with `project-spec.md`:
 
 ```text
+docs/
+  architecture.md   # boundaries, plugin model, Mermaid (Harness 08)
 apps/
   web/          # browser shell (Vite + React)
-  docs/         # architecture / generated docs
+  docs/         # optional Vite doc site — see docs/ for canonical architecture
 packages/
   shared-config    # ESLint / Prettier presets (Harness 01)
   shared-types     # domain types (Harness 02)
@@ -135,7 +146,7 @@ infra/          # nix, docker, k8s, terraform (Harness 07)
 
 ## Harness order
 
-Work follows beans under epic **RSK-9c07** (see Groove task list). **Harness 01** workspace + tooling; **Harness 02** shared packages + Vitest; **Harness 03** mock `vagrant-story` plugin; **Harness 04** engine packages + `app-shell` + integration test under `tests/`; **Harness 05** Vite **`apps/web`** + docs placeholder **`apps/docs`**.
+Work follows beans under epic **RSK-9c07** (see Groove task list). **Harness 01** workspace + tooling; **Harness 02** shared packages + Vitest; **Harness 03** mock `vagrant-story` plugin; **Harness 04** engine packages + `app-shell` + integration test under `tests/`; **Harness 05** Vite **`apps/web`** + docs placeholder **`apps/docs`**; **Harness 06–07** tests/CI/infra; **Harness 08** [`docs/architecture.md`](./docs/architecture.md) + doc index.
 
 ## Assets
 

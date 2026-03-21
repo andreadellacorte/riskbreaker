@@ -1,10 +1,11 @@
 ---
 # RSK-slzy
 title: Harness 08 — Docs and architecture
-status: todo
+status: completed
 type: task
+priority: normal
 created_at: 2026-03-21T20:10:21Z
-updated_at: 2026-03-21T20:10:21Z
+updated_at: 2026-03-22T10:30:00Z
 parent: RSK-9c07
 ---
 
@@ -18,9 +19,16 @@ Phase 8 of PSX harness scaffold (`RSK-9c07`). Final documentation pass after imp
 
 ## Acceptance Criteria
 
-- [ ] New contributor can understand layout and run the mock flow from docs alone
-- [ ] Diagram(s) and links accurate vs current repo
-- [ ] No drift from enforced boundaries in `project-spec.md`
+- [x] New contributor can understand layout and run the mock flow from docs alone
+- [x] Diagram(s) and links accurate vs current repo
+- [x] No drift from enforced boundaries in `project-spec.md`
+
+## Delivered
+
+- [`docs/architecture.md`](../../docs/architecture.md) — boundaries, plugin model, data flow, two Mermaid diagrams
+- [`docs/README.md`](../../docs/README.md) — index
+- Root [`README.md`](../../README.md) — Documentation table + layout tree
+- [`apps/docs/README.md`](../../apps/docs/README.md) — points to canonical `docs/`
 
 ## Links
 
