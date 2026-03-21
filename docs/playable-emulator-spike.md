@@ -36,7 +36,14 @@ We vendor the **WASMpsx** release bundle under [`apps/web/public/wasmpsx/`](../a
 
 ## Automated smoke test (Playwright)
 
-[`e2e/play-spike.spec.ts`](../e2e/play-spike.spec.ts) loads **`/play/spike`**, waits for **`/wasmpsx/wasmpsx_ww.wasm`**, and asserts the **“WASMpsx loaded”** status and an enabled file input. It does **not** ship or load disc images (legal + CI). Run: **`pnpm e2e`**.
+[`e2e/play-spike.spec.ts`](../e2e/play-spike.spec.ts):
+
+1. Loads **`/play/spike`**, waits for **`/wasmpsx/wasmpsx_ww.wasm`**, and asserts **“WASMpsx loaded”** + an enabled file input.
+2. **`setInputFiles`** a committed **GPL-2.0** homebrew **`.bin`** ([`e2e/fixtures/240pTestSuitePS1-EMU.bin`](../e2e/fixtures/240pTestSuitePS1-EMU.bin) — see [`e2e/fixtures/README.md`](../e2e/fixtures/README.md)) and polls the page console until WASMpsx reports **`readfile and run`**, **`Loaded CD Image:`**, and **no** **`Could not load CD-ROM!`**.
+
+Optional: **`E2E_PS1_DISC_BIN`** points at another `.bin` on disk (e.g. a local Vagrant Story rip) without committing it.
+
+Run: **`pnpm e2e`**.
 
 ## Troubleshooting `/play/spike`
 
