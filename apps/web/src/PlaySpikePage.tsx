@@ -130,10 +130,13 @@ export default function PlaySpikePage() {
           />
         </label>
         <p style={{ fontSize: "0.85rem", color: "#9aa3b8" }}>
-          Many PS1 games need a <strong>.cue</strong> (or multi-track layout), not a raw{" "}
-          <strong>.bin</strong> alone — if nothing boots, try the <code>.cue</code> from your
-          rip. Use files you have the right to use. BIOS may be required; keep dumps under local{" "}
-          <code>bins/</code>. Audio is often missing in this upstream build (see docs).
+          This WASMpsx build often works best with a single <strong>.bin</strong> or{" "}
+          <strong>.iso</strong> — a <strong>.cue</strong> alone usually fails here because the
+          browser only passes <em>one</em> file; cue sheets expect sibling track files on disk.
+          Use files you have the right to use; BIOS may be required (local <code>bins/</code>).
+          <strong> Sound:</strong> WASMpsx typically has <strong>no SPU audio</strong> in the
+          browser (same as upstream). Planned follow-up: Groove <strong>RSK-l7qs</strong>{" "}
+          (lrusso/PlayStation migration for audio).
         </p>
       </section>
     </div>
