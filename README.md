@@ -7,13 +7,13 @@
 | Layer      | Role                                                                                                                                                |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **pnpm**   | Workspace installs and scripts (`packageManager` pinned in root `package.json`).                                                                    |
-| **Nix**    | Reproducible dev shell: **Node 25**, **pnpm 10** (corepack), git, **netlify-cli**, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`). |
+| **Nix**    | Reproducible dev shell: **Node 24**, **pnpm 10** (corepack), git, **netlify-cli**, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`). |
 | **Docker** | Multi-stage: **`web`** (nginx + `apps/web` dist) and **`ci`** (Nix + pnpm test) — [`infra/docker/Dockerfile`](./infra/docker/Dockerfile).           |
 
 ## Prerequisites
 
 - **Recommended:** [Nix](https://nixos.org/) with flakes (`nix develop`) for the toolchain above.
-- **Otherwise:** Node.js **25+** and **pnpm 10** (`corepack enable` or [pnpm.io](https://pnpm.io)) — align with `packageManager` in root `package.json`.
+- **Otherwise:** Node.js **24.x** and **pnpm 10** (`corepack enable` or [pnpm.io](https://pnpm.io)) — align with `packageManager` in root `package.json`.
 - **Docker:** optional for local builds; required to build `infra/docker/Dockerfile`.
 
 ## Setup
@@ -25,7 +25,7 @@ nix develop
 pnpm install
 ```
 
-**Without Nix:** install Node **25+** and **pnpm 10**, then `pnpm install`.
+**Without Nix:** install Node **24.x** and **pnpm 10**, then `pnpm install`.
 
 **Docker build** (from repo root; requires Docker daemon):
 
@@ -63,7 +63,7 @@ Root `tsconfig.json` maps `@riskbreaker/*` workspace packages to **source** `ind
 
 ### Playwright (local)
 
-From `nix develop` or Node 25 + pnpm:
+From `nix develop` or Node 24 + pnpm:
 
 ```bash
 pnpm exec playwright install chromium   # Linux: add --with-deps if the browser fails to start
@@ -84,7 +84,7 @@ pnpm e2e
 
 | Area           | Location                                 | Notes                                                                                                       |
 | -------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 25, pnpm via corepack, git, **netlify-cli** (nixpkgs), docker-compose, kubectl, terraform.  |
+| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 24, pnpm via corepack, git, **netlify-cli** (nixpkgs), docker-compose, kubectl, terraform.  |
 | **Docker**     | [`infra/docker/`](./infra/docker/)       | **`web`** target = static `apps/web`; **`ci`** target = Nix + pnpm (tests).                                 |
 | **Kubernetes** | [`infra/k8s/base/`](./infra/k8s/base/)   | Kustomize base (namespace, placeholder Deployment/Service) — customize image/ingress before apply.          |
 | **Terraform**  | [`infra/terraform/`](./infra/terraform/) | Example env validates tooling; **`modules/`** reserved for real stacks.                                     |
@@ -100,7 +100,7 @@ This environment cannot log into your Netlify account. You link the site once:
 
 1. In [Netlify](https://app.netlify.com/), **Add new site** → **Import an existing project** → connect **GitHub** and select **`riskbreaker`**.
 2. Leave **base directory** empty (build runs from the **repository root**; [`netlify.toml`](./netlify.toml) sets command and publish dir).
-3. Deploy: Netlify runs **`pnpm install --frozen-lockfile`** and **`pnpm --filter @riskbreaker/web build`**, publishes **`apps/web/dist`**. **Node 24.x** for Netlify builds ([`netlify.toml`](./netlify.toml), [`.nvmrc`](./.nvmrc)) — Netlify’s environment currently tops out at **24.x**; local **`nix develop`** still uses **Node 25** from [`flake.nix`](./flake.nix).
+3. Deploy: Netlify runs **`pnpm install --frozen-lockfile`** and **`pnpm --filter @riskbreaker/web build`**, publishes **`apps/web/dist`**. **Node 24.x** for builds ([`netlify.toml`](./netlify.toml) and [`flake.nix`](./flake.nix) — same major everywhere). This repo does **not** use **`.nvmrc`**; Node version is pinned in **`flake.nix`** (local) and **`netlify.toml`** (Netlify).
 
 **CLI:** With **`nix develop`**, the **`netlify`** command comes from **nixpkgs** (`netlify-cli` in [`flake.nix`](./flake.nix)) — no separate npm global install. Run `netlify login` / `netlify deploy` locally; do not commit tokens.
 

@@ -22,7 +22,7 @@
           name = "riskbreaker";
 
           packages = with pkgs; [
-            nodejs_25
+            nodejs_24
             corepack
             git
             docker-compose

@@ -24,6 +24,6 @@
 
 **Harness 02 complete:** `packages/shared-types`, `packages/shared-utils`, `packages/plugin-sdk` (contracts + `resolvePluginForManifest`), root `vitest.config.mts` + `pnpm test`. Matches `project-spec.md`; no game logic in generic packages.
 
-**Tooling baseline (end stack from the start):** `pnpm` + **`flake.nix` / `flake.lock`** (Nix dev shell: corepack/pnpm 10.x, Node 25, git, docker-compose, kubectl, **terraform CLI**) + **`infra/docker/Dockerfile`** (official **`docker.io/nixos/nix`** + `nix develop` for CI) + **`.dockerignore`**. Policy is in epic **RSK-9c07** (“Development stack”).
+**Tooling baseline (end stack from the start):** `pnpm` + **`flake.nix` / `flake.lock`** (Nix dev shell: corepack/pnpm 10.x, Node 24, git, docker-compose, kubectl, **terraform CLI**) + **`infra/docker/Dockerfile`** (official **`docker.io/nixos/nix`** + `nix develop` for CI) + **`.dockerignore`**. Policy is in epic **RSK-9c07** (“Development stack”).
 
 **Not started yet:** **`infra/terraform/`** (IaC skeleton), **`infra/k8s/`**, **GitHub Actions**, **`@playwright/test`** + real **`pnpm e2e`** — tracked under **RSK-7q8c** and **RSK-0o5v**.
