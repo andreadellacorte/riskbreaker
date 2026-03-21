@@ -20,8 +20,7 @@ test.describe("/play/spike — lrusso/PlayStation smoke", () => {
     test.setTimeout(120_000);
 
     const shellResponse = page.waitForResponse(
-      (res) =>
-        res.url().includes("/playstation/PlayStation.htm") && res.status() === 200,
+      (res) => res.url().includes("/playstation/PlayStation.htm") && res.status() === 200,
     );
 
     await page.goto("/play/spike");
@@ -36,12 +35,14 @@ test.describe("/play/spike — lrusso/PlayStation smoke", () => {
       timeout: 30_000,
     });
 
-    await expect(page.getByText(/Ready — choose/i)).toBeVisible({
+    await expect(page.getByText(/Ready — use the red Upload/i)).toBeVisible({
       timeout: 60_000,
     });
 
-    const fileInput = page.locator('input[type="file"]');
-    await expect(fileInput).toBeEnabled({ timeout: 10_000 });
+    const frame = page.frameLocator('iframe[title="PlayStation emulator"]');
+    await expect(frame.locator("#gui_controls_file")).toBeAttached({
+      timeout: 10_000,
+    });
   });
 });
 
@@ -54,12 +55,12 @@ test.describe("/play/spike — disc image integration", () => {
 
     await page.goto("/play/spike");
 
-    await expect(page.getByText(/Ready — choose/i)).toBeVisible({
+    await expect(page.getByText(/Ready — use the red Upload/i)).toBeVisible({
       timeout: 90_000,
     });
 
     const frame = page.frameLocator('iframe[title="PlayStation emulator"]');
-    await page.locator('input[type="file"]').setInputFiles(bin);
+    await frame.locator("#gui_controls_file").setInputFiles(bin);
 
     await expect(frame.locator("#rb-playstation-host canvas")).toBeVisible({
       timeout: 120_000,

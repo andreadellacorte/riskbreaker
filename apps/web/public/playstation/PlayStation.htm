@@ -115,6 +115,7 @@
 							{
 							// READING AND RUNNING THE PLAYSTATION GAME FILE
 							readFile(ROMDATA);
+							try { window.focus(); } catch (e) {}
 							}, 500);
 						}
 
@@ -147,6 +148,7 @@
 
 						// RUNNING THE PLAYSTATION EMULATOR
 						runPlayStation();
+						try { window.focus(); } catch (e) {}
 
 						// CLEARING THE SELECTED FILE VALUE
 						document.getElementById("gui_controls_file").value = null;

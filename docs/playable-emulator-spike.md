@@ -38,7 +38,7 @@ The upstream shell only accepts **`.bin`** in its validator (see [author demo](h
 
 [`e2e/play-spike.spec.ts`](../e2e/play-spike.spec.ts):
 
-1. Loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm`**, asserts the iframe and **“Ready — choose”** + enabled file input.
+1. Loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm`**, asserts the iframe and **“Ready — use the red Upload”** + hidden **`#gui_controls_file`** inside the frame.
 2. **`setInputFiles`** a committed **GPL-2.0** homebrew **`.bin`** ([`e2e/fixtures/240pTestSuitePS1-EMU.bin`](../e2e/fixtures/240pTestSuitePS1-EMU.bin)) and asserts a **`canvas`** appears under **`#rb-playstation-host`** in the iframe (disc layer + WASM initialized).
 
 Optional: **`E2E_PS1_DISC_BIN`** points at another `.bin` on disk without committing it.
@@ -47,13 +47,14 @@ Run: **`pnpm e2e`**.
 
 ## Troubleshooting `/play/spike`
 
-| Symptom                                 | What to try                                                                                                                                       |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Iframe blank / failed to load**       | DevTools **Network** → `PlayStation.htm` / `PlayStation.js` (JS loads **after** you pick a valid `.bin`). Hard-refresh.                           |
-| **`Could not load CD-ROM!` (upstream)** | Wrong or unreadable image for PCSX; try another **`.bin`**, BIOS, or rip.                                                                         |
-| **No sound**                            | Click **inside the iframe** once (user gesture), use the **speaker** control in-frame, and check system volume.                                   |
-| **No separate “Play” button**           | Normal — choosing a **`.bin`** runs the game via upstream **`readFile`**.                                                                         |
-| **Still stuck**                         | Open devtools **Console** for worker/WASM errors; try **Chromium**. Vite sets **COOP/COEP** headers — if something breaks, we can narrow headers. |
+| Symptom                                 | What to try                                                                                                                                                                                         |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Iframe blank / failed to load**       | DevTools **Network** → `PlayStation.htm` / `PlayStation.js` (JS loads **after** you pick a valid `.bin`). Hard-refresh.                                                                             |
+| **`Could not load CD-ROM!` (upstream)** | Wrong or unreadable image for PCSX; try another **`.bin`**, BIOS, or rip.                                                                                                                           |
+| **No sound**                            | Click **inside the iframe** once (user gesture), use the **speaker** control in-frame, and check system volume.                                                                                     |
+| **Keys / pad do nothing**               | **Click the game view** so the iframe has focus (not the Riskbreaker page). We removed a duplicate file picker that kept focus on the parent; the shell also calls **`window.focus()`** after boot. |
+| **No separate “Play” button**           | Normal — choosing a **`.bin`** runs the game via upstream **`readFile`**.                                                                                                                           |
+| **Still stuck**                         | Open devtools **Console** for worker/WASM errors; try **Chromium**. Vite sets **COOP/COEP** headers — if something breaks, we can narrow headers.                                                   |
 
 ## Related
 
