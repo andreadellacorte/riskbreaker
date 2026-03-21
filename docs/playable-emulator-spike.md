@@ -4,7 +4,7 @@ This documents the **Phase 1 spike** that proves a PlayStation-class emulator ca
 
 ## Chosen approach: WASMpsx (MIT)
 
-We vendor the **WASMpsx** release bundle under [`apps/web/public/wasmpsx/`](../apps/web/public/wasmpsx/) (see `LICENSE.wasmpsx.txt` there).
+We vendor the **WASMpsx** release bundle under [`apps/web/public/wasmpsx/`](../apps/web/public/wasmpsx/) — `wasmpsx.min.js`, `wasmpsx_worker.js`, **`wasmpsx_ww.wasm`**, **`wasmpsx_worker.wasm`** (see `LICENSE.wasmpsx.txt`). The minified main script is patched to use **absolute** `/wasmpsx/…` URLs so assets load correctly from nested routes like `/play/spike`.
 
 | Topic                                       | Notes                                                                                                         |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
@@ -33,11 +33,12 @@ We vendor the **WASMpsx** release bundle under [`apps/web/public/wasmpsx/`](../a
 
 ## Troubleshooting `/play/spike`
 
-| Symptom                                           | What to try                                                                                                                                                                                                                                  |
-| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Tiny black box / nothing after picking a file** | The bundle binds to the `wasmpsx-player` node present when `wasmpsx.min.js` runs; the app **defers** script load to survive React 18 Strict Mode. **Hard-refresh** once. Prefer **`.cue`** over a lone **`.bin`** if your rip is multi-file. |
-| **No separate “Play” button**                     | Normal — choosing a file calls upstream **`readFile`** immediately ([upstream usage](https://js-emulators.github.io/wasmpsx/)).                                                                                                              |
-| **Still stuck**                                   | Open devtools **Console** for worker/WASM errors; try **Chromium**. Vite sets **COOP/COEP** headers to help `crossOriginIsolated` / pthreads — if something breaks, we can narrow headers.                                                   |
+| Symptom                                                               | What to try                                                                                                                                                                                                                                                                                                                                  |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`CompileError` / wrong WASM “magic word” (`3c 21 64 6f` = `<!do`)** | The browser got **HTML** (usually Vite’s index) instead of a `.wasm` file: missing binaries under `public/wasmpsx/`, or **relative** asset URLs resolved from `/play/spike` to `/play/*.wasm`. This repo vendors **`wasmpsx_ww.wasm`** and **`wasmpsx_worker.wasm`** and patches **`wasmpsx.min.js`** to load **`/wasmpsx/...`** absolutely. |
+| **Tiny black box / nothing after picking a file**                     | The bundle binds to the `wasmpsx-player` node present when `wasmpsx.min.js` runs; the app **defers** script load to survive React 18 Strict Mode. **Hard-refresh** once. Prefer **`.cue`** over a lone **`.bin`** if your rip is multi-file.                                                                                                 |
+| **No separate “Play” button**                                         | Normal — choosing a file calls upstream **`readFile`** immediately ([upstream usage](https://js-emulators.github.io/wasmpsx/)).                                                                                                                                                                                                              |
+| **Still stuck**                                                       | Open devtools **Console** for worker/WASM errors; try **Chromium**. Vite sets **COOP/COEP** headers to help `crossOriginIsolated` / pthreads — if something breaks, we can narrow headers.                                                                                                                                                   |
 
 ## Related
 
