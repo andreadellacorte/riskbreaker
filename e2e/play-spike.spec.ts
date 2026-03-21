@@ -25,9 +25,7 @@ test.describe("/play/spike — lrusso/PlayStation smoke", () => {
 
     await page.goto("/play/spike");
 
-    await expect(
-      page.getByRole("heading", { name: /Playable spike — browser PS1/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("link", { name: /Mock shell/i })).toBeVisible();
 
     await shellResponse;
 
@@ -35,7 +33,7 @@ test.describe("/play/spike — lrusso/PlayStation smoke", () => {
       timeout: 30_000,
     });
 
-    await expect(page.getByText(/Ready — use the red Upload/i)).toBeVisible({
+    await expect(page.getByText(/Playable spike — Ready/i)).toBeVisible({
       timeout: 60_000,
     });
 
@@ -55,7 +53,7 @@ test.describe("/play/spike — disc image integration", () => {
 
     await page.goto("/play/spike");
 
-    await expect(page.getByText(/Ready — use the red Upload/i)).toBeVisible({
+    await expect(page.getByText(/Playable spike — Ready/i)).toBeVisible({
       timeout: 90_000,
     });
 

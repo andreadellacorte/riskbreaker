@@ -6,17 +6,17 @@ This documents the **Phase 1 spike** that proves a PlayStation-class emulator ca
 
 We vendor **[lrusso/PlayStation](https://github.com/lrusso/PlayStation)** under [`apps/web/public/playstation/`](../apps/web/public/playstation/) — `PlayStation.htm`, **`PlayStation.js`** (WASM embedded as a `data:` URI + worker bootstrap), and [`LICENSE.playstation.txt`](../apps/web/public/playstation/LICENSE.playstation.txt). Upstream improves on [js-emulators/wasmpsx](https://github.com/js-emulators/wasmpsx) with **working sound**, mute/unmute, and UI polish.
 
-| Topic           | Notes                                                                                                                                 |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| **Upstream**    | [lrusso/PlayStation](https://github.com/lrusso/PlayStation) — based on WASMpsx; no separate repo `LICENSE` file (see bundled notice). |
-| **Integration** | [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) embeds **`/playstation/PlayStation.htm`** in an **iframe** (same-origin).          |
-| **Patch**       | `PlayStation.js` is patched to mount the canvas on **`#rb-playstation-host`** instead of the first `<div>` (safe inside the SPA).     |
-| **Trade-offs**  | Large single JS payload (~1.3 MB); Web Audio policies vary; not “accuracy first” like DuckStation.                                    |
+| Topic           | Notes                                                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Upstream**    | [lrusso/PlayStation](https://github.com/lrusso/PlayStation) — based on WASMpsx; no separate repo `LICENSE` file (see bundled notice).                                          |
+| **Integration** | [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) is **full-viewport** (thin top bar + iframe) like [lrusso.github.io](https://lrusso.github.io/PlayStation/PlayStation.htm). |
+| **Patch**       | `PlayStation.js` mounts on **`#rb-playstation-host`**; `PlayStation.htm` includes extra CSS so **Upload / HUD** stay above the game plane in an iframe.                        |
+| **Trade-offs**  | Large single JS payload (~1.3 MB); Web Audio policies vary; not “accuracy first” like DuckStation.                                                                             |
 
 ## UI route
 
 - **Default mock shell:** [`/`](../apps/web/src/MockShellPage.tsx) — unchanged vertical slice.
-- **Spike:** [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) — iframe + optional parent **file input** that forwards to the iframe’s **`readFile`** (same as the in-frame Upload control).
+- **Spike:** [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) — **full-screen iframe** (same shell as upstream); only the in-frame **Upload** loads a `.bin`.
 
 The upstream shell only accepts **`.bin`** in its validator (see [author demo](https://lrusso.github.io/PlayStation/PlayStation.htm)).
 
@@ -38,7 +38,7 @@ The upstream shell only accepts **`.bin`** in its validator (see [author demo](h
 
 [`e2e/play-spike.spec.ts`](../e2e/play-spike.spec.ts):
 
-1. Loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm`**, asserts the iframe and **“Ready — use the red Upload”** + hidden **`#gui_controls_file`** inside the frame.
+1. Loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm`**, asserts **“Playable spike — Ready”** + hidden **`#gui_controls_file`** inside the frame.
 2. **`setInputFiles`** a committed **GPL-2.0** homebrew **`.bin`** ([`e2e/fixtures/240pTestSuitePS1-EMU.bin`](../e2e/fixtures/240pTestSuitePS1-EMU.bin)) and asserts a **`canvas`** appears under **`#rb-playstation-host`** in the iframe (disc layer + WASM initialized).
 
 Optional: **`E2E_PS1_DISC_BIN`** points at another `.bin` on disk without committing it.

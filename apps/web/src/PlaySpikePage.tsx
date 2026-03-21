@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom";
 import { useCallback, useRef, useState } from "react";
 
+/**
+ * Full-viewport embed like https://lrusso.github.io/PlayStation/PlayStation.htm — the
+ * emulator document owns the window inside the iframe; we only add a thin top bar.
+ */
 export default function PlaySpikePage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [status, setStatus] = useState("Loading emulator…");
+  const [status, setStatus] = useState("Loading…");
 
   const focusEmulator = useCallback(() => {
     const w = iframeRef.current?.contentWindow;
@@ -11,71 +15,96 @@ export default function PlaySpikePage() {
       try {
         w.focus();
       } catch {
-        /* some browsers restrict focus; user can click the iframe */
+        /* ignore */
       }
     }
     iframeRef.current?.focus();
   }, []);
 
   const onIframeLoad = useCallback(() => {
-    setStatus("Ready — use the red Upload control inside the emulator to load a .bin.");
+    setStatus("Ready");
     queueMicrotask(() => {
       focusEmulator();
     });
   }, [focusEmulator]);
 
   return (
-    <div style={{ maxWidth: 960, margin: "0 auto", padding: "1.5rem" }}>
-      <header>
-        <p style={{ marginBottom: "0.5rem" }}>
-          <Link to="/">← Mock shell (default)</Link>
-        </p>
-        <h1 style={{ fontWeight: 600, fontSize: "1.5rem" }}>Playable spike — browser PS1</h1>
-        <p style={{ color: "#9aa3b8" }}>
-          Embedded <strong>lrusso/PlayStation</strong> (same build family as the{" "}
-          <a
-            href="https://lrusso.github.io/PlayStation/PlayStation.htm"
-            rel="noreferrer"
-            target="_blank"
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        flexDirection: "column",
+        margin: 0,
+        padding: 0,
+        background: "#000",
+        zIndex: 1,
+      }}
+    >
+      <header
+        style={{
+          position: "relative",
+          flex: "0 0 auto",
+          display: "flex",
+          alignItems: "center",
+          gap: "0.75rem",
+          padding: "0.35rem 0.65rem",
+          fontSize: "0.85rem",
+          color: "#9aa3b8",
+          background: "#0d0f14",
+          borderBottom: "1px solid #1e2433",
+        }}
+      >
+        <Link style={{ color: "#8ab4ff", whiteSpace: "nowrap" }} to="/">
+          ← Mock shell
+        </Link>
+        <span style={{ opacity: 0.85 }}>Playable spike — {status}</span>
+        <details style={{ marginLeft: "auto", fontSize: "0.8rem" }}>
+          <summary style={{ cursor: "pointer", userSelect: "none" }}>Help</summary>
+          <div
+            style={{
+              position: "absolute",
+              right: "0.5rem",
+              marginTop: "0.35rem",
+              padding: "0.6rem 0.75rem",
+              maxWidth: 320,
+              background: "#1a1f2e",
+              border: "1px solid #2c3344",
+              borderRadius: 6,
+              color: "#c4cad6",
+              zIndex: 10,
+            }}
           >
-            author&apos;s demo
-          </a>
-          ): mute, fullscreen, and one Upload button inside the frame.
-        </p>
+            Use the <strong>red Upload</strong> in the game area to load a <strong>.bin</strong>
+            . Click the picture so keys (C/V/W/…) go to the game. Sound: speaker icon. Matches{" "}
+            <a
+              href="https://lrusso.github.io/PlayStation/PlayStation.htm"
+              rel="noreferrer"
+              target="_blank"
+            >
+              lrusso.github.io/PlayStation
+            </a>
+            .
+          </div>
+        </details>
       </header>
 
-      <section style={{ marginTop: "1rem" }}>
-        <iframe
-          ref={iframeRef}
-          allow="autoplay; fullscreen; gamepad"
-          tabIndex={0}
-          title="PlayStation emulator"
-          src="/playstation/PlayStation.htm"
-          onLoad={onIframeLoad}
-          onMouseDown={focusEmulator}
-          style={{
-            width: "100%",
-            minHeight: "min(80vh, 720px)",
-            border: "1px solid #2a3344",
-            borderRadius: 8,
-            background: "#0a0c10",
-          }}
-        />
-      </section>
-
-      <section className="panel" style={{ marginTop: "1rem" }}>
-        <p style={{ marginBottom: "0.75rem" }}>{status}</p>
-        <p style={{ fontSize: "0.85rem", color: "#9aa3b8" }}>
-          <strong>Controls:</strong> click once on the game view so the frame has focus, then
-          use the keys shown in the overlay (e.g. C / V / W / E / R / T / Z / X / S / D). If
-          keys do nothing, click the picture again — the parent page was receiving focus instead
-          of the emulator.
-        </p>
-        <p style={{ fontSize: "0.85rem", color: "#9aa3b8", marginTop: "0.5rem" }}>
-          Only <strong>.bin</strong> is accepted by this upstream UI. Use files you have the
-          right to use; BIOS may be required (local <code>bins/</code>).
-        </p>
-      </section>
+      <iframe
+        ref={iframeRef}
+        allow="autoplay; fullscreen; gamepad"
+        tabIndex={0}
+        title="PlayStation emulator"
+        src="/playstation/PlayStation.htm"
+        onLoad={onIframeLoad}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          width: "100%",
+          border: 0,
+          display: "block",
+          background: "#000",
+        }}
+      />
     </div>
   );
 }
