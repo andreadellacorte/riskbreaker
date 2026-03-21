@@ -1,0 +1,4 @@
+{
+  "mode": "input-sequence",
+  "steps": ["open_menu", "inventory_submenu", "sort_by_category", "confirm_sort"]
+}

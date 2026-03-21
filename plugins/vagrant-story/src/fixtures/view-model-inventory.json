@@ -1,0 +1,20 @@
+{
+  "screen": "inventory",
+  "title": "Inventory",
+  "columns": ["slot", "name", "category", "detail"],
+  "rows": [
+    {
+      "slot": 0,
+      "name": "Rusty Broadsword",
+      "category": "weapon",
+      "detail": "Durability 42"
+    },
+    {
+      "slot": 1,
+      "name": "Healing Herb ×3",
+      "category": "consumable",
+      "detail": "Restores HP"
+    }
+  ],
+  "characterSummary": "Ashley Riot — HP 120/120 — Risk 18"
+}

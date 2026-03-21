@@ -62,7 +62,18 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  plugins/vagrant-story: {}
+  plugins/vagrant-story:
+    dependencies:
+      '@riskbreaker/plugin-sdk':
+        specifier: workspace:*
+        version: link:../../packages/plugin-sdk
+      '@riskbreaker/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
+    devDependencies:
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
 packages:
 

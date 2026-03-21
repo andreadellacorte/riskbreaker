@@ -1,0 +1,8 @@
+{
+  "title": "Vagrant Story",
+  "titleId": "SLUS-01040",
+  "region": "NTSC-U",
+  "version": "1.0",
+  "discFormat": "PSX-CD",
+  "pluginHints": ["vagrant-story", "riskbreaker.plugin.vagrant-story"]
+}

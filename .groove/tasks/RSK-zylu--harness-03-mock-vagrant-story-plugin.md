@@ -1,10 +1,10 @@
 ---
 # RSK-zylu
 title: Harness 03 — mock Vagrant Story plugin
-status: todo
+status: completed
 type: task
 created_at: 2026-03-21T20:10:21Z
-updated_at: 2026-03-21T20:10:21Z
+updated_at: 2026-03-21T22:30:00Z
 parent: RSK-9c07
 ---
 
@@ -18,11 +18,11 @@ Phase 3 of PSX harness scaffold (`RSK-9c07`). Depends on plugin-sdk + shared typ
 
 ## Acceptance Criteria
 
-- [ ] Plugin builds; `pnpm typecheck` passes for repo
-- [ ] Fixtures under `plugins/vagrant-story/.../fixtures` (or as specified in spec)
-- [ ] Mocks return coherent data (not no-ops)
-- [ ] README updated
-- [ ] `bins/` ROM/BIOS not required for mocks; document future hook if useful
+- [x] Plugin builds; `pnpm typecheck` passes for repo
+- [x] Fixtures under `plugins/vagrant-story/.../fixtures` (or as specified in spec)
+- [x] Mocks return coherent data (not no-ops)
+- [x] README updated
+- [x] `bins/` ROM/BIOS not required for mocks; document future hook if useful
 
 ## Links
 

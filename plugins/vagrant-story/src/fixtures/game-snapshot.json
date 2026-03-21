@@ -1,0 +1,31 @@
+{
+  "runtimeState": { "sceneId": "lea_monde_town_01", "battleActive": false },
+  "uiState": { "activePanel": "none", "dialogOpen": false },
+  "inventoryState": {
+    "capacity": 48,
+    "items": [
+      {
+        "id": "broadsword_rusty",
+        "name": "Rusty Broadsword",
+        "slot": 0,
+        "category": "weapon",
+        "durability": 42
+      },
+      {
+        "id": "herb_healing",
+        "name": "Healing Herb",
+        "slot": 1,
+        "category": "consumable",
+        "count": 3
+      }
+    ]
+  },
+  "characterState": {
+    "name": "Ashley Riot",
+    "hp": 120,
+    "maxHp": 120,
+    "risk": 18
+  },
+  "worldState": { "location": "Leá Monde — Town center", "storyBeat": "prologue" },
+  "combatState": { "engaged": false, "chain": 0 }
+}

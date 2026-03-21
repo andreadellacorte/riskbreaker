@@ -1,0 +1,11 @@
+{
+  "mode": "composite",
+  "children": [
+    { "mode": "input-sequence", "steps": ["open_menu", "focus_inventory", "select_slot_0"] },
+    {
+      "mode": "hook-call",
+      "hook": "vagrant-story.equipFromSlot",
+      "args": ["broadsword_rusty"]
+    }
+  ]
+}
