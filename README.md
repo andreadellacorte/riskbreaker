@@ -43,18 +43,19 @@ Root `tsconfig.json` maps `@riskbreaker/*` workspace packages to **source** `ind
 
 ## Scripts (root)
 
-| Script              | Description                                                                      |
-| ------------------- | -------------------------------------------------------------------------------- |
-| `pnpm dev`          | Vite dev server for **`apps/web`** (mock session UI) — http://localhost:5173     |
-| `pnpm dev:docs`     | Vite for **`apps/docs`** placeholder — http://localhost:5174                     |
-| `pnpm build`        | Builds all workspace packages that define `build`                                |
-| `pnpm lint`         | ESLint (flat config, `eslint.config.mjs`)                                        |
-| `pnpm format`       | Prettier write (config from `packages/shared-config`)                            |
-| `pnpm format:check` | Prettier check                                                                   |
-| `pnpm typecheck`    | Root `tsc` + `apps/web` TypeScript                                               |
-| `pnpm test`         | Vitest — `packages/*/src/**/*.test.ts`, `plugins/*`, `tests/`                    |
-| `pnpm test:watch`   | Vitest watch mode                                                                |
-| `pnpm e2e`          | Playwright (`playwright.config.ts`, `e2e/`) — install browsers first (see below) |
+| Script              | Description                                                                                                                                |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm dev`          | Vite dev server for **`apps/web`** (mock session UI) — http://localhost:5173                                                               |
+| `pnpm dev:docs`     | Vite for **`apps/docs`** placeholder — http://localhost:5174                                                                               |
+| `pnpm build`        | Builds all workspace packages that define `build`                                                                                          |
+| `pnpm lint`         | ESLint (flat config, `eslint.config.mjs`)                                                                                                  |
+| `pnpm format`       | Prettier write (config from `packages/shared-config`)                                                                                      |
+| `pnpm format:check` | Prettier check                                                                                                                             |
+| `pnpm typecheck`    | Root `tsc` + `apps/web` TypeScript                                                                                                         |
+| `pnpm test`         | Vitest — `packages/*/src/**/*.test.ts`, `plugins/*`, `tests/`                                                                              |
+| `pnpm test:watch`   | Vitest watch mode                                                                                                                          |
+| `pnpm e2e`          | Playwright — `e2e/`; auto-starts `apps/web` Vite on 127.0.0.1:5173 (reuses if already running locally); install browsers first (see below) |
+| `pnpm e2e:ui`       | Playwright UI mode                                                                                                                         |
 
 ### Playwright (local)
 
@@ -64,6 +65,8 @@ From `nix develop` or Node 25 + pnpm:
 pnpm exec playwright install chromium   # Linux: add --with-deps if the browser fails to start
 pnpm e2e
 ```
+
+`pnpm e2e` uses Playwright’s **`webServer`** to run Vite for **`apps/web`** on `http://127.0.0.1:5173`. Locally, if you already run `pnpm dev` on that port, the existing server is reused (not in CI). To target another origin, set **`PLAYWRIGHT_BASE_URL`** and **`PLAYWRIGHT_SKIP_WEBSERVER=1`** so Playwright does not start its own Vite process.
 
 ### CI (GitHub Actions)
 
