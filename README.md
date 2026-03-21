@@ -90,7 +90,7 @@ pnpm e2e
 | **Terraform**  | [`infra/terraform/`](./infra/terraform/) | Example env validates tooling; **`modules/`** reserved for real stacks.                                     |
 | **Netlify**    | [`netlify.toml`](./netlify.toml)         | Static **`apps/web`** — pnpm monorepo build + SPA redirect. Connect the repo in the Netlify UI (see below). |
 
-**Hosting:** **Netlify** is configured for the Vite app ([`netlify.toml`](./netlify.toml)). **AWS ECS**, **S3+CloudFront**, etc. remain options later; Terraform stays optional until you choose a provider. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md).
+**Hosting:** **Netlify** (static CDN) is the chosen path for **`apps/web`** ([`netlify.toml`](./netlify.toml)). Other clouds remain optional for non-static work; Terraform is still optional. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md). **Connecting the GitHub repo and verifying the first deploy** is tracked in Groove bean **`RSK-9nf7`** — that step is done in the Netlify UI (or via `netlify` CLI after login), not by the agent.
 
 **Why keep Docker / Kubernetes if Netlify serves static assets?** **Netlify** covers **production CDN** for the built SPA. **Docker** is still useful: the **CI job** reproduces “same image everywhere,” you can run **Vitest/Playwright** in that image locally, and later you may containerize **non-static** pieces (API workers, emulator tooling, etc.). **Kubernetes** is **not** required for a static-only Netlify setup; the [`infra/k8s/base`](./infra/k8s/base/) manifests are an **optional scaffold** for future services, self-hosted previews, or a different hosting story — safe to ignore until you need them.
 
