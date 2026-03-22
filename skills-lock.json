@@ -24,7 +24,7 @@
     "groove": {
       "source": "andreadellacorte/groove",
       "sourceType": "github",
-      "computedHash": "ee40c5b8590653679ba39ee9175aca0286b15b469c971b77d1d9b2e824997662"
+      "computedHash": "8dabb44daa4896f41a630f08a4ceee7ae55cac0f903ab2d7ba68c1d9cb6235fd"
     },
     "groove-admin-claude-hooks": {
       "source": "andreadellacorte/groove",
@@ -59,7 +59,7 @@
     "groove-admin-install": {
       "source": "andreadellacorte/groove",
       "sourceType": "github",
-      "computedHash": "b2ac55f91b6486ef70be9bcf2386ba683e40dbfbd4d0be6574a2c62b73ed9abd"
+      "computedHash": "23e65eb5db38ccc0c15631cc6d696da9954e7d7cdedee64f0e31e90c52d73793"
     },
     "groove-admin-update": {
       "source": "andreadellacorte/groove",

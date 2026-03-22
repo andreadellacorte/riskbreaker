@@ -1,11 +1,11 @@
 ---
 # RSK-l7qr
 title: Playable 02 — Local `bins/` assets + play page (dev-only)
-status: todo
+status: scrapped
 type: task
 priority: normal
 created_at: 2026-03-21T23:00:00Z
-updated_at: 2026-03-21T23:00:00Z
+updated_at: 2026-03-22T00:34:45Z
 parent: RSK-9c07
 ---
 
@@ -34,3 +34,7 @@ Make **testing the game in the browser** ergonomic on a **developer machine**:
 - Depends on: `RSK-l7qp`
 - Next: `RSK-l7qs` (IRuntime adapter)
 - `.gitignore` (`bins/`)
+
+## Reasons for scrapping
+
+- Cancelled by maintainer (2026-03-22). Phase 1 playable testing is adequately covered by the file-picker flow and `/play/spike` (`RSK-l7qp` complete); separate dev-only `bins/` auto-load and server wiring are not planned for this phase.

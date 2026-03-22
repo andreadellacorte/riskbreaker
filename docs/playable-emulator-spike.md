@@ -12,6 +12,7 @@ We vendor **[lrusso/PlayStation](https://github.com/lrusso/PlayStation)** under 
 | **Integration** | [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) **`window.location.replace`** to **`/playstation/PlayStation.htm?riskbreaker=1`** — **same full document** as [lrusso.github.io](https://lrusso.github.io/PlayStation/PlayStation.htm) (no iframe; avoids broken click hit-testing). |
 | **Patch**       | `PlayStation.js` mounts on **`#rb-playstation-host`**; `PlayStation.htm` adds riskbreaker CSS + **`riskbreaker=1`** injects a **← Mock shell** link.                                                                                                                                    |
 | **Trade-offs**  | Large single JS payload (~1.3 MB); Web Audio policies vary; not “accuracy first” like DuckStation.                                                                                                                                                                                      |
+| **Maintenance** | The bundle is **a first-class fork**: format with **`pnpm format:playstation`**, split modules when needed — see [**playstation-engine-hacking.md**](./playstation-engine-hacking.md).                                                                                                  |
 
 ## UI route
 
@@ -38,8 +39,8 @@ The upstream shell only accepts **`.bin`** in its validator (see [author demo](h
 
 [`e2e/play-spike.spec.ts`](../e2e/play-spike.spec.ts):
 
-1. Loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm?riskbreaker=1`**, asserts **← Mock shell** link + **`#gui_controls_file`** on the **same** page (no iframe).
-2. **`setInputFiles`** a committed **GPL-2.0** homebrew **`.bin`** and asserts **`#rb-playstation-host canvas`** (disc layer + WASM initialized).
+1. **Shell smoke:** loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm?riskbreaker=1`**, asserts **← Mock shell** + **`#gui_controls_file`** (does **not** load **`PlayStation.js`** — that only runs after a `.bin` is chosen).
+2. **Full emulator path:** **`setInputFiles`** the GPL-2.0 homebrew **`.bin`** (`e2e/fixtures/240pTestSuitePS1-EMU.bin` or **`E2E_PS1_DISC_BIN`**), expects upload UI to hide, asserts **`#rb-playstation-host canvas`** and **no uncaught page errors** (exercises dynamic **`PlayStation.js`** + WASM). In **CI**, the default fixture path must exist or the test fails.
 
 Optional: **`E2E_PS1_DISC_BIN`** points at another `.bin` on disk without committing it.
 
@@ -60,4 +61,4 @@ Run: **`pnpm e2e`**.
 ## Related
 
 - [`docs/architecture.md`](./architecture.md) — platform boundaries (emulator is **not** integrated with engines in this spike).
-- Next bean: **RSK-l7qr** (bins loading + dedicated play page) — refine UX and integration seams.
+- Integration / refactors: [**playstation-engine-hacking.md**](./playstation-engine-hacking.md); **RSK-l7qr** (dev `bins/` auto-load) was **scrapped** — spike remains file-picker based.

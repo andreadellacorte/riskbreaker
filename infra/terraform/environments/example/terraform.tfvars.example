@@ -1,0 +1,5 @@
+# Copy to terraform.tfvars (gitignored) or export:
+#   export TF_VAR_github_token="$(gh auth token)"
+github_owner = "andreadellacorte"
+# github_repository = "riskbreaker"
+# github_token = "ghp_..."

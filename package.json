@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "format:playstation": "prettier --write apps/web/public/playstation/PlayStation.js --ignore-path /dev/null",
+    "build:playstation": "node scripts/build-playstation.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -17,11 +19,12 @@
     "e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@riskbreaker/app-shell": "workspace:*",
     "@riskbreaker/plugin-vagrant-story": "workspace:*",
-    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.12",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.1",

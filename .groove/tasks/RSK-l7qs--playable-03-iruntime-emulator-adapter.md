@@ -11,7 +11,7 @@ parent: RSK-9c07
 
 ## Context
 
-Depends on **Playable 02** (`RSK-l7qr`). The platform already has **`MockRuntimeAdapter`** and **`SessionOrchestrator`**; real play requires a **second implementation** of the runtime seam (or an adapter that wraps the emulator) so future **state decode / plugins** can attach without rewriting the web app.
+Depends on **Playable 01** (`RSK-l7qp`) — emulator spike in place. **Playable 02** (`RSK-l7qr`, dev `bins/` auto-load) was **scrapped**; this work can proceed from the file-picker + `/play/spike` flow. The platform already has **`MockRuntimeAdapter`** and **`SessionOrchestrator`**; real play requires a **second implementation** of the runtime seam (or an adapter that wraps the emulator) so future **state decode / plugins** can attach without rewriting the web app.
 
 ## Goal
 
@@ -29,6 +29,6 @@ Depends on **Playable 02** (`RSK-l7qr`). The platform already has **`MockRuntime
 ## Links
 
 - Parent: `RSK-9c07`
-- Depends on: `RSK-l7qr`
+- Depends on: `RSK-l7qp` (see scrapped `RSK-l7qr` for deferred `bins/` work)
 - `packages/psx-runtime`, `packages/app-shell`
 - `project-spec.md` (runtime boundary)

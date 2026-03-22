@@ -13,5 +13,5 @@
       "@riskbreaker/shared-types": ["../../packages/shared-types/src/index.ts"]
     }
   },
-  "include": ["src/**/*", "vite.config.ts"]
+  "include": ["src/**/*", "vite.config.ts", "playstation-src/**/*.ts"]
 }

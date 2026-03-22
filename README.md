@@ -99,10 +99,10 @@ pnpm e2e
 | **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 24, pnpm via corepack, git, **netlify-cli** (nixpkgs), docker-compose, kubectl, terraform.  |
 | **Docker**     | [`infra/docker/`](./infra/docker/)       | **`web`** target = static `apps/web`; **`ci`** target = Nix + pnpm (tests).                                 |
 | **Kubernetes** | [`infra/k8s/base/`](./infra/k8s/base/)   | Kustomize base (namespace, placeholder Deployment/Service) — customize image/ingress before apply.          |
-| **Terraform**  | [`infra/terraform/`](./infra/terraform/) | Example env validates tooling; **`modules/`** reserved for real stacks.                                     |
+| **Terraform**  | [`infra/terraform/`](./infra/terraform/) | **GitHub** repo settings (`integrations/github`); **`modules/`** reserved for cloud stacks. See [`infra/terraform/README.md`](./infra/terraform/README.md). |
 | **Netlify**    | [`netlify.toml`](./netlify.toml)         | Static **`apps/web`** — pnpm monorepo build + SPA redirect. Connect the repo in the Netlify UI (see below). |
 
-**Hosting:** **Netlify** (static CDN) is the chosen path for **`apps/web`** ([`netlify.toml`](./netlify.toml)). Other clouds remain optional for non-static work; Terraform is still optional. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md). First-site setup was tracked in Groove bean **`RSK-9nf7`** (completed).
+**Hosting:** **Netlify** (static CDN) is the chosen path for **`apps/web`** ([`netlify.toml`](./netlify.toml)). Other clouds remain optional for non-static work. Terraform in-repo manages **GitHub** settings; cloud IaC is optional until you add providers. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md). First-site setup was tracked in Groove bean **`RSK-9nf7`** (completed).
 
 **Why keep Docker / Kubernetes if Netlify serves static assets?** **Netlify** covers **production CDN** for the built SPA. **Docker** is still useful: the **CI job** reproduces “same image everywhere,” you can run **Vitest/Playwright** in that image locally, and later you may containerize **non-static** pieces (API workers, emulator tooling, etc.). **Kubernetes** is **not** required for a static-only Netlify setup; the [`infra/k8s/base`](./infra/k8s/base/) manifests are an **optional scaffold** for future services, self-hosted previews, or a different hosting story — safe to ignore until you need them.
 

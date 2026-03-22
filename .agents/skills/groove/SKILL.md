@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Read Write Edit Glob Grep Bash(git:*) Bash(beans:*) Bash(gh:*) Bash(linear:*) Bash(npx:*) Bash(mkdir:*) AskUserQuestion
 metadata:
   author: andreadellacorte
-  version: "0.18.7"
+  version: "0.18.8"
 ---
 
 <!-- groove:managed — do not edit; changes will be overwritten by groove update -->

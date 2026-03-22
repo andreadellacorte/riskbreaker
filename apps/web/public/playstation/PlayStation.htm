@@ -52,6 +52,10 @@
 					a.style.cssText =
 						"position:fixed;left:10px;top:10px;z-index:2147483647;padding:8px 12px;background:rgba(13,15,20,0.95);color:#8ab4ff;border:1px solid #2c3344;border-radius:8px;font:500 14px system-ui,sans-serif;text-decoration:none;";
 					document.body.appendChild(a);
+					var o = document.createElement("script");
+					o.src = "/playstation/riskbreaker-overlay-boot.js";
+					o.async = true;
+					document.body.appendChild(o);
 				} catch (e) {}
 			})();
 		</script>
@@ -116,6 +120,7 @@
 					{
 					// HIDING THE GUI
 					document.getElementsByClassName("gui_container")[0].style.display = "none";
+					try{var __rbGu=document.getElementsByClassName("gui_upload");if(__rbGu[0]){__rbGu[0].style.display="none";}}catch(e){}
 
 					// CHECKING IF THE GAME IS CRASH BANDICOOT
 					if (/crash.*bandicoot.*bin/gi.test(ROMNAME)==true)

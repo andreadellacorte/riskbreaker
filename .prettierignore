@@ -11,6 +11,8 @@ pnpm-lock.yaml
 .beans.yml
 bins/
 
-# Vendored PlayStation browser bundle (upstream minified)
+# Vendored PlayStation browser bundle — use `pnpm format:playstation` for PlayStation.js + playstation-bundle.js
 apps/web/public/playstation/PlayStation.js
+apps/web/playstation-src/wasm-embed.ts
+apps/web/playstation-src/emscripten-glue.js
 apps/web/public/playstation/PlayStation.htm

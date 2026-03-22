@@ -17,11 +17,23 @@ export default tseslint.config(
       "**/.turbo/**",
       "**/coverage/**",
       "apps/web/public/playstation/**",
+      "apps/web/playstation-src/emscripten-glue.js",
+      "apps/web/playstation-src/shims/**",
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
+  {
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+        URL: "readonly",
+      },
+    },
+  },
   {
     files: ["**/*.{ts,tsx,mts,cts}"],
     languageOptions: {

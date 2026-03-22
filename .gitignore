@@ -23,5 +23,7 @@ result-*
 *.tfstate
 *.tfstate.*
 crash.log
+*.tfvars
+!*.tfvars.example
 # Local Netlify folder
 .netlify

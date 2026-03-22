@@ -55,7 +55,7 @@ jobs:
             'pnpm exec playwright install --with-deps chromium && pnpm e2e'
 
   terraform:
-    name: Terraform — fmt + validate (example env)
+    name: Terraform — fmt, validate, plan (GitHub)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -75,3 +75,11 @@ jobs:
         run: |
           terraform init -input=false
           terraform validate
+
+      # Same-repo only: fork PRs do not receive secrets; plan needs TERRAFORM_GITHUB_TOKEN to call the GitHub API.
+      - name: Terraform plan (GitHub)
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+        working-directory: infra/terraform/environments/example
+        env:
+          TF_VAR_github_token: ${{ secrets.TERRAFORM_GITHUB_TOKEN }}
+        run: terraform plan -input=false -no-color
