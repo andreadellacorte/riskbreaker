@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "bash $CLAUDE_PROJECT_DIR/.agents/skills/groove-utilities-prime/scripts/groove-utilities-prime.sh --json"
+      }
+    ],
+    "stop": [
+      {
+        "command": "bash $CLAUDE_PROJECT_DIR/.groove/hooks/cursor/daily-end-reminder.sh"
+      }
+    ],
+    "postToolUse": [
+      {
+        "matcher": "Shell",
+        "command": "bash $CLAUDE_PROJECT_DIR/.groove/hooks/cursor/git-activity-buffer.sh"
+      },
+      {
+        "command": "bash $CLAUDE_PROJECT_DIR/.groove/hooks/cursor/version-check.sh"
+      }
+    ],
+    "preToolUse": [
+      {
+        "matcher": "Write",
+        "command": "bash $CLAUDE_PROJECT_DIR/.groove/hooks/cursor/block-managed-paths.sh"
+      }
+    ]
+  }
+}
