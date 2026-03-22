@@ -43,7 +43,6 @@ export default function PlaySpikePage() {
     >
       <header
         style={{
-          position: "relative",
           flex: "0 0 auto",
           display: "flex",
           alignItems: "center",
@@ -58,35 +57,7 @@ export default function PlaySpikePage() {
         <Link style={{ color: "#8ab4ff", whiteSpace: "nowrap" }} to="/">
           ← Mock shell
         </Link>
-        <span style={{ opacity: 0.85 }}>Playable spike — {status}</span>
-        <details style={{ marginLeft: "auto", fontSize: "0.8rem" }}>
-          <summary style={{ cursor: "pointer", userSelect: "none" }}>Help</summary>
-          <div
-            style={{
-              position: "absolute",
-              right: "0.5rem",
-              marginTop: "0.35rem",
-              padding: "0.6rem 0.75rem",
-              maxWidth: 320,
-              background: "#1a1f2e",
-              border: "1px solid #2c3344",
-              borderRadius: 6,
-              color: "#c4cad6",
-              zIndex: 10,
-            }}
-          >
-            Use the <strong>red Upload</strong> in the game area to load a <strong>.bin</strong>
-            . Click the picture so keys (C/V/W/…) go to the game. Sound: speaker icon. Matches{" "}
-            <a
-              href="https://lrusso.github.io/PlayStation/PlayStation.htm"
-              rel="noreferrer"
-              target="_blank"
-            >
-              lrusso.github.io/PlayStation
-            </a>
-            .
-          </div>
-        </details>
+        <span style={{ marginLeft: "auto", opacity: 0.85 }}>Playable spike — {status}</span>
       </header>
 
       <iframe
