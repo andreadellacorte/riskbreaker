@@ -7532,11 +7532,8 @@ function ___syscall221(e, t) {
         var r = SYSCALLS.get();
         return ((n.flags |= r), 0);
       case 12:
-      case 12:
         r = SYSCALLS.get();
         return ((HEAP16[(r + 0) >> 1] = 2), 0);
-      case 13:
-      case 14:
       case 13:
       case 14:
         return 0;

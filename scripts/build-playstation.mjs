@@ -2,6 +2,10 @@
 /**
  * RSK-7lri: bundle `playstation-src/entry.ts` → `public/playstation/PlayStation.js` (IIFE for PlayStation.htm).
  * RSK-74eh: `riskbreaker-overlay-boot.ts` → `riskbreaker-overlay-boot.js` (early spike overlay before disc load).
+ *
+ * Esbuild may still warn on vendored `emscripten-glue.js`:
+ * - **commonjs-variable-in-esm:** `module.exports` lives only in the Emscripten NODE branch (dead in `platform: "browser"` output). Do not switch the spike to “real CJS” — `PlayStation.htm` loads a classic script IIFE, not `require()`.
+ * - **direct-eval:** Emscripten runtime uses `eval`; expected until upstream removes it or you suppress (default `logLevel: "error"` below; set `PLAYSTATION_BUILD_LOG=warning` to see esbuild warnings while debugging).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -35,7 +39,12 @@ await esbuild.build({
   platform: "browser",
   target: "es2020",
   legalComments: "none",
-  logLevel: "warning",
+  logLevel:
+    process.env.PLAYSTATION_BUILD_LOG === "warning" ||
+    process.env.PLAYSTATION_BUILD_LOG === "info" ||
+    process.env.PLAYSTATION_BUILD_LOG === "verbose"
+      ? process.env.PLAYSTATION_BUILD_LOG
+      : "error",
   alias: {
     fs: path.join(shimDir, "node-empty.cjs"),
     path: path.join(shimDir, "node-empty.cjs"),

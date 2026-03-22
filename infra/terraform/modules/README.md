@@ -1,3 +1,3 @@
 # Modules (reserved)
 
-Add reusable Terraform modules here (for example VPC, ECS service, static hosting) once hosting and provider are confirmed. The example environment under `../environments/example` does not use these yet.
+Add reusable Terraform modules here once you model cloud resources. The GitHub root module under `../environments/github` does not use these yet.

@@ -16,15 +16,13 @@
 | Layer      | Role                                                                                                                                                |
 | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **pnpm**   | Workspace installs and scripts (`packageManager` pinned in root `package.json`).                                                                    |
-| **Nix**    | Reproducible dev shell: **Node 24**, **pnpm 10** (corepack), git, **netlify-cli**, docker-compose, kubectl, terraform (`flake.nix` + `flake.lock`). |
-| **Docker** | Multi-stage: **`web`** (nginx + `apps/web` dist) and **`ci`** (Nix + pnpm test) — [`infra/docker/Dockerfile`](./infra/docker/Dockerfile).           |
+| **Nix**    | Reproducible dev shell: **Node 24**, **pnpm 10** (corepack), git, **netlify-cli**, terraform (`flake.nix` + `flake.lock`). |
 | **Docs**   | [`docs/architecture.md`](./docs/architecture.md) — architecture + diagrams; [`apps/docs`](./apps/docs/) optional Vite placeholder.                  |
 
 ## Prerequisites
 
 - **Recommended:** [Nix](https://nixos.org/) with flakes (`nix develop`) for the toolchain above.
 - **Otherwise:** Node.js **24.x** and **pnpm 10** (`corepack enable` or [pnpm.io](https://pnpm.io)) — align with `packageManager` in root `package.json`.
-- **Docker:** optional for local builds; required to build `infra/docker/Dockerfile`.
 
 ## Setup
 
@@ -36,18 +34,6 @@ pnpm install
 ```
 
 **Without Nix:** install Node **24.x** and **pnpm 10**, then `pnpm install`.
-
-**Docker build** (from repo root; requires Docker daemon):
-
-```bash
-# Static `apps/web` (nginx) — default Dockerfile target
-docker build -f infra/docker/Dockerfile -t riskbreaker:web .
-
-# Full Nix CI image (same as GitHub Actions Docker job)
-docker build -f infra/docker/Dockerfile --target ci -t riskbreaker:ci .
-```
-
-See [`infra/docker/README.md`](./infra/docker/README.md). On macOS, use Docker Desktop or Colima for the daemon; the Nix shell provides the `docker-compose` CLI, not the Docker engine.
 
 **direnv:** optional `.envrc` runs `use flake` — run `direnv allow` once if you use [direnv](https://direnv.net/).
 
@@ -88,23 +74,20 @@ pnpm e2e
 
 [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) runs on **push** and **pull_request** to `main`:
 
-1. **Nix** — `nix develop` → `pnpm install` → `playwright install --with-deps chromium` → lint, typecheck, Vitest, build, Playwright.
-2. **Docker** — `docker build --target ci` with [`infra/docker/Dockerfile`](./infra/docker/Dockerfile), then Vitest and Playwright **inside** the same Nix-based image (validates the CI container path).
-3. **Terraform** — `terraform fmt -check` and `validate` on [`infra/terraform/environments/example`](./infra/terraform/environments/example) (no cloud credentials; placeholder `random` provider).
+1. **Nix** — `nix develop` → `pnpm install` → `playwright install --with-deps chromium` → lint, **build** (workspace `dist/` for package `"types"` entries), typecheck, Vitest, Playwright.
+2. **Terraform** — `terraform fmt -check`, `validate`, `plan`, and on **`main` pushes** `apply` for [`infra/terraform/environments/github`](./infra/terraform/environments/github) (uses **`TERRAFORM_GITHUB_TOKEN`**; configure a remote backend for repeatable CI state — see [`infra/terraform/README.md`](./infra/terraform/README.md)).
+
+**Production** static assets are built and hosted by **Netlify**; CI does not use Docker or Kubernetes.
 
 ## Infrastructure (Harness 07)
 
 | Area           | Location                                 | Notes                                                                                                       |
 | -------------- | ---------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 24, pnpm via corepack, git, **netlify-cli** (nixpkgs), docker-compose, kubectl, terraform.  |
-| **Docker**     | [`infra/docker/`](./infra/docker/)       | **`web`** target = static `apps/web`; **`ci`** target = Nix + pnpm (tests).                                 |
-| **Kubernetes** | [`infra/k8s/base/`](./infra/k8s/base/)   | Kustomize base (namespace, placeholder Deployment/Service) — customize image/ingress before apply.          |
+| **Nix**        | [`flake.nix`](./flake.nix)               | Dev shell: Node 24, pnpm via corepack, git, **netlify-cli** (nixpkgs), terraform. |
 | **Terraform**  | [`infra/terraform/`](./infra/terraform/) | **GitHub** repo settings (`integrations/github`); **`modules/`** reserved for cloud stacks. See [`infra/terraform/README.md`](./infra/terraform/README.md). |
 | **Netlify**    | [`netlify.toml`](./netlify.toml)         | Static **`apps/web`** — pnpm monorepo build + SPA redirect. Connect the repo in the Netlify UI (see below). |
 
-**Hosting:** **Netlify** (static CDN) is the chosen path for **`apps/web`** ([`netlify.toml`](./netlify.toml)). Other clouds remain optional for non-static work. Terraform in-repo manages **GitHub** settings; cloud IaC is optional until you add providers. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md). First-site setup was tracked in Groove bean **`RSK-9nf7`** (completed).
-
-**Why keep Docker / Kubernetes if Netlify serves static assets?** **Netlify** covers **production CDN** for the built SPA. **Docker** is still useful: the **CI job** reproduces “same image everywhere,” you can run **Vitest/Playwright** in that image locally, and later you may containerize **non-static** pieces (API workers, emulator tooling, etc.). **Kubernetes** is **not** required for a static-only Netlify setup; the [`infra/k8s/base`](./infra/k8s/base/) manifests are an **optional scaffold** for future services, self-hosted previews, or a different hosting story — safe to ignore until you need them.
+**Hosting:** **Netlify** (static CDN) is the chosen path for **`apps/web`** ([`netlify.toml`](./netlify.toml)). Terraform in-repo manages **GitHub** settings; cloud IaC is optional until you add providers. See [`.groove/memory/specs/psx-ux-remaster-harness.md`](./.groove/memory/specs/psx-ux-remaster-harness.md). First-site setup was tracked in Groove bean **`RSK-9nf7`** (completed).
 
 ### Netlify (static `apps/web`)
 
@@ -144,7 +127,7 @@ plugins/
   vagrant-story/   # mock plugin (Harness 03)
 tests/
   pipeline.integration.test.ts  # plugin + app-shell slice (no game code in packages/*)
-infra/          # nix, docker, k8s, terraform (Harness 07)
+infra/          # terraform (Harness 07); Nix lives at repo root (`flake.nix`)
 ```
 
 ## Harness order

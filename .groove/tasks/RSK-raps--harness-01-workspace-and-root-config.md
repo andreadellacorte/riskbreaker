@@ -26,7 +26,7 @@ Root **pnpm workspace** and tooling: `pnpm-workspace.yaml`, root `package.json` 
 
 ## Addendum (stack baseline)
 
-After Harness 01, the repo also picked up **end-stack** tooling so development matches the target stack (see epic **RSK-9c07** “Development stack”): **`flake.nix` / `flake.lock`**, **`.envrc`** (optional direnv), **`infra/docker/Dockerfile`**, **`.dockerignore`**. **Terraform** and **Playwright** full setup remain **Harness 07** and **Harness 06** respectively.
+After Harness 01, the repo also picked up **end-stack** tooling (see epic **RSK-9c07** “Development stack”): **`flake.nix` / `flake.lock`**, **`.envrc`** (optional direnv). **Terraform** and **Playwright** full setup are **Harness 07** and **Harness 06** respectively. Docker/K8s scaffolding was later dropped in favor of **Netlify** static deploys.
 
 ## Links
 

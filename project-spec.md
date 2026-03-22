@@ -55,9 +55,7 @@ Create a working monorepo that includes:
 - package boundaries
 - shared tsconfig and lint/format setup
 - Nix flake for dev shell
-- Dockerfiles for local and CI use
-- basic Kubernetes manifests or Helm-style structure for deployable services if any
-- Terraform skeleton for future infra
+- Terraform skeleton for future infra (e.g. GitHub settings); **production `apps/web` hosting is Netlify static CDN** — Docker/Kubernetes are out of scope for this phase unless a later service needs them
 - a minimal web app shell
 - a plugin SDK
 - a mock Vagrant Story plugin
@@ -101,10 +99,7 @@ Create a pnpm workspace with this approximate structure:
 /vagrant-story
 
 /infra
-/docker
-/k8s
 /terraform
-/nix
 
 /.github
 /workflows
@@ -506,9 +501,8 @@ Create a `flake.nix` that provides a reproducible dev shell with at least:
 - node
 - pnpm
 - git
-- docker client
-- kubectl
 - terraform
+- netlify CLI (optional; or document Netlify-only deploy)
 - playwright dependencies where feasible
 
 The dev shell should let a developer clone the repo and run:
@@ -522,48 +516,9 @@ Document any caveats.
 
 ---
 
-## Docker requirements
+## Container / Kubernetes (out of scope for v1)
 
-Create Docker support for:
-
-- web app container
-- docs container if relevant
-- a generic CI/test image if useful
-
-At minimum provide:
-
-- production-oriented Dockerfile for `apps/web`
-- dev-oriented Dockerfile or compose setup for local work
-- `.dockerignore`
-
-Prefer multi-stage builds.
-
----
-
-## Kubernetes requirements
-
-Create Kubernetes scaffolding for future deployment of:
-
-- web app
-- docs app if applicable
-
-Keep it simple:
-
-- namespace
-- deployment
-- service
-- ingress placeholder
-- configmap if useful
-
-Do not assume a cloud provider yet.
-Use generic manifests or a simple Helm-like directory shape.
-
-Suggested:
-/infra/k8s/base
-namespace.yaml
-web-deployment.yaml
-web-service.yaml
-ingress.yaml
+**`apps/web`** ships as **static files** on **Netlify** (see repo `netlify.toml`). Do **not** maintain Dockerfiles or K8s manifests in this repo unless a future non-static service requires them; CI uses **Nix** on GitHub Actions, not container builds.
 
 ---
 

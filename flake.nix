@@ -25,10 +25,7 @@
             nodejs_24
             corepack
             git
-            docker-compose
-            kubectl
             terraform
-            # Netlify CLI (nixpkgs); use for `netlify deploy` / `netlify login` — not a pnpm dependency.
             netlify-cli
           ];
 
@@ -37,7 +34,6 @@
           shellHook = ''
             corepack prepare pnpm@10.32.1 --activate
             echo "Riskbreaker dev shell (Nix): node $(node --version), pnpm $(pnpm --version)"
-            echo "Docker: use Docker Desktop / Colima on macOS, or your distro's docker; compose CLI is on PATH here."
             echo "Playwright: run \`pnpm exec playwright install chromium\` (or \`--with-deps\` on Linux) before \`pnpm e2e\`; CI mirrors this in GitHub Actions."
             echo "Netlify CLI: \`netlify --version\` (from nixpkgs netlify-cli)."
           '';

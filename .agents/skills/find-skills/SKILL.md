@@ -102,7 +102,7 @@ When searching, consider these common categories:
 | --------------- | ---------------------------------------- |
 | Web Development | react, nextjs, typescript, css, tailwind |
 | Testing         | testing, jest, playwright, e2e           |
-| DevOps          | deploy, docker, kubernetes, ci-cd        |
+| DevOps          | deploy, ci-cd, netlify                   |
 | Documentation   | docs, readme, changelog, api-docs        |
 | Code Quality    | review, lint, refactor, best-practices   |
 | Design          | ui, ux, design-system, accessibility     |

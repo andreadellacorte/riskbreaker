@@ -9,6 +9,8 @@ updated_at: 2026-03-21T23:30:00Z
 parent: RSK-9c07
 ---
 
+> **2026-03 update:** `infra/docker`, `infra/k8s`, and `.dockerignore` were **removed**. Production is **Netlify** static; CI is **Nix + Terraform** only. The checklist below is **historical**.
+
 ## Context
 
 Phase 7 of PSX harness scaffold (`RSK-9c07`). Application code stable; **finish** reproducible env and deploy scaffolding.

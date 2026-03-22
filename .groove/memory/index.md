@@ -24,6 +24,6 @@
 
 **Harness 02 complete:** `packages/shared-types`, `packages/shared-utils`, `packages/plugin-sdk` (contracts + `resolvePluginForManifest`), root `vitest.config.mts` + `pnpm test`. Matches `project-spec.md`; no game logic in generic packages.
 
-**Tooling baseline (end stack from the start):** `pnpm` + **`flake.nix` / `flake.lock`** (Nix dev shell: corepack/pnpm 10.x, Node 24, git, docker-compose, kubectl, **terraform CLI**) + **`infra/docker/Dockerfile`** (official **`docker.io/nixos/nix`** + `nix develop` for CI) + **`.dockerignore`**. Policy is in epic **RSK-9c07** (“Development stack”).
+**Tooling baseline:** `pnpm` + **`flake.nix` / `flake.lock`** (Nix dev shell: corepack/pnpm 10.x, Node 24, git, **terraform CLI**, **netlify-cli**) — **no** Docker/Kubernetes in-repo; **Netlify** builds static `apps/web`. Policy is in epic **RSK-9c07** (“Development stack”).
 
-**Not started yet:** **`infra/terraform/`** (IaC skeleton), **`infra/k8s/`**, **GitHub Actions**, **`@playwright/test`** + real **`pnpm e2e`** — tracked under **RSK-7q8c** and **RSK-0o5v**.
+**Not started yet / evolved:** **`infra/terraform/`** (GitHub provider example), **GitHub Actions** + **`pnpm e2e`** — historical Harness 07 tasks (**RSK-7q8c**) assumed Docker/K8s; those paths were removed in favor of Netlify static + Nix CI.

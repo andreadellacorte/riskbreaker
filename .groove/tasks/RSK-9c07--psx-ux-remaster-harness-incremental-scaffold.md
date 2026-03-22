@@ -17,8 +17,8 @@ Build **Riskbreaker** (PSX UX remaster platform) from `project-spec.md` in **inc
 Develop on the **target end stack from the beginning**, not “plain Node now, infra later.” Concretely:
 
 - **pnpm** + **TypeScript** — monorepo default (always).
-- **Nix** — `nix develop` / `flake.nix` + `flake.lock` for reproducible toolchain (Node via corepack + pinned pnpm, git, docker-compose, kubectl, terraform CLI).
-- **Docker** — `infra/docker/Dockerfile` + `.dockerignore` for CI-style builds; evolve with `apps/web`.
+- **Nix** — `nix develop` / `flake.nix` + `flake.lock` for reproducible toolchain (Node via corepack + pinned pnpm, git, terraform CLI, netlify-cli).
+- ~~**Docker**~~ — removed; **Netlify** builds static `apps/web`.
 - **Terraform / K8s / CI / Playwright** — introduced in **Harness 06–07** as **full scaffolding** (`infra/terraform`, K8s manifests, GHA, `@playwright/test`, Nix notes for browser deps). **Status today:** Terraform **CLI** is in the Nix shell; **IaC layout** and **Playwright** are **not** in the repo yet (see child tasks **RSK-0o5v**, **RSK-7q8c**).
 
 ## Goal
