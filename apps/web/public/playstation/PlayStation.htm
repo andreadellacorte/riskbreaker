@@ -31,11 +31,13 @@
 			.fileupload_uploader{display:none}
 		</style>
 		<style id="riskbreaker-spike-embed">
-			/* Riskbreaker /play/spike: keep HUD & upload above the game plane in nested iframe */
-			.gui_upload { z-index: 100000 !important; }
-			.gui_sound_on, .gui_sound_off, .gui_fullscreen { z-index: 100001 !important; }
-			.gui_controls { z-index: 99999 !important; }
-			.gui_container { z-index: 10 !important; position: relative; }
+			/* Riskbreaker /play/spike: host must not steal clicks from .gui_upload (shadow canvas is separate). */
+			#rb-playstation-host { pointer-events: none !important; }
+			.gui_upload { z-index: 100000 !important; pointer-events: auto !important; }
+			.gui_sound_on, .gui_sound_off, .gui_fullscreen { z-index: 100001 !important; pointer-events: auto !important; }
+			.gui_controls { z-index: 99999 !important; pointer-events: auto !important; }
+			.gui_container { z-index: 10 !important; position: relative; pointer-events: auto !important; }
+			.wrapper { pointer-events: auto !important; }
 		</style>
 	</head>
 	<body>
