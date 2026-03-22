@@ -16,29 +16,18 @@ function resolveDiscBin(): string {
 }
 
 test.describe("/play/spike — lrusso/PlayStation smoke", () => {
-  test("page loads iframe and emulator shell is ready", async ({ page }) => {
+  test("redirects to full-page emulator and shell is ready", async ({ page }) => {
     test.setTimeout(120_000);
-
-    const shellResponse = page.waitForResponse(
-      (res) => res.url().includes("/playstation/PlayStation.htm") && res.status() === 200,
-    );
 
     await page.goto("/play/spike");
 
-    await expect(page.getByRole("link", { name: /Mock shell/i })).toBeVisible();
-
-    await shellResponse;
-
-    await expect(page.locator('iframe[title="PlayStation emulator"]')).toBeVisible({
+    await page.waitForURL(/\/playstation\/PlayStation\.htm\?riskbreaker=1/, {
       timeout: 30_000,
     });
 
-    await expect(page.getByText(/Playable spike — Ready/i)).toBeVisible({
-      timeout: 60_000,
-    });
+    await expect(page.getByRole("link", { name: /Mock shell/i })).toBeVisible();
 
-    const frame = page.frameLocator('iframe[title="PlayStation emulator"]');
-    await expect(frame.locator("#gui_controls_file")).toBeAttached({
+    await expect(page.locator("#gui_controls_file")).toBeAttached({
       timeout: 10_000,
     });
   });
@@ -52,15 +41,11 @@ test.describe("/play/spike — disc image integration", () => {
     test.skip(!existsSync(bin), `Missing disc fixture: ${bin}`);
 
     await page.goto("/play/spike");
+    await page.waitForURL(/\/playstation\/PlayStation\.htm/, { timeout: 30_000 });
 
-    await expect(page.getByText(/Playable spike — Ready/i)).toBeVisible({
-      timeout: 90_000,
-    });
+    await page.locator("#gui_controls_file").setInputFiles(bin);
 
-    const frame = page.frameLocator('iframe[title="PlayStation emulator"]');
-    await frame.locator("#gui_controls_file").setInputFiles(bin);
-
-    await expect(frame.locator("#rb-playstation-host canvas")).toBeVisible({
+    await expect(page.locator("#rb-playstation-host canvas")).toBeVisible({
       timeout: 120_000,
     });
   });

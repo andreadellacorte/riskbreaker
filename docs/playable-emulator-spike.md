@@ -6,17 +6,17 @@ This documents the **Phase 1 spike** that proves a PlayStation-class emulator ca
 
 We vendor **[lrusso/PlayStation](https://github.com/lrusso/PlayStation)** under [`apps/web/public/playstation/`](../apps/web/public/playstation/) — `PlayStation.htm`, **`PlayStation.js`** (WASM embedded as a `data:` URI + worker bootstrap), and [`LICENSE.playstation.txt`](../apps/web/public/playstation/LICENSE.playstation.txt). Upstream improves on [js-emulators/wasmpsx](https://github.com/js-emulators/wasmpsx) with **working sound**, mute/unmute, and UI polish.
 
-| Topic           | Notes                                                                                                                                                                          |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Upstream**    | [lrusso/PlayStation](https://github.com/lrusso/PlayStation) — based on WASMpsx; no separate repo `LICENSE` file (see bundled notice).                                          |
-| **Integration** | [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) is **full-viewport** (thin top bar + iframe) like [lrusso.github.io](https://lrusso.github.io/PlayStation/PlayStation.htm). |
-| **Patch**       | `PlayStation.js` mounts on **`#rb-playstation-host`**; `PlayStation.htm` includes extra CSS so **Upload / HUD** stay above the game plane in an iframe.                        |
-| **Trade-offs**  | Large single JS payload (~1.3 MB); Web Audio policies vary; not “accuracy first” like DuckStation.                                                                             |
+| Topic           | Notes                                                                                                                                                                                                                                                                                   |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Upstream**    | [lrusso/PlayStation](https://github.com/lrusso/PlayStation) — based on WASMpsx; no separate repo `LICENSE` file (see bundled notice).                                                                                                                                                   |
+| **Integration** | [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) **`window.location.replace`** to **`/playstation/PlayStation.htm?riskbreaker=1`** — **same full document** as [lrusso.github.io](https://lrusso.github.io/PlayStation/PlayStation.htm) (no iframe; avoids broken click hit-testing). |
+| **Patch**       | `PlayStation.js` mounts on **`#rb-playstation-host`**; `PlayStation.htm` adds riskbreaker CSS + **`riskbreaker=1`** injects a **← Mock shell** link.                                                                                                                                    |
+| **Trade-offs**  | Large single JS payload (~1.3 MB); Web Audio policies vary; not “accuracy first” like DuckStation.                                                                                                                                                                                      |
 
 ## UI route
 
 - **Default mock shell:** [`/`](../apps/web/src/MockShellPage.tsx) — unchanged vertical slice.
-- **Spike:** [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) — **full-screen iframe** (same shell as upstream); only the in-frame **Upload** loads a `.bin`.
+- **Spike:** [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) — **redirect** to **`/playstation/PlayStation.htm?riskbreaker=1`** (same shell as upstream); only **Upload** loads a `.bin`.
 
 The upstream shell only accepts **`.bin`** in its validator (see [author demo](https://lrusso.github.io/PlayStation/PlayStation.htm)).
 
@@ -38,8 +38,8 @@ The upstream shell only accepts **`.bin`** in its validator (see [author demo](h
 
 [`e2e/play-spike.spec.ts`](../e2e/play-spike.spec.ts):
 
-1. Loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm`**, asserts **“Playable spike — Ready”** + hidden **`#gui_controls_file`** inside the frame.
-2. **`setInputFiles`** a committed **GPL-2.0** homebrew **`.bin`** ([`e2e/fixtures/240pTestSuitePS1-EMU.bin`](../e2e/fixtures/240pTestSuitePS1-EMU.bin)) and asserts a **`canvas`** appears under **`#rb-playstation-host`** in the iframe (disc layer + WASM initialized).
+1. Loads **`/play/spike`**, waits for **`/playstation/PlayStation.htm?riskbreaker=1`**, asserts **← Mock shell** link + **`#gui_controls_file`** on the **same** page (no iframe).
+2. **`setInputFiles`** a committed **GPL-2.0** homebrew **`.bin`** and asserts **`#rb-playstation-host canvas`** (disc layer + WASM initialized).
 
 Optional: **`E2E_PS1_DISC_BIN`** points at another `.bin` on disk without committing it.
 
@@ -47,15 +47,15 @@ Run: **`pnpm e2e`**.
 
 ## Troubleshooting `/play/spike`
 
-| Symptom                                 | What to try                                                                                                                                                                                                                                                             |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Iframe blank / failed to load**       | DevTools **Network** → `PlayStation.htm` / `PlayStation.js` (JS loads **after** you pick a valid `.bin`). Hard-refresh.                                                                                                                                                 |
-| **`Could not load CD-ROM!` (upstream)** | Wrong or unreadable image for PCSX; try another **`.bin`**, BIOS, or rip.                                                                                                                                                                                               |
-| **No sound**                            | Click **inside the iframe** once (user gesture), use the **speaker** control in-frame, and check system volume.                                                                                                                                                         |
-| **Keys / pad do nothing**               | **Click the game view** so the iframe has focus (not the Riskbreaker page). We removed a duplicate file picker that kept focus on the parent; the shell also calls **`window.focus()`** after boot.                                                                     |
-| **Red Upload not clickable**            | **`gui_upload` is moved** to the **last child of `body`** (after `.wrapper`) so it stacks above the game host + canvas. We also set **`pointer-events: none`** on **`#rb-playstation-host`** and **`auto`** on the canvas + HUD (`PlayStation.htm` / `PlayStation.js`). |
-| **No separate “Play” button**           | Normal — choosing a **`.bin`** runs the game via upstream **`readFile`**.                                                                                                                                                                                               |
-| **Still stuck**                         | Open devtools **Console** for worker/WASM errors; try **Chromium**. Vite sets **COOP/COEP** headers — if something breaks, we can narrow headers.                                                                                                                       |
+| Symptom                                 | What to try                                                                                                                                                                                  |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Redirect doesn’t run**                | Ensure **JavaScript** is on; **hard-refresh** `/play/spike`. Open **`/playstation/PlayStation.htm?riskbreaker=1`** manually.                                                                 |
+| **`Could not load CD-ROM!` (upstream)** | Wrong or unreadable image for PCSX; try another **`.bin`**, BIOS, or rip.                                                                                                                    |
+| **No sound**                            | Click **inside the page** once (user gesture), use the **speaker** control, and check system volume.                                                                                         |
+| **Keys / pad do nothing**               | **Click the game view** so the document has focus. The shell calls **`window.focus()`** after boot.                                                                                          |
+| **Red Upload not clickable**            | The spike **no longer uses an iframe** — it redirects to the full **`PlayStation.htm`** document so behavior matches upstream. If it still fails, disable extensions or try another browser. |
+| **No separate “Play” button**           | Normal — choosing a **`.bin`** runs the game via upstream **`readFile`**.                                                                                                                    |
+| **Still stuck**                         | Open devtools **Console** for worker/WASM errors; try **Chromium**. Vite sets **COOP/COEP** headers — if something breaks, we can narrow headers.                                            |
 
 ## Related
 

@@ -15,7 +15,7 @@ parent: RSK-9c07
 
 ## Done
 
-- `/play/spike` embeds `PlayStation.htm` in an iframe; parent file picker forwards to iframe `readFile`.
+- `/play/spike` redirects to full-page `PlayStation.htm?riskbreaker=1` (no iframe; avoids click hit-testing issues).
 - `PlayStation.js` patched to mount on `#rb-playstation-host`.
 - WASMpsx assets removed from `public/`.
 - Docs + Playwright updated.
