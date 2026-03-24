@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 
-/** Full-page PCSX-wasm (kxkx) shell — static `public/pcsx-kxkx/index.html`. */
-const PCSX_KXKX_SPIKE = "/pcsx-kxkx/index.html?riskbreaker=1";
+/** Full-page PCSX-wasm shell — static `public/pcsx-wasm/index.html`. */
+const PCSX_WASM_SPIKE = "/pcsx-wasm/index.html?riskbreaker=1";
 
 /**
  * `/play/spike` immediately redirects to the static PlayStation shell. If iframe
@@ -9,7 +9,7 @@ const PCSX_KXKX_SPIKE = "/pcsx-kxkx/index.html?riskbreaker=1";
  */
 export default function PlaySpikePage() {
   useEffect(() => {
-    window.location.replace(PCSX_KXKX_SPIKE);
+    window.location.replace(PCSX_WASM_SPIKE);
   }, []);
 
   return (
@@ -17,7 +17,7 @@ export default function PlaySpikePage() {
       <p>Opening the PlayStation emulator…</p>
       <p style={{ fontSize: "0.88rem" }}>
         If nothing happens,{" "}
-        <a href={PCSX_KXKX_SPIKE} style={{ color: "#8ab4ff" }}>
+        <a href={PCSX_WASM_SPIKE} style={{ color: "#8ab4ff" }}>
           open it directly
         </a>
         .

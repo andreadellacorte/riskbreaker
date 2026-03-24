@@ -1,0 +1,10 @@
+{
+  "name": "@riskbreaker/pcsx-wasm-shell",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Riskbreaker shell + overlay bundle for pcsx-wasm (esbuild → public/pcsx-wasm/js)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}

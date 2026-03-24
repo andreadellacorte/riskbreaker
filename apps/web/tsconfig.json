@@ -17,7 +17,6 @@
   "include": [
     "src/**/*",
     "vite.config.ts",
-    "legacy/playstation-src/wasm-embed.ts",
-    "../packages/pcsx-kxkx-shell/src/**/*.ts"
+    "../packages/pcsx-wasm-shell/src/**/*.ts"
   ]
 }

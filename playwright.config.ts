@@ -18,7 +18,8 @@ export default defineConfig({
   ...(!skipWebServer
     ? {
         webServer: {
-          command: "pnpm --filter @riskbreaker/web exec vite --host 127.0.0.1 --port 5173",
+          command:
+            "pnpm -w run ensure:pcsx-wasm && pnpm --filter @riskbreaker/web exec vite --host 127.0.0.1 --port 5173",
           url: defaultOrigin,
           reuseExistingServer: !process.env.CI,
           timeout: 120_000,

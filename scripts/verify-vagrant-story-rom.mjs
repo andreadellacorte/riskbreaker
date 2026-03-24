@@ -20,10 +20,9 @@
  *   VAGRANT_STORY_INTERNAL_SCALE=3 — 2–4 when upscaling (default 3)
  *   VAGRANT_STORY_PERF_HUD=1       — bottom-left FPS / timing overlay (`riskbreaker:perfHud`)
  *
- * Boot wait (after canvas is visible): **poll** until the main loop is ticking — not a fixed sleep.
+ * Boot wait (after canvas is visible): **poll** until the emulator is clearly running — not a fixed sleep.
  *   VAGRANT_STORY_BOOT_WAIT_MAX_MS — cap (default 180000). Alias: VAGRANT_STORY_BOOT_WAIT_MS (same meaning).
  *   VAGRANT_STORY_BOOT_POLL_MS     — poll interval (default 250).
- *   VAGRANT_STORY_BOOT_HEARTBEAT_STALE_MS — frame must be newer than this (default 750).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -44,8 +43,7 @@ const outDir =
   process.env.VAGRANT_STORY_SCREENSHOT_DIR ??
   path.join(repoRoot, "docs/assets/vagrant-story");
 /**
- * Max time to wait for the emulator main loop to tick (polls `__riskbreakerLastMainLoopFrameAt`).
- * Default lowered from a fixed 5 min sleep; local runs usually finish in seconds.
+ * Max time to wait for the emulator to start ticking (bounded polling; not a fixed sleep).
  */
 const bootWaitMaxMs = Number(
   process.env.VAGRANT_STORY_BOOT_WAIT_MAX_MS ??
@@ -53,9 +51,6 @@ const bootWaitMaxMs = Number(
     "180000",
 );
 const bootPollMs = Number(process.env.VAGRANT_STORY_BOOT_POLL_MS ?? "250");
-const bootHeartbeatStaleMs = Number(
-  process.env.VAGRANT_STORY_BOOT_HEARTBEAT_STALE_MS ?? "750",
-);
 /** PS1 START = `V` — delay between presses while smashing through intros (ms). */
 const startMashDelayMs = Number(process.env.VAGRANT_STORY_START_MASH_DELAY_MS ?? "250");
 /**
@@ -97,7 +92,7 @@ if (!fs.existsSync(romPath)) {
   process.exit(1);
 }
 
-const url = `${baseURL.replace(/\/$/, "")}/pcsx-kxkx/index.html?riskbreaker=1`;
+const url = `${baseURL.replace(/\/$/, "")}/pcsx-wasm/index.html?riskbreaker=1`;
 
 const logs = [];
 const errors = [];
@@ -161,21 +156,18 @@ async function main() {
   await canvas.waitFor({ state: "visible", timeout: 600_000 });
 
   process.stderr.write(
-    `Polling every ${bootPollMs} ms for live main loop (max ${bootWaitMaxMs} ms, heartbeat stale ≤ ${bootHeartbeatStaleMs} ms${riskbreakerPerfHud ? ", require perf HUD FPS" : ""})…\n`,
+    `Polling every ${bootPollMs} ms for emulator running (max ${bootWaitMaxMs} ms${riskbreakerPerfHud ? ", require perf HUD FPS" : ""})…\n`,
   );
   const bootPollerStart = Date.now();
   try {
     await page.waitForFunction(
-      ({ staleMs, needFpsHud }) => {
-        const last = globalThis.__riskbreakerLastMainLoopFrameAt;
-        const lrussoHeartbeatOk =
-          typeof last === "number" && performance.now() - last <= staleMs;
-        /** pcsx-kxkx: no lrusso glue — disc load sets `pcsx-game-active` on `body`. */
-        const kxkxGameActive =
+      ({ needFpsHud }) => {
+        /** pcsx-wasm: disc load sets `pcsx-game-active` on `body`. */
+        const pcsxWasmGameActive =
           document.body?.classList?.contains("pcsx-game-active") === true;
         const canvasEl = document.querySelector("canvas#canvas");
         const canvasOk = Boolean(canvasEl && canvasEl.width >= 2 && canvasEl.height >= 2);
-        if (!lrussoHeartbeatOk && !(kxkxGameActive && canvasOk)) {
+        if (!(pcsxWasmGameActive && canvasOk)) {
           return false;
         }
         if (needFpsHud) {
@@ -185,12 +177,12 @@ async function main() {
         }
         return true;
       },
-      { staleMs: bootHeartbeatStaleMs, needFpsHud: riskbreakerPerfHud },
+      { needFpsHud: riskbreakerPerfHud },
       { timeout: bootWaitMaxMs, polling: bootPollMs },
     );
   } catch {
     throw new Error(
-      `Boot wait timed out after ${bootWaitMaxMs} ms (no lrusso heartbeat, no pcsx-kxkx game-active + canvas${riskbreakerPerfHud ? ", or perf HUD FPS readout" : ""}). Raise VAGRANT_STORY_BOOT_WAIT_MAX_MS.`,
+      `Boot wait timed out after ${bootWaitMaxMs} ms (no pcsx-wasm game-active + canvas${riskbreakerPerfHud ? ", or perf HUD FPS readout" : ""}). Raise VAGRANT_STORY_BOOT_WAIT_MAX_MS.`,
     );
   }
   const bootWaitElapsedMs = Date.now() - bootPollerStart;
@@ -268,7 +260,6 @@ async function main() {
     romBytes: fs.statSync(romPath).size,
     bootWaitMaxMs,
     bootPollMs,
-    bootHeartbeatStaleMs,
     bootWaitElapsedMs,
     startMashPresses,
     startMashDelayMs,

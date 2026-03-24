@@ -29,8 +29,22 @@ crash.log
 .netlify
 
 # Generated PCSX kxkx artifacts (build outputs; do not commit)
-third_party/kxkx5150-PCSX-wasm/pcsx_worker.js
-third_party/kxkx5150-PCSX-wasm/pcsx_worker.wasm
-third_party/kxkx5150-PCSX-wasm/pcsx_ww.js
-third_party/kxkx5150-PCSX-wasm/pcsx_ww.wasm
+packages/pcsx-wasm-core/pcsx_worker.js
+packages/pcsx-wasm-core/pcsx_worker.wasm
+packages/pcsx-wasm-core/pcsx_ww.js
+packages/pcsx-wasm-core/pcsx_ww.wasm
+
+# Generated PCSX-wasm artifacts synced into the web public folder
+apps/web/public/pcsx-wasm/pcsx_worker.js
+apps/web/public/pcsx-wasm/pcsx_worker.wasm
+apps/web/public/pcsx-wasm/pcsx_ww.js
+apps/web/public/pcsx-wasm/pcsx_ww.wasm
+apps/web/public/pcsx-wasm/css/pcsx.css
+apps/web/public/pcsx-wasm/js/pcsx_ui.js
+
+# Generated PCSX kxkx artifacts materialized into dist/ (do not commit)
+packages/pcsx-wasm-core/dist/**
+
+# Riskbreaker overlay boot bundle (build artifact)
+apps/web/public/pcsx-wasm/js/riskbreaker-pcsx-wasm-boot.js
 

@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "pnpm -w run build:pcsx-kxkx-shell && vite build",
+    "dev": "pnpm -w run ensure:pcsx-wasm && vite",
+    "build": "pnpm -w run ensure:pcsx-wasm && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },

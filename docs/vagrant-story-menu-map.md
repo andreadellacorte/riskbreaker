@@ -76,7 +76,7 @@ Triangle (field pause)
 | **3D, 1st person view** (entered with **Start** while in **3D**) | **Triangle does not** open that field menu — leave **1st person** first (often **Start** toggles the camera back). |
 | **FMV, 2D scenes, “NOW LOADING…”, title / attract** | **Not** the field menu you want for ITEMS/STATUS parity work — mash **Start** only to reach **3D**, then **avoid extra Start** so you do not sit in **1st person** when testing **Triangle**. |
 
-**Shell keyboard (lrusso):** Triangle → **`D`**, Start → **`V`**. **Canvas must be focused** or pad events never reach the core; our Playwright script **re-clicks the emulator canvas immediately before** sending **`D`** ([`scripts/verify-vagrant-story-rom.mjs`](../scripts/verify-vagrant-story-rom.mjs)).
+**Emulator shell keyboard:** Triangle → **`D`**, Start → **`V`**. **Canvas must be focused** or pad events never reach the core; our Playwright script **re-clicks the emulator canvas immediately before** sending **`D`** ([`scripts/verify-vagrant-story-rom.mjs`](../scripts/verify-vagrant-story-rom.mjs)).
 
 **Automation caveat:** A long **Start** smash **after** load can overlap real **3D** and trap the session in **1st person**, so **Triangle** looks broken — shorten or disable post-boot Start mashing when capturing menu shots (see [playbook §3.6](./vagrant-story-menu-verification-playbook.md#36-vagrant-story-usa--start-through-intros-triangle-only-when-not-in-1st-person)).
 
@@ -142,7 +142,7 @@ From the same FAQ (controls section; summarised in [playbook §1.3](./vagrant-st
 
 - In **Normal / Battle** mode, **L2** opens a **shortcut menu** (not the same layout as the Triangle stack).
 - **Eight shortcut slots** tie to areas such as **MISC** items, **defense / chain** abilities, **magic**, etc. (exact mapping in FAQ).
-- **Shell:** L2 → **`E`** in the lrusso keyboard table.
+- **Shell:** L2 → **`E`** in the emulator shell keyboard table.
 
 Treat **Triangle stack** vs **L2 shortcuts** as **two different** navigation trees for remaster IA.
 

@@ -59,7 +59,10 @@ var Module = {
     if (text === Module.setStatus.text) return;
     var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
     var now = Date.now();
-    document.getElementById('status').innerHTML = text;
+  const statusEl = document.getElementById('status');
+  // Some shells don't include a `#status` element (e.g. headless/test harness).
+  // Emscripten will still call setStatus during startup, so keep it null-safe.
+  if (statusEl) statusEl.innerHTML = text;
     cout_print("setStatus: "+text);
   },
   totalDependencies: 0,
@@ -79,7 +82,9 @@ window.onerror = function (event) {
 
 var img_data32;
 function my_SDL_LockSurface(surf) {
-  var surfData = SDL.surfaces[surf];
+  var surfData = SDL && SDL.surfaces ? SDL.surfaces[surf] : null;
+  if (!surfData) return 0;
+  if (typeof surfData.locked !== "number") surfData.locked = 0;
   surfData.locked++;
   if (surfData.locked > 1) return 0;
 
@@ -102,7 +107,8 @@ function my_SDL_LockSurface(surf) {
 function my_SDL_UnlockSurface(surf) {
   assert(!SDL.GL); // in GL mode we do not keep around 2D canvases and contexts
 
-  var surfData = SDL.surfaces[surf];
+  var surfData = SDL && SDL.surfaces ? SDL.surfaces[surf] : null;
+  if (!surfData) return;
 
   if (!surfData.locked || --surfData.locked > 0) {
     return;
@@ -136,9 +142,21 @@ function var_setup() {
   cout_print("start worker")
   pcsx_worker = new Worker("pcsx_worker.js");
   pcsx_worker.onmessage = pcsx_worker_onmessage;
+  // Signal pcsx-wasm-main that the worker exists so it can flush any queued disc loads.
+  // (The Playwright smoke test waits for pcsx-game-active, which is set only after
+  // the disc load actually runs.)
+  try {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("pcsx-worker-ready"));
+    }
+  } catch {
+    // Best-effort: if Event dispatch fails, disc loading may still work via other paths.
+  }
   document.getElementById('iso_opener').disabled=false;
   var spinner = document.getElementById('spinner');
-  spinner.parentElement.removeChild(spinner);  
+  if (spinner && spinner.parentElement) {
+    spinner.parentElement.removeChild(spinner);
+  }
   setTimeout("Module.setStatus('open an iso file using the above button.')", 2);
 }
 
@@ -224,6 +242,25 @@ function pcsx_worker_onmessage(event) {
       cout_print("unknown worker cmd " + data.cmd)
   }
 }
+
+// Emscripten runtime hook: once the UI thread runtime is ready, start the worker.
+// PCSX-wasm expects `var_setup()` to create `pcsx_worker` and enable disc input.
+//
+// `Module` may be defined only after `pcsx_ww.js` is loaded, so we attach lazily.
+(function attachOnRuntimeInitialized() {
+  function tryAttach() {
+    try {
+      if (typeof Module !== "undefined") {
+        Module.onRuntimeInitialized = var_setup;
+        return;
+      }
+    } catch {
+      // Ignore and keep polling.
+    }
+    setTimeout(tryAttach, 10);
+  }
+  tryAttach();
+})();
 
 
 

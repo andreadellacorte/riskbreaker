@@ -1,6 +1,6 @@
 # Vagrant Story — menu guide detail & verification playbook (2026)
 
-This doc ties together **what the classic GameFAQs guide actually contains** (structure only — do not mirror the full text in-repo), **2026 access reality**, and how to verify **controls / UI** in the **PCSX kxkx browser shell** (“**if I press Triangle, what happens**”: **visually** + **instrumentation**).
+This doc ties together **what the classic GameFAQs guide actually contains** (structure only — do not mirror the full text in-repo), **2026 access reality**, and how to verify **controls / UI** in the **PCSX-wasm browser shell** (“**if I press Triangle, what happens**”: **visually** + **instrumentation**).
 
 **GameFAQs:** open the FAQ in a **normal browser** — no automation needed.
 
@@ -8,8 +8,8 @@ This doc ties together **what the classic GameFAQs guide actually contains** (st
 
 | Environment | URL |
 | ----------- | --- |
-| **Local dev** (Vite) | `http://localhost:5173/pcsx-kxkx/index.html?riskbreaker=1` |
-| **Deployed** (example) | `https://riskbreaker.netlify.app/pcsx-kxkx/index.html?riskbreaker=1` (or site root `/` → redirect) |
+| **Local dev** (Vite) | `http://localhost:5173/pcsx-wasm/index.html?riskbreaker=1` |
+| **Deployed** (example) | `https://riskbreaker.netlify.app/pcsx-wasm/index.html?riskbreaker=1` (or site root `/` → redirect) |
 
 ## 1. Primary written source — GameFAQs “Miscellaneous Guide”
 
@@ -76,7 +76,7 @@ Open the **full-page shell** directly (same as [playable-emulator-spike.md](./pl
 ```bash
 pnpm dev   # repo root; Vite on http://localhost:5173
 
-agent-browser open "http://localhost:5173/pcsx-kxkx/index.html?riskbreaker=1"
+agent-browser open "http://localhost:5173/pcsx-wasm/index.html?riskbreaker=1"
 agent-browser wait --load networkidle
 agent-browser wait 2000
 agent-browser snapshot -i
@@ -86,20 +86,20 @@ agent-browser screenshot playstation-local.png
 **Production (deployed build)**
 
 ```bash
-agent-browser open "https://riskbreaker.netlify.app/pcsx-kxkx/index.html?riskbreaker=1"
+agent-browser open "https://riskbreaker.netlify.app/pcsx-wasm/index.html?riskbreaker=1"
 agent-browser wait --load networkidle
 agent-browser snapshot -i
 ```
 
-**Alternate entry:** [`/play/spike`](http://localhost:5173/play/spike) **redirects** to **`/pcsx-kxkx/index.html?riskbreaker=1`** — fine for humans; for automation, open the static URL directly.
+**Alternate entry:** [`/play/spike`](http://localhost:5173/play/spike) **redirects** to **`/pcsx-wasm/index.html?riskbreaker=1`** — fine for humans; for automation, open the static URL directly.
 
 After load: **GitHub** link, **`#iso_opener`** (hidden file input), Riskbreaker overlay when `riskbreaker=1`. Loading a disc pulls **PCSX** WASM — see [playable-emulator-spike.md](./playable-emulator-spike.md).
 
 **Focus:** click the **page / canvas** so keyboard reaches the core. Without focus, keys do nothing.
 
-### 3.1 Keyboard → PS1 face buttons (lrusso shell)
+### 3.1 Keyboard → PS1 face buttons (emulator shell)
 
-The kxkx shell shows a **fixed mapping** (local or deployed):
+The PCSX-wasm shell shows a **fixed mapping** (local or deployed):
 
 | PS1 | Key |
 | --- | --- |
@@ -134,7 +134,7 @@ agent-browser screenshot after-triangle.png
 | ----- | ------------- |
 | **DOM** | **`click`**, **`keydown`** on `window` — **not** the game’s internal “menu opened” flag. |
 | **Canvas** | Pixels change — **screenshot diff** or manual inspection. |
-| **Emulator / WASM** | **Not** exposed to Riskbreaker unless we **instrument** (`packages/pcsx-kxkx-shell`, **RSK-xfc8** telemetry, `performance.mark`, custom hooks on the worker / `Module`). |
+| **Emulator / WASM** | **Not** exposed to Riskbreaker unless we **instrument** (`packages/pcsx-wasm-shell`, **RSK-xfc8** telemetry, `performance.mark`, custom hooks on the worker / `Module`). |
 
 So: **“if I press Triangle”** is **visually** verifiable immediately; **semantically** (“which submenu”) needs either **human labeling** or **future** RAM/menu-id instrumentation (**RSK-vs12**).
 
@@ -149,8 +149,8 @@ Commands were run with **Vite already on :5173** and **`agent-browser` 0.13.x**.
 
 | Step | Result |
 | ---- | ------ |
-| Open **local** `…/pcsx-kxkx/index.html?riskbreaker=1` | Document title **PlayStation**; full-page screenshot shows key legend (**TRIANGLE** SVG), **GitHub** link, upload control. |
-| Open **Netlify** `…/pcsx-kxkx/index.html?riskbreaker=1` | Same static shell (or `/` → redirect). |
+| Open **local** `…/pcsx-wasm/index.html?riskbreaker=1` | Document title **PlayStation**; full-page screenshot shows key legend (**TRIANGLE** SVG), **GitHub** link, upload control. |
+| Open **Netlify** `…/pcsx-wasm/index.html?riskbreaker=1` | Same static shell (or `/` → redirect). |
 | `snapshot -i` | **Canvas** may not be exposed as a named a11y control; use **click-to-focus** on the page or **screenshot** for visual QA. |
 | `press d` (Triangle) **before** any `.bin` loaded | No change vs boot — **expected** (no game; nothing to open a field menu on). |
 
@@ -164,7 +164,7 @@ Screenshots (repo, for regression comparison):
 
 ### 3.5 Loading a `.bin` — click the **red** upload button first
 
-In **`pcsx-kxkx/index.html`**, the file input is **`#iso_opener`** (class **`gui_controls_file`**, often hidden). The visible control is **`.gui_upload`**: a **red** circular hit target (bottom area) with **`title="Load disc image"`**.
+In **`pcsx-wasm/index.html`**, the file input is **`#iso_opener`** (class **`gui_controls_file`**, often hidden). The visible control is **`.gui_upload`**: a **red** circular hit target (bottom area) with **`title="Load disc image"`**.
 
 **Manual QA:** click the **red** button, then choose a `.bin` in the dialog.
 
@@ -194,7 +194,7 @@ For this title, **Triangle** opens the **field menu** from normal **3D explorati
 2. After boot, **mash Start** (keyboard **V**) for on the order of **1–2 minutes** only as needed to advance past publisher logos, title, and cutscenes until you are **in the 3D part** with direct control — **do not keep mashing Start** after that, or you will keep toggling **1st person** and **Triangle** will appear “broken.”
 3. In **3D**, **not** in **1st person**, press **Triangle** (**D**) and compare screenshots before/after for menu chrome.
 
-**Automation:** `scripts/verify-vagrant-story-rom.mjs` **polls** until the emulator is delivering frames (`__riskbreakerLastMainLoopFrameAt`, capped by `VAGRANT_STORY_BOOT_WAIT_MAX_MS` / `VAGRANT_STORY_BOOT_WAIT_MS`), then runs a **Start** smash **after** that; if that window overlaps **3D** gameplay, it can leave the session in **1st person**, so **Triangle** may do nothing. Prefer **shorter** `VAGRANT_STORY_START_MASH_DURATION_MS`, use **`VAGRANT_STORY_START_MASHES`** for a tight count, or **0** smash + manual intro skip, then re-run for **Triangle** only. Defaults: short **settle** (`VAGRANT_STORY_3D_SETTLE_MS`) → refocus canvas → **Triangle** → screenshots.
+**Automation:** `scripts/verify-vagrant-story-rom.mjs` **polls** until the emulator is running (bounded polling; `pcsx-game-active` on `body` plus a visible `canvas#canvas`), then runs a **Start** smash **after** that. If that window overlaps **3D** gameplay, it can leave the session in **1st person**, so **Triangle** may do nothing. Prefer **shorter** `VAGRANT_STORY_START_MASH_DURATION_MS`, use **`VAGRANT_STORY_START_MASHES`** for a tight count, or **0** smash + manual intro skip, then re-run for **Triangle** only. Defaults: short **settle** (`VAGRANT_STORY_3D_SETTLE_MS`) → refocus canvas → **Triangle** → screenshots.
 
 Optional **`VAGRANT_STORY_TOGGLE_CAMERA_BEFORE_TRIANGLE=1`:** sends one **`v`** after the settle wait (then refocuses) in case **Start**-mashing left you in **1st person**. **Danger:** if you are **already** in **normal field camera**, that **`v`** **enters** **1st person** — use only when you expect to need to **leave** 1st person (or verify manually).
 
@@ -209,8 +209,8 @@ Environment: Chromium / Firefox / Safari — version:
 GameFAQs section re-read: [ ] 2.4 Menu  [ ] Controls
 
 Emulator URL tested:
-[ ] http://localhost:5173/pcsx-kxkx/index.html?riskbreaker=1
-[ ] https://riskbreaker.netlify.app/pcsx-kxkx/index.html?riskbreaker=1  (or `/` on prod)
+[ ] http://localhost:5173/pcsx-wasm/index.html?riskbreaker=1
+[ ] https://riskbreaker.netlify.app/pcsx-wasm/index.html?riskbreaker=1  (or `/` on prod)
 
 [ ] Dev server up (if local)
 [ ] .bin loaded (which file: ___ ) — optional for full WASM path
@@ -218,7 +218,7 @@ Emulator URL tested:
 [ ] Start mashed through intros until **3D** / controllable (keyboard **V** per §3.1); **not** still mashing Start in 3D (avoids **1st person** — §3.6)
 [ ] **Not** in **1st person** (Start in 3D toggles it; Triangle menu won’t open there)
 
-Triangle (/\) — lrusso default is **D** (field menu — §3.6; **not** in 1st person):
+Triangle (/\) — default is **D** (field menu — §3.6; **not** in 1st person):
 [ ] agent-browser press d (or manual D key)
 Visual: menu appeared? [ ] Y [ ] N
 Screenshot paths: ___ / ___

@@ -210,7 +210,7 @@ export function setInternalScaleFactor(n: number): void {
   }
 }
 
-/** Apply all persisted flags from `localStorage` (call after `PlayStation.js` / host is ready). */
+/** Apply all persisted flags from `localStorage` (call after host is ready). */
 export function applyPersistedRuntimeControls(): void {
   syncPerfHudFromStorage();
   setSpeedHackEnabled(readStorageFlag(STORAGE.SPEED_HACK));

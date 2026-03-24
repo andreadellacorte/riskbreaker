@@ -56,7 +56,7 @@ Screenshot + tables for **parity** with native UI at new game — independent of
 ## Unknowns (for RSK-vs12 / RSK-vs13)
 
 1. **Addresses / structs** for inventory, equipment, **current menu** in the target build (e.g. NTSC-U).
-2. **Stable** memory export from lrusso/PlayStation into `RuntimeSnapshot` — see [emulator-runtime-gaps.md](./emulator-runtime-gaps.md).
+2. **Stable** memory export from the legacy emulator into `RuntimeSnapshot` — see [emulator-runtime-gaps.md](./emulator-runtime-gaps.md).
 3. **Input** strategy: pad events vs anything else — product / fragility tradeoffs.
 4. **Locale:** fixtures and FAQ alignment per region — **RSK-vs16**.
 

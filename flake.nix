@@ -27,6 +27,8 @@
             git
             terraform
             netlify-cli
+            emscripten
+            gnumake
           ];
 
           # Pin pnpm to match root `packageManager`. Avoid `corepack enable` here: it tries to write

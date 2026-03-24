@@ -1,5 +1,5 @@
 /**
- * PCSX kxkx shell — PlayStation-style chrome + boot / game-state transitions.
+ * PCSX-wasm shell — PlayStation-style chrome + boot / game-state transitions.
  */
 
 html {
@@ -75,7 +75,7 @@ body.pcsx-shell {
   pointer-events: none;
 }
 
-/* Load-disc control — visible immediately; disc can queue until worker is up (kxkx-main.js) */
+/* Load-disc control — visible immediately; disc can queue until worker is up (pcsx-wasm-main.js) */
 .gui_upload {
   position: fixed;
   left: 0;
@@ -85,7 +85,7 @@ body.pcsx-shell {
   height: var(--shell-upload-size);
   margin: 0 auto;
   cursor: pointer;
-  /* Red disc upload hit target (lrusso-style .gui_upload) */
+  /* Red disc upload hit target (legacy-style .gui_upload) */
   background-image: url("../assets/gui-upload-red.png");
   background-repeat: no-repeat;
   background-position: center;
@@ -186,7 +186,7 @@ body.pcsx-shell {
   text-align: left;
 }
 
-/* Hide all chrome while a disc is running (see kxkx-main.js runDiscLoad) */
+/* Hide all chrome while a disc is running (see pcsx-wasm-main.js runDiscLoad) */
 .pcsx-shell.pcsx-game-active .shell_chrome,
 .pcsx-shell.pcsx-game-active .shell_github {
   opacity: 0;

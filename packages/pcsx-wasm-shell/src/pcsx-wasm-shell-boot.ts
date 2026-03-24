@@ -1,5 +1,5 @@
 /**
- * Single IIFE entry for `pcsx-kxkx/index.html`: register emulator host (canvas = #canvas), then Riskbreaker overlay.
+ * Single IIFE entry for `pcsx-wasm/index.html`: register emulator host (canvas = #canvas), then Riskbreaker overlay.
  */
 import { registerRiskbreakerEmulatorHost } from "./emulator-bridge.js";
 import { installRiskbreakerOverlay } from "./riskbreaker-overlay.js";

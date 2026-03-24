@@ -9,7 +9,7 @@ const e2eDir = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * Collect uncaught page exceptions (main thread). Note: `pageerror` fires when the error runs —
- * if PlayStation.js does `setTimeout(bad, 10)`, we must not assert until that timer has run.
+ * if the emulator bundle does `setTimeout(bad, 10)`, we must not assert until that timer has run.
  */
 function attachPageErrorCollector(page: Page): {
   assertNoneSync: () => void;
@@ -40,7 +40,7 @@ function attachPageErrorCollector(page: Page): {
 }
 
 /** Default: GPL-2.0 homebrew bin under `e2e/fixtures/`. Override via `E2E_PS1_DISC_BIN`. */
-/** kxkx shell fades chrome via `pcsx-game-active` on `body` — upload label may stay in DOM (opacity 0). */
+/** PCSX-wasm shell fades chrome via `pcsx-game-active` on `body` — upload label may stay in DOM (opacity 0). */
 async function waitForPcsxGameActive(page: Page) {
   await page.waitForFunction(
     "document.body.classList.contains('pcsx-game-active')",
@@ -57,7 +57,7 @@ function resolveDiscBin(): string {
   return path.join(e2eDir, "fixtures", "240pTestSuitePS1-EMU.bin");
 }
 
-test.describe("/play/spike — pcsx-kxkx smoke", () => {
+test.describe("/play/spike — pcsx-wasm smoke", () => {
   test("redirects to full-page emulator and shell is ready", async ({ page }) => {
     test.setTimeout(120_000);
 
@@ -65,7 +65,7 @@ test.describe("/play/spike — pcsx-kxkx smoke", () => {
 
     await page.goto("/play/spike");
 
-    await page.waitForURL(/\/pcsx-kxkx\/index\.html\?riskbreaker=1/, {
+    await page.waitForURL(/\/pcsx-wasm\/index\.html\?riskbreaker=1/, {
       timeout: 30_000,
     });
 
@@ -89,10 +89,10 @@ test.describe("/play/spike — pcsx-kxkx smoke", () => {
 });
 
 /**
- * Full path: pick a real `.bin` → `runPlayStation()` → dynamic `PlayStation.js` → WASM + canvas.
- * (Smoke test above never loads `PlayStation.js`; only this flow does.)
+ * Full path: pick a real `.bin` → `runPlayStation()` → emulator bundle → WASM + canvas.
+ * (Smoke test above never loads the full emulator bundle; only this flow does.)
  */
-test.describe("/play/spike — homebrew disc loads emulator (pcsx-kxkx)", () => {
+test.describe("/play/spike — homebrew disc loads emulator (pcsx-wasm)", () => {
   test("loads GPL homebrew .bin; WASM runs, canvas appears, no page errors", async ({
     page,
   }) => {
@@ -110,7 +110,7 @@ test.describe("/play/spike — homebrew disc loads emulator (pcsx-kxkx)", () => 
     const { assertNoneAfterMainThreadSettles } = attachPageErrorCollector(page);
 
     await page.goto("/play/spike");
-    await page.waitForURL(/\/pcsx-kxkx\/index\.html/, { timeout: 30_000 });
+    await page.waitForURL(/\/pcsx-wasm\/index\.html/, { timeout: 30_000 });
 
     const upload = page.locator(".gui_upload");
     await expect(upload).toBeVisible();
@@ -137,7 +137,7 @@ test.describe("/play/spike — homebrew disc loads emulator (pcsx-kxkx)", () => 
     await assertNoneAfterMainThreadSettles();
   });
 
-  /** Stronger than smoke-only: menu controls + perf HUD need `PlayStation.js` + running main loop (RSK-xfc8). */
+  /** Stronger than smoke-only: menu controls + perf HUD need running main loop (RSK-xfc8). */
   test("Riskbreaker menu: Perf HUD checkbox shows frame timing and FPS line", async ({ page }) => {
     test.setTimeout(180_000);
 
@@ -147,7 +147,7 @@ test.describe("/play/spike — homebrew disc loads emulator (pcsx-kxkx)", () => 
     const { assertNoneAfterMainThreadSettles } = attachPageErrorCollector(page);
 
     await page.goto("/play/spike");
-    await page.waitForURL(/\/pcsx-kxkx\/index\.html/, { timeout: 30_000 });
+    await page.waitForURL(/\/pcsx-wasm\/index\.html/, { timeout: 30_000 });
     await page.locator("#iso_opener").setInputFiles(bin);
     await waitForPcsxGameActive(page);
     await expect(page.locator("canvas#canvas")).toBeVisible({ timeout: 120_000 });
@@ -162,7 +162,7 @@ test.describe("/play/spike — homebrew disc loads emulator (pcsx-kxkx)", () => 
       .poll(async () => (await hud.textContent()) ?? "", { timeout: 20_000 })
       .toMatch(/wall/);
     await expect(hud).toContainText(/EMA/);
-    /** kxkx: perf hooks (`__riskbreakerOnWorkerRender`) may be unset — FPS readout can stay `—` until wired in the fork. */
+    /** PCSX-wasm: perf hooks (`__riskbreakerOnWorkerRender`) may be unset — FPS readout can stay `—` until wired in the fork. */
 
     await page.keyboard.press("Escape");
     await expect(page.locator("#rb-riskbreaker-overlay")).toBeHidden();

@@ -156,7 +156,17 @@ sequenceDiagram
 
 ## Playable emulator spike (not integrated yet)
 
-A **browser PS1 emulator** proof-of-concept lives at **`/play/spike`** in [`apps/web`](../apps/web) using vendored **[lrusso/PlayStation](https://github.com/lrusso/PlayStation)** (WASMpsx lineage). It is **not** connected to `SessionOrchestrator` or `psx-runtime` yet — see [`playable-emulator-spike.md`](./playable-emulator-spike.md).
+A **browser PS1 emulator** proof-of-concept lives at **`/play/spike`** in [`apps/web`](../apps/web) using a vendored legacy PS1 emulator bundle (WASM lineage). It is **not** connected to `SessionOrchestrator` or `psx-runtime` yet — see [`playable-emulator-spike.md`](./playable-emulator-spike.md).
+
+### PCSX-wasm artifact integration contract
+
+This spike uses a browser-ready PCSX-wasm fork (kxkx5150 / first-party under `packages/`). The integration contract is:
+
+1. **Build inputs and source of truth live in `packages/pcsx-wasm-core/`**
+2. **Runtime artifacts are materialized into `packages/pcsx-wasm-core/dist/`** by `scripts/ensure-pcsx-wasm.mjs`
+3. **The web app consumes runtime artifacts only via `apps/web/public/pcsx-wasm/`**
+   - `scripts/sync-pcsx-wasm-public.mjs` copies from `packages/pcsx-wasm-core/dist/` into `apps/web/public/pcsx-wasm/`
+4. `apps/web` and Playwright both run the preflight `ensure:pcsx-wasm` before starting Vite / the dev server.
 
 ---
 

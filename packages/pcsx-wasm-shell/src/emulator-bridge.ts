@@ -4,7 +4,7 @@
 export interface RiskbreakerEmulatorHost {
   getCanvas: () => HTMLCanvasElement | null;
   getWASMpsx: () => Record<string, unknown>;
-  /** RSK-xfc8 — optional; set when `PlayStation.js` has registered the bridge. */
+  /** RSK-xfc8 — optional; set when the emulator bundle has registered the bridge. */
   setPerfHudEnabled?: (enabled: boolean) => void;
   setSpeedHackEnabled?: (enabled: boolean) => void;
   setUpscalingEnabled?: (enabled: boolean) => void;

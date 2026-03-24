@@ -22,7 +22,7 @@ Evolve Riskbreaker toward **wasmpsx-style** artifact split + **honest memory / s
 
 - [x] Document upstream reality (done in `docs/playstation-engine-hacking.md` § wasmpsx).
 - [ ] Spike: load **split** `wasmpsx_worker.js` + `.wasm` from `/playstation/` (no embedded worker base64) behind a feature flag or branch.
-- [x] Locate or document **compile path** for worker WASM — see [`docs/playstation-engine-hacking.md` § “Where the C / Emscripten sources live”](../../docs/playstation-engine-hacking.md) (**tjwei/pcsxjs**, **kxkx5150/PCSX-wasm**).
+- [x] Locate or document **compile path** for worker WASM — see [`docs/playstation-engine-hacking.md` § “Where the C / Emscripten sources live”](../../docs/playstation-engine-hacking.md) (**kxkx5150/PCSX-wasm**).
 - [ ] Add **postMessage** or WASM **exports** for peek/poke or savestate blob — first step toward `EmulatorRuntimeAdapter` real impl.
 - [x] **E2E:** `pnpm e2e` keeps passing with `240pTestSuitePS1-EMU.bin` (GPL fixture; see `e2e/fixtures/README.md`) — verified 2026-03-22.
 
@@ -32,15 +32,14 @@ Evolve Riskbreaker toward **wasmpsx-style** artifact split + **honest memory / s
 
 ## Next steps (ordered)
 
-1. **Submodules (done):** [`third_party/tjwei-pcsxjs`](../../third_party/tjwei-pcsxjs), [`third_party/kxkx5150-PCSX-wasm`](../../third_party/kxkx5150-PCSX-wasm) — see [`third_party/README.md`](../../third_party/README.md). After clone: `git submodule update --init --recursive`.
+1. **Vendored sources (done):** [`packages/pcsx-kxkx-core`](../../packages/pcsx-kxkx-core) as first-party source.
 2. **Split-artifact spike:** Add optional load path for `wasmpsx_worker.js` + `.wasm` from static URLs (match [wasmpsx](https://github.com/js-emulators/wasmpsx) layout) before replacing the embedded worker in `emscripten-glue.js`.
-3. **Build spike:** Prove `emcc` build from one submodule (tjwei first if kxkx toolchain is too old), document Riskbreaker-specific patches.
+3. **Build spike:** Prove `emcc` build from the kxkx vendor tree, document Riskbreaker-specific patches.
 4. **Exports:** Expose `peek`/`poke` or savestate C API → `EMSCRIPTEN_KEEPALIVE` → worker `postMessage` bridge → `EmulatorRuntimeAdapter` in `psx-runtime`.
 
 ## Links
 
 - [wasmpsx](https://github.com/js-emulators/wasmpsx) — artifacts
-- [tjwei/pcsxjs](https://github.com/tjwei/pcsxjs) — GPL-3.0 source + Emscripten build
 - [lrusso/PlayStation](https://github.com/lrusso/PlayStation) — bundled fork + UX deltas
 - [docs/playstation-engine-hacking.md](../../docs/playstation-engine-hacking.md)
 - [docs/architecture.md](../../docs/architecture.md) — runtime/plugin boundaries

@@ -4,26 +4,22 @@ This documents the **Phase 1 spike** that proves a PlayStation-class emulator ca
 
 ## Chosen approach: PCSX-wasm (kxkx5150)
 
-The canonical spike is **[kxkx5150/PCSX-wasm](https://github.com/kxkx5150/PCSX-wasm)** artifacts, synced into [`apps/web/public/pcsx-kxkx/`](../apps/web/public/pcsx-kxkx/) via **`pnpm sync:pcsx-kxkx`** (after building the `third_party/kxkx5150-PCSX-wasm` submodule). **GPL-3.0** — see [`third_party/README.md`](../third_party/README.md).
+The canonical spike is **[kxkx5150/PCSX-wasm](https://github.com/kxkx5150/PCSX-wasm)** artifacts, synced into [`apps/web/public/pcsx-wasm/`](../apps/web/public/pcsx-wasm/) via **`pnpm sync:pcsx-wasm`** (after building the vendored core at [`packages/pcsx-wasm-core/`](../packages/pcsx-wasm-core/)). **GPL-3.0**.
 
-The **Riskbreaker** overlay + runtime menu (backtick panel) is implemented in **`packages/pcsx-kxkx-shell/src/`** and built into **`public/pcsx-kxkx/js/riskbreaker-kxkx-boot.js`** (`pnpm build:pcsx-kxkx-shell`).
+The **Riskbreaker** overlay + runtime menu (backtick panel) is implemented in **`packages/pcsx-wasm-shell/src/`** and built into **`public/pcsx-wasm/js/riskbreaker-pcsx-wasm-boot.js`** (`pnpm build:pcsx-wasm-shell`).
 
 | Topic           | Notes |
 | --------------- | ----- |
-| **Integration** | [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) and **`/`** use **`window.location.replace`** to **`/pcsx-kxkx/index.html?riskbreaker=1`** — static HTML + worker WASM (no iframe). |
-| **Canvas**      | Main canvas is **`#canvas`** (no `shadowRoot` / `#rb-playstation-host` — that was the **retired** lrusso shell). |
-| **Trade-offs**  | Worker-based PCSX; **speed hack / upscale** toggles in the overlay are **best-effort** until the fork exposes stable `postMessage` config (see **playstation-engine-hacking.md**). |
-
-### Legacy: lrusso/PlayStation (removed)
-
-We previously vendored **[lrusso/PlayStation](https://github.com/lrusso/PlayStation)** under `apps/web/public/playstation/`. That tree and the **`esbuild` → `PlayStation.js`** pipeline are **removed**. **`apps/web/legacy/playstation-src/`** keeps only **reference** `emscripten-glue.js` / `wasm-embed.ts` blobs — not the live overlay sources.
+| **Integration** | [`/play/spike`](../apps/web/src/PlaySpikePage.tsx) and **`/`** use **`window.location.replace`** to **`/pcsx-wasm/index.html?riskbreaker=1`** — static HTML + worker WASM (no iframe). |
+| **Canvas**      | Main canvas is **`#canvas`** (no `shadowRoot` / `#rb-playstation-host` — that was the **retired** legacy shell). |
+| **Trade-offs**  | Worker-based PCSX; **speed hack / upscale** toggles in the overlay are **best-effort** until the fork exposes stable `postMessage` config. |
 
 ## UI route
 
-- **`/`** and **`/play/spike`** — **redirect** to **`/pcsx-kxkx/index.html?riskbreaker=1`**.
-- **Direct URL (dev):** `http://localhost:5173/pcsx-kxkx/index.html?riskbreaker=1` — **Deployed:** Netlify redirects **`/`** → **`/pcsx-kxkx/index.html`** (302) — see [`netlify.toml`](../netlify.toml).
+- **`/`** and **`/play/spike`** — **redirect** to **`/pcsx-wasm/index.html?riskbreaker=1`**.
+- **Direct URL (dev):** `http://localhost:5173/pcsx-wasm/index.html?riskbreaker=1` — **Deployed:** Netlify redirects **`/`** → **`/pcsx-wasm/index.html`** (302) — see [`netlify.toml`](../netlify.toml).
 
-The kxkx shell accepts **`.cue`**, **`.bin`**, **`.iso`**, etc. via the file input (see `index.html`).
+The emulator shell accepts **`.cue`**, **`.bin`**, **`.iso`**, etc. via the file input (see `index.html`).
 
 ## BIOS and disc files (legal)
 
@@ -42,7 +38,7 @@ The kxkx shell accepts **`.cue`**, **`.bin`**, **`.iso`**, etc. via the file inp
 
 [`e2e/play-spike.spec.ts`](../e2e/play-spike.spec.ts):
 
-1. **Shell smoke:** loads **`/play/spike`**, waits for **`/pcsx-kxkx/index.html?riskbreaker=1`**, asserts **GitHub** chrome + hidden file input **`#iso_opener`**.
+1. **Shell smoke:** loads **`/play/spike`**, waits for **`/pcsx-wasm/index.html?riskbreaker=1`**, asserts **GitHub** chrome + hidden file input **`#iso_opener`**.
 2. **Full emulator path:** **`setInputFiles`** the GPL-2.0 homebrew **`.bin`** (`e2e/fixtures/240pTestSuitePS1-EMU.bin` or **`E2E_PS1_DISC_BIN`**), expects upload UI to hide, asserts **`canvas#canvas`** and **no uncaught page errors**.
 
 Optional: **`E2E_PS1_DISC_BIN`** points at another `.bin` on disk without committing it.
@@ -53,8 +49,8 @@ Run: **`pnpm e2e`**.
 
 | Symptom                                 | What to try |
 | --------------------------------------- | ----------- |
-| **Redirect doesn’t run**                | Ensure **JavaScript** is on; **hard-refresh** `/play/spike`. Open **`/pcsx-kxkx/index.html?riskbreaker=1`** manually. |
-| **Missing overlay script**              | Run **`pnpm build:pcsx-kxkx-shell`** so `riskbreaker-kxkx-boot.js` exists. |
+| **Redirect doesn’t run**                | Ensure **JavaScript** is on; **hard-refresh** `/play/spike`. Open **`/pcsx-wasm/index.html?riskbreaker=1`** manually. |
+| **Missing overlay script**              | Run **`pnpm build:pcsx-wasm-shell`** so `riskbreaker-pcsx-wasm-boot.js` exists. |
 | `Could not load CD-ROM!` (core)        | Wrong or unreadable image for PCSX; try another rip or format. |
 | **No sound**                            | Click **inside the page** once (user gesture), use system volume. |
 | **Keys / pad do nothing**               | **Click the game view** so the document has focus. |
@@ -63,5 +59,4 @@ Run: **`pnpm e2e`**.
 ## Related
 
 - [`docs/architecture.md`](./architecture.md) — platform boundaries (emulator is **not** integrated with engines in this spike).
-- [**playstation-engine-hacking.md**](./playstation-engine-hacking.md) — submodule build, patches, fork direction.
-- [`third_party/README.md`](../third_party/README.md) — kxkx submodule build + Riskbreaker patches.
+- [`packages/pcsx-wasm-core/README.md`](../packages/pcsx-wasm-core/README.md) — PCSX-wasm core source and upstream notes.

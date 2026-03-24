@@ -3,11 +3,11 @@
  * (`__riskbreakerCanvasUpscaleFactor`, canvas backing-store size), and speed hack (burst + timing).
  *
  * Uses **`/play/spike`** and the same GPL homebrew `.bin` default as **`e2e/play-spike.spec.ts`**
- * (no Vagrant Story ROM). Run **`pnpm build:pcsx-kxkx-shell`** if `riskbreaker-kxkx-boot.js` is missing.
+ * (no Vagrant Story ROM). Run **`pnpm ensure:pcsx-wasm`** if `riskbreaker-pcsx-wasm-boot.js` is missing.
  *
  * Usage (Vite on :5173):
  *   pnpm dev
- *   pnpm build:pcsx-kxkx-shell
+ *   pnpm ensure:pcsx-wasm
  *   node scripts/verify-playstation-riskbreaker-controls.mjs
  *
  * Or another origin:
@@ -115,7 +115,7 @@ async function main() {
 
   process.stderr.write(`Opening ${startUrl}\n`);
   await page.goto(startUrl, { waitUntil: "domcontentloaded" });
-  await page.waitForURL(/\/pcsx-kxkx\/index\.html/, { timeout: 60_000 });
+  await page.waitForURL(/\/pcsx-wasm\/index\.html/, { timeout: 60_000 });
 
   await page.locator("#iso_opener").setInputFiles(romPath);
   await expectDiscRunning(page);
@@ -186,7 +186,7 @@ async function main() {
   await speedCheckbox.check();
   await page.waitForTimeout(speedSampleMs);
   const burst = await page.evaluate(() => globalThis.__riskbreakerRunnerBurstCount ?? null);
-  /** pcsx-kxkx path: Emscripten burst glue from the old lrusso bundle may be absent — only strict-check when set. */
+  /** pcsx-wasm: Emscripten burst glue may be absent — only strict-check when set. */
   if (burst != null && burst !== 16) {
     fail(
       `Speed hack enabled but __riskbreakerRunnerBurstCount expected 16, got ${JSON.stringify(burst)}`,
@@ -194,7 +194,7 @@ async function main() {
   }
   if (burst == null) {
     process.stderr.write(
-      "WARN: __riskbreakerRunnerBurstCount unset (expected on legacy lrusso glue; kxkx may use worker-only timing).\n",
+      "WARN: __riskbreakerRunnerBurstCount unset (expected only when using legacy glue; fork may use worker-only timing).\n",
     );
   }
 

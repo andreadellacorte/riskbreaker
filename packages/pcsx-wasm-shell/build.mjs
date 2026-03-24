@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Bundle `kxkx-shell-boot.ts` + package sources → `apps/web/public/pcsx-kxkx/js/riskbreaker-kxkx-boot.js`.
+ * Bundle `pcsx-wasm-shell-boot.ts` + package sources → `apps/web/public/pcsx-wasm/js/riskbreaker-pcsx-wasm-boot.js`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -9,12 +9,15 @@ import * as esbuild from "esbuild";
 
 const pkgDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(pkgDir, "../..");
-const outFile = path.join(root, "apps/web/public/pcsx-kxkx/js/riskbreaker-kxkx-boot.js");
+const outFile = path.join(
+  root,
+  "apps/web/public/pcsx-wasm/js/riskbreaker-pcsx-wasm-boot.js",
+);
 const shimDir = path.join(pkgDir, "shims");
 
-const entryTs = path.join(pkgDir, "src/kxkx-shell-boot.ts");
+const entryTs = path.join(pkgDir, "src/pcsx-wasm-shell-boot.ts");
 if (!fs.existsSync(entryTs)) {
-  console.error(`pcsx-kxkx-shell: missing entry ${entryTs}`);
+  console.error(`pcsx-wasm-shell: missing entry ${entryTs}`);
   process.exit(1);
 }
 
@@ -22,7 +25,7 @@ fs.mkdirSync(path.dirname(outFile), { recursive: true });
 
 await esbuild.build({
   absWorkingDir: pkgDir,
-  entryPoints: [path.join("src", "kxkx-shell-boot.ts")],
+  entryPoints: [path.join("src", "pcsx-wasm-shell-boot.ts")],
   outfile: outFile,
   bundle: true,
   format: "iife",
@@ -37,4 +40,4 @@ await esbuild.build({
   },
 });
 
-console.log(`pcsx-kxkx-shell: → ${path.relative(root, outFile)}`);
+console.log(`pcsx-wasm-shell: → ${path.relative(root, outFile)}`);

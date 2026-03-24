@@ -16,9 +16,14 @@ export default tseslint.config(
       "vitest.config.mts",
       "**/.turbo/**",
       "**/coverage/**",
-      "apps/web/public/pcsx-kxkx/**",
-      "packages/pcsx-kxkx-shell/shims/**",
-      "apps/web/legacy/playstation-src/emscripten-glue.js",
+      "apps/web/public/pcsx-wasm/**",
+      "packages/pcsx-wasm-shell/shims/**",
+      // PCSX-wasm fork artifacts + Emscripten glue are generated/minified and
+      // are not authored app code. Exclude from lint noise.
+      "packages/pcsx-wasm-core/runtime/**",
+      "packages/pcsx-wasm-core/js/**",
+      "packages/pcsx-wasm-core/pcsx_worker.js",
+      "packages/pcsx-wasm-core/pcsx_ww.js",
       "third_party/**",
     ],
   },
@@ -42,7 +47,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ["packages/pcsx-kxkx-shell/**/*.mjs"],
+    files: ["packages/pcsx-wasm-shell/**/*.mjs"],
     languageOptions: {
       globals: {
         console: "readonly",

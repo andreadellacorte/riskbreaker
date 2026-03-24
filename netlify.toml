@@ -9,13 +9,13 @@
   # Matches `nodejs_24` in `flake.nix` and Netlify’s current Node line (24.x).
   NODE_VERSION = "24"
 
-# Emulator-first: root goes to static PCSX kxkx shell (see `apps/web/public/pcsx-kxkx/`).
+# Emulator-first: root goes to static PCSX-wasm shell (see `apps/web/public/pcsx-wasm/`).
 [[redirects]]
   from = "/"
-  to = "/pcsx-kxkx/index.html"
+  to = "/pcsx-wasm/index.html"
   status = 302
 
-# Client-side routing (Vite SPA) for app routes — static files under /pcsx-kxkx/ are served first.
+# Client-side routing (Vite SPA) for app routes — static files under /pcsx-wasm/ are served first.
 [[redirects]]
   from = "/*"
   to = "/index.html"

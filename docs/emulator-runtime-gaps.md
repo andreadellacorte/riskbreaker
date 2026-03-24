@@ -11,8 +11,8 @@
 
 | Area | Gap |
 |------|-----|
-| **Live PSX RAM** | No read of lrusso/PlayStation WASM memory into `RuntimeSnapshot.memorySegments[].bytes` — **RSK-vs12**. |
-| **`window.__riskbreakerEmulatorHost`** | Bridge is registered from **`packages/pcsx-kxkx-shell`** (built into `public/pcsx-kxkx/js/riskbreaker-kxkx-boot.js`); **psx-runtime** does not call into the emulator (by design — no `plugins/*` ↔ emulator coupling in this package). |
+| **Live PSX RAM** | No read of legacy PS1 emulator WASM memory into `RuntimeSnapshot.memorySegments[].bytes` — **RSK-vs12**. |
+| **`window.__riskbreakerEmulatorHost`** | Bridge is registered from **`packages/pcsx-wasm-shell`** (built into `public/pcsx-wasm/js/riskbreaker-pcsx-wasm-boot.js`); **psx-runtime** does not call into the emulator (by design — no `plugins/*` ↔ emulator coupling in this package). |
 | **Save states** | `savestates` on the adapter are still **mock** stores; no real emulator slot I/O. |
 | **Input** | `input` is **mock**; forwarding web UI → pad → core is **RSK-vs13**. |
 | **Lifecycle fidelity** | `"running"` is set on first `captureSnapshot`; no sync with actual emulation **pause / reset**. |
