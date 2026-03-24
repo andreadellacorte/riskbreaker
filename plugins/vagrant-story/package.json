@@ -16,7 +16,7 @@
     "src/fixtures"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node build-overlay-panel.mjs",
     "build:overlay-panel": "node build-overlay-panel.mjs",
     "clean": "rm -rf dist"
   },

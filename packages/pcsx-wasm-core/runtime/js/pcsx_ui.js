@@ -142,6 +142,9 @@ function var_setup() {
   cout_print("start worker")
   pcsx_worker = new Worker("pcsx_worker.js");
   pcsx_worker.onmessage = pcsx_worker_onmessage;
+  // Expose worker globally so emulator-peek.ts / emulator-poke.ts can reach it.
+  globalThis.__riskbreakerPcsxWorker = pcsx_worker;
+  globalThis.__riskbreakerPcsxWorkerActive = true;
   // Signal pcsx-wasm-main that the worker exists so it can flush any queued disc loads.
   // (The Playwright smoke test waits for pcsx-game-active, which is set only after
   // the disc load actually runs.)
@@ -237,6 +240,11 @@ function pcsx_worker_onmessage(event) {
       HEAPU8.set(pSound_arr, pSound_ptr);
       SoundFeedStreamData(pSound_ptr, data.lBytes);
       _free(pSound_ptr);
+      break
+    case "peek_result":
+    case "peek_error":
+    case "poke_result":
+      // Handled by emulator-peek.ts / emulator-poke.ts listeners on the main thread.
       break
     default:
       cout_print("unknown worker cmd " + data.cmd)

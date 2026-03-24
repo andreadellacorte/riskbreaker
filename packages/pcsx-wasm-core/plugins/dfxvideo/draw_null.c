@@ -100,7 +100,8 @@ void CloseDisplay(void)
 extern unsigned long SoundGetBytesBuffered_value;
 int isMute=0;
 void *get_PadState_ptr();
-void * params_ptrs[] ={&(PSXDisplay.DisplayPosition.x), 
+#include "../../libpcsxcore/psxmem.h"
+void * params_ptrs[] ={&(PSXDisplay.DisplayPosition.x),
                     &(PSXDisplay.DisplayPosition.y),
                     &(PreviousPSXDisplay.Range.x1),
                     &(PreviousPSXDisplay.DisplayMode.y),
@@ -108,11 +109,12 @@ void * params_ptrs[] ={&(PSXDisplay.DisplayPosition.x),
                     &PSXDisplay.DisplayMode.x,
                     &PSXDisplay.DisplayMode.y,
                     &SoundGetBytesBuffered_value,
-                    &isMute,                      
+                    &isMute,
                     };
 void * get_ptr(int i){
-    if(i==-1)   return psxVub;    
+    if(i==-1)   return psxVub;
     if(i==-2) return get_PadState_ptr();
+    if(i==-3)   return psxM;      /* PS1 main RAM pointer */
     return params_ptrs[i];
 }
 
@@ -123,4 +125,11 @@ void ShowGpuPic(void)
 
 void ShowTextGpuPic(void)
 {
+}
+
+/* Stub: worker build has no display; SaveState writes a blank thumbnail. */
+long GPUgetScreenPic(unsigned char *pMem)
+{
+    if (pMem) memset(pMem, 0, 128 * 96 * 3);
+    return 0;
 }

@@ -22,6 +22,10 @@ let lastRunIterMs = 0;
 let rafScheduled = false;
 /** rAF flush when worker delivers multiple renders in one `performance.now()` bucket. */
 let coalescedFlushRaf = 0;
+/** rAF fallback sampler when glue hooks are missing in the loaded PCSX bundle. */
+let fallbackSamplerRaf = 0;
+/** Last frame sample timestamp originating from real worker/emulated-frame hooks. */
+let lastRealHookSampleAt = 0;
 
 /**
  * In-memory flag updated by `setPerfHudEnabled` — do not read `localStorage` on every main-loop frame
@@ -117,6 +121,30 @@ function scheduleHudRefresh(): void {
   });
 }
 
+function stopFallbackSampler(): void {
+  if (fallbackSamplerRaf !== 0) {
+    cancelAnimationFrame(fallbackSamplerRaf);
+    fallbackSamplerRaf = 0;
+  }
+}
+
+function startFallbackSamplerIfNeeded(): void {
+  if (fallbackSamplerRaf !== 0) return;
+  const tick = () => {
+    if (!isPerfHudEnabled()) {
+      fallbackSamplerRaf = 0;
+      return;
+    }
+    const now = performance.now();
+    // Use browser rAF as a last resort only; if real hooks are active, fallback stays passive.
+    if (lastRealHookSampleAt === 0 || now - lastRealHookSampleAt > 250) {
+      notifyPerfHudFrames(1, "fallback");
+    }
+    fallbackSamplerRaf = requestAnimationFrame(tick);
+  };
+  fallbackSamplerRaf = requestAnimationFrame(tick);
+}
+
 function applyEmaFromInterval(dt: number, totalFrames: number): void {
   if (dt <= 0 || totalFrames <= 0) return;
   const instantFps = (totalFrames / dt) * 1000;
@@ -160,9 +188,13 @@ function scheduleCoalescedFlush(): void {
   });
 }
 
-function notifyPerfHudFrames(emulated: number): void {
+function notifyPerfHudFrames(
+  emulated: number,
+  source: "hook" | "fallback" = "hook",
+): void {
   const n = emulated > 0 ? emulated : 1;
   const now = performance.now();
+  if (source === "hook") lastRealHookSampleAt = now;
   if (lastNotifyAt === 0) {
     lastNotifyAt = now;
     framesCoalescedSameTimestamp = n;
@@ -219,10 +251,10 @@ export function installPerfHudGlobalHook(): void {
     ) {
       return;
     }
-    notifyPerfHudFrames(n);
+    notifyPerfHudFrames(n, "hook");
   };
   g.__riskbreakerOnWorkerRender = () => {
-    notifyPerfHudFrames(1);
+    notifyPerfHudFrames(1, "hook");
   };
   g.__riskbreakerOnMainLoopFrame = () => {
     /* wall FPS comes from emulated-frame / worker-render hooks, not Browser.mainLoop.runner */
@@ -242,6 +274,7 @@ export function setPerfHudEnabled(enabled: boolean): void {
      * immediately after opening the HUD; clearing would strand the readout at "—". */
     el.style.display = "block";
     el.setAttribute("aria-hidden", "false");
+    startFallbackSamplerIfNeeded();
     updateHudText();
   } else {
     /* Do not reset wall samples here — `syncPerfHudFromStorage` / delayed
@@ -249,6 +282,7 @@ export function setPerfHudEnabled(enabled: boolean): void {
      * storage is still "0" and wipe FPS history before the user opens the HUD. */
     el.style.display = "none";
     el.setAttribute("aria-hidden", "true");
+    stopFallbackSampler();
   }
 }
 

@@ -487,7 +487,6 @@ static const char PcsxHeader[32] = "STv4 PCSX v" PACKAGE_VERSION;
 // If you make changes to the savestate version, please increment the value below.
 static const u32 SaveVersion = 0x8b410004;
 
-#if 0 // remove 
 int SaveState(const char *file) {
 	gzFile f;
 	GPUFreeze_t *gpufP;
@@ -600,6 +599,7 @@ int LoadState(const char *file) {
 	return 0;
 }
 
+#if 0 // unused helpers
 int CheckState(const char *file) {
 	gzFile f;
 	char header[32];
@@ -669,7 +669,7 @@ int RecvPcsxInfo() {
 
 	return 0;
 }
-#endif
+#endif // unused helpers
 // remove the leading and trailing spaces in a string
 void trim(char *str) {
 	int pos = 0;

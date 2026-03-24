@@ -7,6 +7,8 @@ Module.setStatus = function (s) {
 	});
 };
 
+var psxM_base = -1; // WASM heap offset of psxM (PS1 RAM base), set after disc load via _get_ptr(-3)
+
 function cout_print(s) {
 	postMessage({
 		cmd: "print",
@@ -91,6 +93,8 @@ function pcsx_mainloop() {
 }
 var pcsx_init = Module.cwrap("pcsx_init", "number", ["string"])
 var ls = Module.cwrap("ls", "null", ["string"])
+var pcsx_SaveState = Module.cwrap("SaveState", "number", ["string"]);
+var pcsx_LoadState = Module.cwrap("LoadState", "number", ["string"]);
 var padStatus1;
 var isoDB;
 
@@ -108,6 +112,8 @@ function mount_disc_and_run(files, primaryIsoBasename) {
 	soundbuffer_ptr = _get_ptr(7);
 	isMute_ptr = _get_ptr(8);
 	cout_print("before mainloop\n");
+	psxM_base = _get_ptr(-3);
+	cout_print("psxM_base = 0x" + psxM_base.toString(16) + "\n");
 	pcsx_mainloop();
 }
 
@@ -121,6 +127,8 @@ var readfile_and_run = function (iso_name, blob) {
 		soundbuffer_ptr = _get_ptr(7);
 		isMute_ptr = _get_ptr(8);
 		cout_print("before mainloop\n");
+		psxM_base = _get_ptr(-3);
+		cout_print("psxM_base = 0x" + psxM_base.toString(16) + "\n");
 		pcsx_mainloop();
 	}
 	cout_print("readfile and run ");
@@ -136,7 +144,7 @@ var readfile_and_run = function (iso_name, blob) {
 			});
 		} else
 			cout_print(e.loaded + "bytes")
-		//document.getElementById("start").disabled=false		
+		//document.getElementById("start").disabled=false
 	}
 	reader.onload = function (e) {
 		cout_print("" + iso_name + " loaded");
@@ -222,11 +230,55 @@ var main_onmessage = function (event) {
 		case "peek":
 			var peekLo = data.address >>> 0;
 			var peekLen = (data.length >>> 0) || 4;
-			if (peekLo + peekLen <= HEAPU8.length) {
-				var peekCopy = HEAPU8.slice(peekLo, peekLo + peekLen);
+			var heapBase = psxM_base >= 0 ? psxM_base : 0;
+			var absLo = heapBase + peekLo;
+			if (absLo + peekLen <= HEAPU8.length) {
+				var peekCopy = HEAPU8.slice(absLo, absLo + peekLen);
 				postMessage({ cmd: "peek_result", reqId: data.reqId, data: peekCopy }, [peekCopy.buffer]);
 			} else {
 				postMessage({ cmd: "peek_error", reqId: data.reqId, msg: "address out of range" });
+			}
+			break;
+
+		case "poke":
+			var pokeLo = data.address >>> 0;
+			var pokeBytes = new Uint8Array(data.data);
+			var heapBase = psxM_base >= 0 ? psxM_base : 0;
+			var absLo = heapBase + pokeLo;
+			if (absLo + pokeBytes.length <= HEAPU8.length) {
+				HEAPU8.set(pokeBytes, absLo);
+				postMessage({ cmd: "poke_result", reqId: data.reqId, ok: true });
+			} else {
+				postMessage({ cmd: "poke_result", reqId: data.reqId, ok: false, msg: "address out of range" });
+			}
+			break;
+
+		case "savestate":
+			try {
+				var ret = pcsx_SaveState("/save.state");
+				if (ret !== 0) {
+					postMessage({ cmd: "savestate_error", reqId: data.reqId, msg: "SaveState returned " + ret });
+					break;
+				}
+				var bytes = FS.readFile("/save.state");
+				postMessage({ cmd: "savestate_result", reqId: data.reqId, data: bytes }, [bytes.buffer]);
+			} catch (e) {
+				postMessage({ cmd: "savestate_error", reqId: data.reqId, msg: String(e) });
+			}
+			break;
+
+		case "loadstate":
+			try {
+				var stateBytes = new Uint8Array(data.data);
+				FS.writeFile("/load.state", stateBytes);
+				var ret = pcsx_LoadState("/load.state");
+				if (ret !== 0) {
+					postMessage({ cmd: "loadstate_error", reqId: data.reqId, msg: "LoadState returned " + ret });
+				} else {
+					postMessage({ cmd: "loadstate_result", reqId: data.reqId, ok: true });
+				}
+			} catch (e) {
+				postMessage({ cmd: "loadstate_error", reqId: data.reqId, msg: String(e) });
 			}
 			break;
 
@@ -239,6 +291,6 @@ var main_onmessage = function (event) {
 }
 cout_print("worker started\n");
 onerror = function (event) {
-	// TODO: do not warn on ok events like simulating an infinite loop or exitStatus	
+	// TODO: do not warn on ok events like simulating an infinite loop or exitStatus
 	Module.setStatus('Exception thrown, see JavaScript console ' + String(event));
 };

@@ -43,10 +43,19 @@ const NTSC_U_NEW_GAME_ANCHORS = {
   bodyPartsStatus: "all-green",
 };
 
+// Confirmed PS1 physical offsets — RSK-mm02, 2026-03-24, PCSX-Redux REST API + in-game write verification
+// HP_cur u16LE; HP_max +2; MP_cur +4; MP_max +6; Risk +8
+const PS1_STAT_BLOCK = 0x11fa58;
+const STAT_BLOCK_LEN = 10; // 5 × u16LE
+
 type Host = { peek?: (a: number, l: number) => Promise<Uint8Array> };
 
 function getHost(): Host | undefined {
   return (globalThis as { __riskbreakerEmulatorHost?: Host }).__riskbreakerEmulatorHost;
+}
+
+function readU16LE(bytes: Uint8Array, offset: number): number {
+  return bytes[offset] | (bytes[offset + 1] << 8);
 }
 
 function uint8ToBase64(bytes: Uint8Array): string {
@@ -116,15 +125,20 @@ async function tryLiveRead(): Promise<Partial<Pick<OverlayPanel, "summary" | "ro
   const host = getHost();
   if (!host?.peek) return null;
   try {
-    const bytes = await host.peek(0, PSX_MAIN_RAM_SIZE);
-    // TODO(RSK-mm05): parse VS structs once offsets are identified from RAM dump analysis.
+    const bytes = await host.peek(PS1_STAT_BLOCK, STAT_BLOCK_LEN);
+    const hpCur = readU16LE(bytes, 0);
+    const hpMax = readU16LE(bytes, 2);
+    const mpCur = readU16LE(bytes, 4);
+    const mpMax = readU16LE(bytes, 6);
+    const risk  = readU16LE(bytes, 8);
     return {
-      summary: `Ashley Riot — live RAM (${bytes.length.toLocaleString()} bytes read)`,
+      summary: `Ashley Riot — HP ${hpCur}/${hpMax}`,
       rows: [
-        { label: "RAM read", badge: "live", value: `${bytes.length.toLocaleString()} bytes` },
-        { label: "Inventory decode", badge: "todo", value: "offsets TBD — use Dump RAM" },
+        { label: "HP",   badge: "live", value: `${hpCur} / ${hpMax}` },
+        { label: "MP",   badge: "live", value: `${mpCur} / ${mpMax}` },
+        { label: "Risk", badge: "live", value: `${risk}` },
       ],
-      note: "live · offsets unknown · RSK-mm02: dump RAM → scan anchors",
+      note: "live · PS1 phys 0x11fa58",
     };
   } catch {
     return null;

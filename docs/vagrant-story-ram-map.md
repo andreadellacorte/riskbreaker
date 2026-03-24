@@ -2,7 +2,7 @@
 
 **Status:** Discovery in progress (RSK-mm02)
 **Last updated:** 2026-03-24
-**Dumps analysed:** 4 (three in-game)
+**Dumps analysed:** 5 (four in-game, one via PCSX-Redux REST API)
 
 ---
 
@@ -21,6 +21,8 @@
 
 Dump offset 0 = PS1 physical address 0 directly.
 PS1 virtual `0x8XXXXXXX` → physical = `addr & 0x1FFFFF`.
+
+**pcsx-wasm note:** The game executable region (`0x11000–0x1bffff`) appears as `0xFF` in pcsx-wasm WASM heap dumps despite the game running correctly. The stat block at `0x11fa58` (confirmed in PCSX-Redux) is not present in this region in pcsx-wasm. Working RAM (`0x2e4b0`, `0x37c00`, `0x37d40`) maps 1:1 and is confirmed in both emulators.
 
 ---
 
@@ -43,11 +45,70 @@ PS1 virtual `0x8XXXXXXX` → physical = `addr & 0x1FFFFF`.
 
 ## Confirmed findings
 
+### Character stat block — FOUND at `0x11fa58` (PCSX-Redux)
+
+Discovered 2026-03-24 using PCSX-Redux web server (`GET /api/v1/cpu/ram/raw`).
+Method: took 41 total damage (HP 250→211), fetched 2MB RAM, searched for u16LE=211 adjacent to u16LE=250 — exactly one unique hit outside lookup tables.
+
+Location: inside the game executable BSS/data region (`0x11000–0x1bffff`). This offset does **not** appear in pcsx-wasm WASM heap dumps — that region shows `0xFF` in pcsx-wasm. The correct WASM offset for the live riskbreaker overlay is still to be determined (RSK-mm02 open item).
+
+#### Stat block layout (PS1 phys `0x11fa58`, confirmed in PCSX-Redux)
+
+```
+Offset    Bytes    Value   Field
+0x11fa58  fa 00     250    HP current       (u16LE)  ← confirmed writable
+0x11fa5a  fa 00     250    HP max           (u16LE)
+0x11fa5c  32 00      50    MP current       (u16LE)
+0x11fa5e  32 00      50    MP max           (u16LE)
+0x11fa60  00 00       0    Risk             (u16LE) — zero at new game
+0x11fa62  64 00     100    stat[0]          (u16LE) — STR/INT/AGL, identity TBD
+0x11fa64  64 00     100    stat[1]          (u16LE)
+0x11fa66  64 00     100    stat[2]          (u16LE)
+0x11fa68  64 00     100    stat[3]          (u16LE)
+0x11fa6a  64 00     100    stat[4]          (u16LE)
+0x11fa6c  64 00     100    stat[5]          (u16LE)
+0x11fa6e  09 12    4617    (combat / derived data — TBD)
+...
+```
+
+VS Zenith 1.8.3 changelog confirms Clear Game resets to **250 HP / 50 MP / 100 STR/INT/AGL**, consistent with this block.
+
+#### Write-path test results (PCSX-Redux, 2026-03-24)
+
+**API:** `POST /api/v1/cpu/ram/raw?offset=<decimal>&size=<n>` with raw body bytes. Offset **must be decimal**.
+
+**`0x11fa58` = 1178200 decimal** (not 1178712 — that is `0x11fc58`, 512 bytes past the stat block).
+
+**No pause required.** The game only updates HP_cur on damage/heal events, not every frame. A write persists until the next combat event. Confirmed: write to 250 held stable across 2.5s of live emulation.
+
+**In-game visual confirmation:** after writing HP_cur=250, the body-part health indicators on the STATUS screen changed from blue (damaged) to green (fully healed) for head, torso, and left arm. **End-to-end write path verified.**
+
+#### Fields still to map
+
+| Field | Status | Next step |
+|-------|--------|-----------|
+| Risk (non-zero) | unconfirmed | Enter combat, take hits, re-read `0x11fa60` |
+| stat[0..5] identity | unconfirmed | Equip STR+/INT+/AGL+ item, re-read block |
+| PP / Phantom Points | not located | Scan near stat block when using Break Arts |
+| Equipment slots | not located | Equip/unequip weapon; scan for item ID changes |
+
+---
+
+### pcsx-wasm WASM heap offset — RESOLVED (2026-03-24)
+
+**Root cause (string-scan approach was wrong):** The initial fix scanned `HEAPU8` for `SLUS_010.40\0` to locate psxM. This failed because Emscripten's virtual filesystem stores the entire mounted ISO in the WASM heap — the FS buffer contains the game executable (named `SLUS_010.40`) and thus the sentinel string. The scan found the FS copy, not psxM. All dumps read ISO data; live values (HP/MP) were never present.
+
+**Fix (2026-03-24):** `draw_null.c` `get_ptr()` was extended with index `-3` to return `psxM` directly. `worker_funcs.js` now does `psxM_base = _get_ptr(-3)` after disc load — no scanning, no game-specific sentinels, works for any game.
+
+**Confirmed working:** stat block at `0x11fa58` is correctly read; HP/MP/stats are live in the riskbreaker overlay. The overlay reads HP=250 at new game, updates on damage. ✓
+
+---
+
 ### Item table (partial)
 
 | Field | PS1 phys offset | Notes |
 |-------|-----------------|-------|
-| Item table area | `0x37c00` | Partially confirmed; stride ~`0x80` (128 bytes/entry) |
+| Item table area | `0x37c00` | Confirmed 1:1 in both PCSX-Redux and pcsx-wasm |
 | Entry 0 id | `0x37c00` | `u32LE = 1` |
 | Entry 0 ptr | `0x37c08` | `u32LE = 0x086a` (in-game pointer) |
 | Entry 0 qty candidate | `0x37c10` | `u32LE = 0x0f` (15) — **does not match expected Cure Root ×10; needs re-verification** |
@@ -98,40 +159,6 @@ Memory-card save buffer at `0x2e4b0`:
 
 ---
 
-## Character stat block — NOT YET FOUND
-
-Exhaustive search results (all 4 dumps, multiple encodings):
-
-| Encoding tried | u16LE=250 hits outside lookup table | u16LE=50 hits (stable) |
-|----------------|-------------------------------------|------------------------|
-| Direct u16LE | 8 occurrences, all in lookup tables | 728 (most in code) |
-| u8=0xFA | Hundreds, all in MIPS code / lookup tables | — |
-| u32LE=250 | Only at `0x2d010` (repeated-value lookup table) | — |
-| u16BE | — | — |
-| float32 | — | — |
-
-**No HP/MP pair found in adjacent or nearby memory** across stable multi-dump comparison.
-
-### Hypotheses for missing stat block
-
-1. **Not yet initialised** — first dump taken before game fully loaded; confirmed no VS strings present. Later dumps (in STATUS menu) still show `0x37700–0x37900` as all-zeros.
-
-2. **Pointer indirection** — the game may store stats at a virtual address that's resolved at runtime via a pointer. The stat struct address might change each session.
-
-3. **Scratch Pad** — PS1 has 1KB Scratch Pad at physical `0x1f800000`, not in main RAM dump. Unlikely for persistent state but possible for display/calc values.
-
-4. **Non-standard encoding** — VS may store HP as a fixed-point value, scaled value (e.g. HP×10 = 2500), or as a packed bitfield. Search for u16LE=2500 found only one hit at `0x1f08c0` (lookup table).
-
-5. **Region above 0xff000** — most searches covered `0x20000–0xff000`. High data region `0x1c0000–0x1fffff` has many `0xfa` bytes but they appear to be MIPS instruction immediates, not character stats.
-
-### Next steps
-
-- Take a new dump **during active gameplay** (not menus) — walk Ashley in Snowfly Forest
-- Compare with a dump taken **immediately after taking 1 damage** — the HP should change by exactly 1, making the offset trivially locatable
-- Alternatively: inspect the PPF patch binary for hardcoded PS1 addresses in MIPS `lui/addiu` instruction pairs that reference the character struct
-
----
-
 ## PPF analysis (zenith_192.ppf — VS Zenith v1.9.x)
 
 - Format: PPF3 (`PPF30`) method=2 (ISO binary mode)
@@ -167,8 +194,11 @@ The Galerian mechanic (runtime weapon-type switching) is very relevant to riskbr
 
 ## Open questions
 
-1. Where is the character stat block (HP/MP/Risk/STR/INT/AGL)? Suspected: pointer-addressed, not at a fixed PS1 address.
-2. What is the item ID→name mapping? (item 1 = Cure Root? But qty field doesn't match.)
-3. Is `0x37c10` really qty, or is qty at a different offset within the 128-byte entry?
-4. What does `ff 41 5a ff ff` at `+0x30` of item entries represent?
-5. Does the game use Scratch Pad for working stat values?
+1. ~~Where is the character stat block?~~ **Resolved — `0x11fa58` (confirmed in both PCSX-Redux and pcsx-wasm)**
+2. ~~What is the correct WASM heap offset for the stat block in pcsx-wasm?~~ **Resolved — `psxM_base + 0x11fa58` via `_get_ptr(-3)`**
+3. What are stat[0..5] at `0x11fa62`? (STR, INT, AGL + 3 more — order unknown)
+4. What is the item ID→name mapping? (item 1 = Cure Root? But qty field doesn't match.)
+5. Is `0x37c10` really qty, or is qty at a different offset within the 128-byte entry?
+6. What does `ff 41 5a ff ff` at `+0x30` of item entries represent?
+7. Where are equipment slot fields (weapon ID, shield ID, helm ID, armour ID)?
+8. Does Risk actually live at `0x11fa60`, or is it a separate field elsewhere?

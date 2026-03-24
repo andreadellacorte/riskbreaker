@@ -3,6 +3,7 @@
  * Plugin panels registered via `overlay-panels.ts` are rendered generically below the emulator controls.
  */
 import type { RiskbreakerEmulatorHost } from "./emulator-bridge.js";
+import { loadWorkerState, saveWorkerState } from "./emulator-savestate.js";
 import { getOverlayPanels, patchOverlayPanel } from "./overlay-panels.js";
 import {
   QUERY,
@@ -140,7 +141,7 @@ export function installRiskbreakerOverlay(): void {
     "font-size:15px;font-weight:600;letter-spacing:0.02em;margin:0 0 6px 0;color:#e8e8ef";
 
   const hint = document.createElement("p");
-  hint.textContent = "Runtime controls (saved in this browser). Press ` to hide.";
+  hint.textContent = "Runtime menu. Press ` to hide.";
   hint.style.cssText = "margin:0;font-size:13px;color:#a8b0c4";
 
   const menuHeading = document.createElement("div");
@@ -148,29 +149,29 @@ export function installRiskbreakerOverlay(): void {
   menuHeading.style.cssText = "margin:14px 0 0 0;font-size:12px;font-weight:600;color:#8a93a8;letter-spacing:0.04em";
 
   const { row: hudRow, input: hudInput } = makeCheckboxRow(
-    "Perf HUD — frame timing (worker FPS + runIter ms)",
+    "Perf HUD (FPS + frame ms)",
     STORAGE.PERF_HUD,
-    "Bottom-left overlay: wall FPS from PCSX worker presents (not the browser main loop alone) and core timing when available.",
+    "Bottom-left FPS and frame timing from the emulator worker.",
   );
   const { row: speedRow, input: speedInput } = makeCheckboxRow(
-    "Speed hack — uncapped main loop (setImmediate)",
+    "Speed hack (uncapped loop)",
     STORAGE.SPEED_HACK,
-    "Runs the emulator loop as fast as possible vs vsync rAF. Requires loaded game.",
+    "Run the emulator loop as fast as possible. Requires a loaded game.",
   );
 
   const speedNote = document.createElement("p");
   speedNote.style.cssText =
     "margin:4px 0 0 22px;font-size:11px;color:#6b7388;line-height:1.45";
   speedNote.innerHTML =
-    "Raises PCSX worker <strong>fake requestAnimationFrame</strong> cap (60→120 Hz) plus browser main-loop timing. " +
-    "Higher FPS is still limited by the game/core (many 3D titles ~30 Hz output); audio may drift if the sim runs faster. " +
+    "Raises the worker <strong>fake requestAnimationFrame</strong> cap (60→120 Hz). " +
+    "Game/core limits still apply (many 3D titles stay near ~30 Hz), and audio can drift. " +
     '<a href="https://www.reddit.com/r/emulation/comments/dv2onc/what_are_emulation_speed_hacks_why_developers/" ' +
-    'target="_blank" rel="noopener noreferrer">What “speed hacks” usually mean in emulation</a>.';
+    'target="_blank" rel="noopener noreferrer">What speed hacks mean</a>.';
 
   const { row: scaleRow, input: scaleInput } = makeCheckboxRow(
-    "Internal render upscale — higher SDL / canvas resolution (not CSS zoom)",
+    "Internal upscale (render resolution)",
     STORAGE.UPSCALING,
-    "2×–5× canvas backbuffer (bigger pixels). True higher-poly / HD rendering needs a different GPU path inside the WASM core (e.g. forked PCSX/DuckStation-style rebuild) — not available from JS alone. Page stretch: smooth by default; “Sharp pixel scaling” = nearest-neighbor.",
+    "2x-5x internal canvas scale. This is not true HD rendering; it needs core-level GPU changes.",
   );
 
   const scalePickerWrap = document.createElement("div");
@@ -195,7 +196,7 @@ export function installRiskbreakerOverlay(): void {
   const { row: pixelRow, input: pixelInput } = makeCheckboxRow(
     "Sharp pixel scaling (nearest-neighbor)",
     STORAGE.PIXELATED_PRESENT,
-    "Off (default): smooth browser scaling when the canvas is stretched — usually better for textured 3D. On: crisp blocky pixels (good for 2D / test patterns).",
+    "Off: smooth stretch (better for textured 3D). On: crisp pixels (good for 2D/tests).",
   );
 
   function onToggle(): void {
@@ -224,6 +225,78 @@ export function installRiskbreakerOverlay(): void {
   scaleInput.addEventListener("change", onToggle);
   pixelInput.addEventListener("change", onToggle);
 
+  // ── Save / Load State ──────────────────────────────────────────────────────────
+  const stateHeading = document.createElement("div");
+  stateHeading.textContent = "Save State";
+  stateHeading.style.cssText =
+    "margin:14px 0 0 0;font-size:12px;font-weight:600;color:#8a93a8;letter-spacing:0.04em";
+
+  const stateActionsRow = document.createElement("div");
+  stateActionsRow.style.cssText = "display:flex;gap:6px;margin:6px 0 0 0;flex-wrap:wrap";
+
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "Save State";
+  saveBtn.title = "Save emulator state and download as a .state file.";
+  saveBtn.style.cssText =
+    "background:#1e2840;border:1px solid #2c3344;color:#a8b0c4;cursor:pointer;font-size:11px;padding:3px 8px;border-radius:4px;line-height:1.4";
+  saveBtn.addEventListener("click", () => {
+    saveBtn.disabled = true;
+    const orig = saveBtn.textContent;
+    saveBtn.textContent = "…";
+    void saveWorkerState()
+      .then((bytes) => {
+        const blob = new Blob([bytes], { type: "application/octet-stream" });
+        const url = URL.createObjectURL(blob);
+        const ts = new Date()
+          .toISOString()
+          .replace(/:/g, "-")
+          .replace(/\..+/, "");
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `vs-save-${ts}.state`;
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .finally(() => {
+        saveBtn.disabled = false;
+        saveBtn.textContent = orig;
+      });
+  });
+
+  const loadBtn = document.createElement("button");
+  loadBtn.textContent = "Load State";
+  loadBtn.title = "Pick a .state file and load it into the emulator.";
+  loadBtn.style.cssText =
+    "background:#1e2840;border:1px solid #2c3344;color:#a8b0c4;cursor:pointer;font-size:11px;padding:3px 8px;border-radius:4px;line-height:1.4";
+
+  const fileInput = document.createElement("input");
+  fileInput.type = "file";
+  fileInput.accept = ".state";
+  fileInput.style.display = "none";
+  fileInput.addEventListener("change", () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+    loadBtn.disabled = true;
+    const orig = loadBtn.textContent;
+    loadBtn.textContent = "…";
+    void file
+      .arrayBuffer()
+      .then((buf) => loadWorkerState(new Uint8Array(buf)))
+      .finally(() => {
+        loadBtn.disabled = false;
+        loadBtn.textContent = orig;
+        fileInput.value = "";
+      });
+  });
+  loadBtn.addEventListener("click", () => {
+    fileInput.click();
+  });
+
+  stateActionsRow.appendChild(saveBtn);
+  stateActionsRow.appendChild(loadBtn);
+  stateActionsRow.appendChild(fileInput);
+  // ── end Save / Load State ─────────────────────────────────────────────────────
+
   // ── RSK-vs12: plugin panel container — populated by registered overlay panels ──
   const pluginPanelsContainer = document.createElement("div");
   pluginPanelsContainer.id = "rb-plugin-panels";
@@ -242,6 +315,8 @@ export function installRiskbreakerOverlay(): void {
   root.appendChild(scaleRow);
   root.appendChild(scalePickerWrap);
   root.appendChild(pixelRow);
+  root.appendChild(stateHeading);
+  root.appendChild(stateActionsRow);
   root.appendChild(pluginPanelsContainer);
   root.appendChild(meta);
 

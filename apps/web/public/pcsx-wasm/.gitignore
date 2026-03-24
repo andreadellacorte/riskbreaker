@@ -1,0 +1,15 @@
+# Built by `make` in packages/pcsx-wasm-core
+pcsx_worker.js
+pcsx_worker.wasm
+pcsx_ww.js
+pcsx_ww.wasm
+
+# Copied from packages/pcsx-wasm-core/runtime/js by make or build scripts
+js/pcsx_ui.js
+js/worker_funcs.js
+
+# Built by packages/pcsx-wasm-shell build
+js/riskbreaker-pcsx-wasm-boot.js
+
+# Built by plugins/vagrant-story build-overlay-panel.mjs
+js/riskbreaker-vs-panel.js

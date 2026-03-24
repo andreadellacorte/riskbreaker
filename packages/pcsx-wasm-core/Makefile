@@ -4,7 +4,7 @@ CFLAGS= -O3 -Wno-unused-result -s WASM=1 \
 LDFLAGS=   
 
 # WORKER
-WORKER_EXPORT="['_main',  '_pcsx_init', '_one_iter', '_get_ptr', '_ls']"
+WORKER_EXPORT="['_main',  '_pcsx_init', '_one_iter', '_get_ptr', '_ls', '_SaveState', '_LoadState']"
 WORKER_OBJS=gui/workerMain.o gui/Plugin.o gui/Config.o \
 libpcsxcore/psxbios.o libpcsxcore/cdrom.o libpcsxcore/psxcounters.o \
 libpcsxcore/psxdma.o libpcsxcore/disr3000a.o libpcsxcore/spu.o libpcsxcore/sio.o \
@@ -15,7 +15,7 @@ libpcsxcore/cdriso.o libpcsxcore/ppf.o   \
 plugins/dfxvideo/cfg.o   plugins/dfxvideo/fps.o plugins/dfxvideo/key.o \
 plugins/dfxvideo/prim.o  plugins/dfxvideo/zn.o plugins/dfxvideo/draw_null.o  \
 plugins/dfxvideo/gpu.o   plugins/dfxvideo/soft.o \
-plugins/dfsound/spu.o plugins/dfsound/cfg.o  plugins/dfsound/dma.o plugins/dfsound/registers.o plugins/dfsound/worker.o \
+plugins/dfsound/spu.o plugins/dfsound/cfg.o  plugins/dfsound/dma.o plugins/dfsound/registers.o plugins/dfsound/worker.o plugins/dfsound/freeze.o \
 plugins/sdlinput/cfg.o     plugins/sdlinput/pad_worker.o plugins/sdlinput/analog.o
 WORKER_FLAGS= --post-js js/worker_funcs.js -s TOTAL_MEMORY=419430400 -s "EXPORTED_RUNTIME_METHODS=['cwrap','ccall','getValue','setValue']" -s EXPORTED_FUNCTIONS=$(WORKER_EXPORT)
 

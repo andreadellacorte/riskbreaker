@@ -70,6 +70,9 @@ describe("installRiskbreakerOverlay", () => {
     const el = document.getElementById("rb-riskbreaker-overlay");
     expect(el).not.toBeNull();
     expect(el?.getAttribute("role")).toBe("region");
+    expect(el?.textContent).toContain("Runtime menu. Press ` to hide.");
+    expect(el?.textContent).toContain("Perf HUD");
+    expect(el?.textContent).not.toContain("Runtime controls (saved in this browser).");
   });
 
   it("is idempotent", async () => {
