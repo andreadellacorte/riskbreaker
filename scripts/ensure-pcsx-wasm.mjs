@@ -58,28 +58,25 @@ function haveEmcc() {
 }
 
 function buildPcsxWasm() {
-  // Prefer the active toolchain (CI runs inside `nix develop`), but allow local non-nix usage.
-  if (!haveEmcc()) {
-    const haveNixShell = spawnSync(
-      "sh",
-      ["-lc", "command -v nix-shell >/dev/null 2>&1"],
-      { stdio: "ignore" },
-    ).status === 0;
+  // Always build via nix to ensure a reproducible toolchain.
+  // CI runs inside `nix develop` (emcc already on PATH); locally we use nix-shell as a wrapper.
+  const haveNixShell = spawnSync(
+    "sh",
+    ["-lc", "command -v nix-shell >/dev/null 2>&1"],
+    { stdio: "ignore" },
+  ).status === 0;
 
-    if (!haveNixShell) {
-      throw new Error("Missing emcc. Install Emscripten (emcc) or run inside `nix develop`.");
-    }
-
-    run("nix-shell", [
-      "-p",
-      "emscripten",
-      "--run",
-      `cd "${pcsxWasmSrc}" && make clean && make`,
-    ]);
-    return;
+  if (!haveNixShell) {
+    throw new Error("nix-shell not found. Run inside `nix develop` or install Nix.");
   }
 
-  run("bash", ["-lc", "make clean && make"], { cwd: pcsxWasmSrc });
+  run("nix-shell", [
+    "-p",
+    "emscripten",
+    "gnumake",
+    "--run",
+    `cd "${pcsxWasmSrc}" && make clean && make`,
+  ]);
 }
 
 function materializePcsxWasmDist() {

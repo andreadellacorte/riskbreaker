@@ -264,7 +264,26 @@ var main_onmessage = function (event) {
 			}
 			break;
 
-		case "savestate":
+		case "vram":
+		if (vram_ptr && vram_ptr > 0) {
+			var vramCopy = HEAPU8.slice(vram_ptr, vram_ptr + 1024 * 512 * 2);
+			postMessage({ cmd: "vram_result", reqId: data.reqId, data: vramCopy }, [vramCopy.buffer]);
+		} else {
+			postMessage({ cmd: "vram_error", reqId: data.reqId, msg: "vram not initialised — disc may not be running" });
+		}
+		break;
+
+	case "cd-file":
+		try {
+			var cdPath = "/" + (data.filename || "");
+			var cdBytes = FS.readFile(cdPath);
+			postMessage({ cmd: "cd-file_result", reqId: data.reqId, data: cdBytes }, [cdBytes.buffer]);
+		} catch (e) {
+			postMessage({ cmd: "cd-file_error", reqId: data.reqId, msg: String(e) });
+		}
+		break;
+
+	case "savestate":
 			try {
 				var ret = pcsx_SaveState("/save.state");
 				if (ret !== 0) {

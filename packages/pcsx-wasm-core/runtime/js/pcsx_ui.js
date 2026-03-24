@@ -252,6 +252,10 @@ function pcsx_worker_onmessage(event) {
     case "savestate_error":
     case "loadstate_result":
     case "loadstate_error":
+    case "vram_result":
+    case "vram_error":
+    case "cd-file_result":
+    case "cd-file_error":
       // Handled by shell listeners on the main thread.
       break
     default:

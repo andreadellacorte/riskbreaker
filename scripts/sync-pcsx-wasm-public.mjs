@@ -40,4 +40,10 @@ if (!fs.existsSync(docCss) || !fs.existsSync(docUi)) {
 fs.copyFileSync(docCss, path.join(dest, "css", "pcsx.css"));
 fs.copyFileSync(docUi, path.join(dest, "js", "pcsx_ui.js"));
 
-console.log(`sync-pcsx-wasm-public: synced ${artifacts.length} wasm/js artifacts + css + pcsx_ui.js → ${dest}`);
+// worker_funcs.js is a hand-authored companion to pcsx_worker.js — sync it from source.
+const workerFuncsSrc = path.join(pcsxWasmSrc, "js", "worker_funcs.js");
+if (fs.existsSync(workerFuncsSrc)) {
+  fs.copyFileSync(workerFuncsSrc, path.join(dest, "js", "worker_funcs.js"));
+}
+
+console.log(`sync-pcsx-wasm-public: synced ${artifacts.length} wasm/js artifacts + css + pcsx_ui.js + worker_funcs.js → ${dest}`);

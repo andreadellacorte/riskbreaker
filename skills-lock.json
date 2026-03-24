@@ -16,6 +16,11 @@
       "sourceType": "github",
       "computedHash": "f974fac2783f80ac2a1a2cb45d576b5cca55123015dc73db8adfd02277002461"
     },
+    "figma-implement-design": {
+      "source": "figma/mcp-server-guide",
+      "sourceType": "github",
+      "computedHash": "3a73f35eaa52cba221f5f237097b6e2e4c193c558bf88aa4ab32dec736ad0ffe"
+    },
     "find-skills": {
       "source": "andreadellacorte/groove",
       "sourceType": "github",

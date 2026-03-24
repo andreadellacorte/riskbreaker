@@ -1,0 +1,84 @@
+/**
+ * Vagrant Story text table (TBL) — US version (SLUS-010.40).
+ *
+ * Source: https://datacrystal.tcrf.net/wiki/Vagrant_Story/TBL
+ *
+ * Single-byte characters: 0x00–0xB6.
+ * Two-byte escape sequences: 0xF8xx (placeholder markers).
+ * Special bytes:
+ *   0xEB = filler byte (pad, skip)
+ *   0xE7 = end-of-string terminator
+ *   0xE8 = carriage return
+ *   0x8F / 0xFA 0x06 = space
+ */
+
+const TBL: Record<number, string> = {
+  // Digits
+  0x00: "0", 0x01: "1", 0x02: "2", 0x03: "3", 0x04: "4",
+  0x05: "5", 0x06: "6", 0x07: "7", 0x08: "8", 0x09: "9",
+  // Uppercase A–Z
+  0x0a: "A", 0x0b: "B", 0x0c: "C", 0x0d: "D", 0x0e: "E",
+  0x0f: "F", 0x10: "G", 0x11: "H", 0x12: "I", 0x13: "J",
+  0x14: "K", 0x15: "L", 0x16: "M", 0x17: "N", 0x18: "O",
+  0x19: "P", 0x1a: "Q", 0x1b: "R", 0x1c: "S", 0x1d: "T",
+  0x1e: "U", 0x1f: "V", 0x20: "W", 0x21: "X", 0x22: "Y",
+  0x23: "Z",
+  // Lowercase a–z
+  0x24: "a", 0x25: "b", 0x26: "c", 0x27: "d", 0x28: "e",
+  0x29: "f", 0x2a: "g", 0x2b: "h", 0x2c: "i", 0x2d: "j",
+  0x2e: "k", 0x2f: "l", 0x30: "m", 0x31: "n", 0x32: "o",
+  0x33: "p", 0x34: "q", 0x35: "r", 0x36: "s", 0x37: "t",
+  0x38: "u", 0x39: "v", 0x3a: "w", 0x3b: "x", 0x3c: "y",
+  0x3d: "z",
+  // Extended/accented characters
+  0x40: "Ć", 0x41: "Â", 0x42: "Ä", 0x43: "Ç",
+  0x44: "È", 0x45: "É", 0x46: "Ê", 0x47: "Ë",
+  0x48: "Ì", 0x49: "ő", 0x4a: "Î", 0x4b: "í",
+  0x4c: "Ò", 0x4d: "Ó", 0x4e: "Ô", 0x4f: "Ö",
+  0x50: "Ù", 0x51: "Ú", 0x52: "Û", 0x53: "Ü",
+  0x54: "ß", 0x55: "æ", 0x56: "à", 0x57: "á",
+  0x58: "â", 0x59: "ä", 0x5a: "ç", 0x5b: "è",
+  0x5c: "é", 0x5d: "ê", 0x5e: "ë", 0x5f: "ì",
+  0x60: "í", 0x61: "î", 0x62: "ï", 0x63: "ò",
+  0x64: "ó", 0x65: "ô", 0x66: "ö", 0x67: "ù",
+  0x68: "ú", 0x69: "û", 0x6a: "ü",
+  // Symbols
+  0x87: "‼", 0x88: "≠", 0x89: "≦", 0x8a: "≧", 0x8b: "÷",
+  0x8c: "-", 0x8d: "—", 0x8e: "⋯",
+  0x8f: " ", // space
+  0x90: "!", 0x91: '"', 0x92: "#", 0x93: "$", 0x94: "%",
+  0x95: "&", 0x96: "'", 0x97: "(", 0x98: ")", 0x99: "{",
+  0x9a: "}", 0x9b: "[", 0x9c: "]", 0x9d: ";", 0x9e: ":",
+  0x9f: ",", 0xa0: ".", 0xa1: "/", 0xa2: "\\", 0xa3: "<",
+  0xa4: ">", 0xa5: "?", 0xa6: "_", 0xa7: "-", 0xa8: "+",
+  0xa9: "*", 0xab: "{", 0xac: "}", 0xad: "♪",
+  0xb6: "Lv.",
+};
+
+const TBL_TERMINATOR = 0xe7;
+const TBL_FILLER     = 0xeb;
+const TBL_CR         = 0xe8;
+const TBL_SPACE_ALT  = 0x8f; // already in table above
+
+/**
+ * Decode a Vagrant Story encoded string from a byte slice.
+ * Stops at the 0xE7 terminator or end of buffer.
+ * Returns the decoded string (may be empty).
+ */
+export function decodeVsString(bytes: Uint8Array, maxBytes = bytes.length): string {
+  let out = "";
+  for (let i = 0; i < maxBytes && i < bytes.length; i++) {
+    const b = bytes[i];
+    if (b === TBL_TERMINATOR) break;
+    if (b === TBL_FILLER) continue;
+    if (b === TBL_CR) { out += "\n"; continue; }
+    // Two-byte sequence: 0xF8 prefix
+    if (b === 0xf8 && i + 1 < bytes.length) {
+      i++; // skip second byte — these are parameter placeholders
+      continue;
+    }
+    const ch = TBL[b];
+    if (ch !== undefined) out += ch;
+  }
+  return out;
+}

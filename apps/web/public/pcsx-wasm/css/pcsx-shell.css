@@ -6,7 +6,7 @@ html {
   margin: 0;
   padding: 0;
   /* Key legend bottom offset — load button is centered between here and viewport bottom */
-  --shell-controls-bottom: 210px;
+  --shell-controls-bottom: 160px;
   --shell-upload-size: 80px;
 }
 

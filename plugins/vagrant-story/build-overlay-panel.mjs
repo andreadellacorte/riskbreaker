@@ -42,6 +42,7 @@ await Promise.all([
     target: "es2020",
     legalComments: "none",
     logLevel: "error",
+    loader: { ".png": "dataurl", ".gif": "dataurl" },
   }),
 ]);
 
