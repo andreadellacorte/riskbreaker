@@ -1,6 +1,7 @@
 import type { GameManifest } from "@riskbreaker/shared-types";
 import type { IGamePlugin } from "@riskbreaker/plugin-sdk";
 import type { PluginRegistration } from "@riskbreaker/plugin-sdk";
+import { EmulatorRuntimeAdapter } from "@riskbreaker/psx-runtime";
 import { describe, expect, it } from "vitest";
 
 import { SessionOrchestrator } from "./session-orchestrator.js";
@@ -67,5 +68,19 @@ describe("SessionOrchestrator", () => {
     expect(session.screenRegistry.list().map((s) => s.id)).toContain("inventory");
     const preview = session.saveSlotBrowser.previewSlot(0, new Uint8Array(4));
     expect(preview.decoded).toEqual({ len: 4 });
+  });
+
+  it("accepts EmulatorRuntimeAdapter via SessionRuntimeFactory", async () => {
+    const orch = new SessionOrchestrator([stubRegistration()], () => ({
+      timestamp: 2,
+      memorySegments: [],
+      registers: {},
+      activeScene: "emu",
+      mockStateTag: "emulator-path",
+    }), (sf) => new EmulatorRuntimeAdapter(sf));
+    const session = await orch.bootstrap(testManifest());
+    expect(session.runtime).toBeInstanceOf(EmulatorRuntimeAdapter);
+    const snap = session.stateStore.getSnapshot();
+    expect(snap?.runtimeState).toMatchObject({ tag: "emulator-path" });
   });
 });

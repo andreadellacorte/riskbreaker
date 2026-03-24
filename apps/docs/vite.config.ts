@@ -3,11 +3,11 @@ import { fileURLToPath } from "node:url";
 
 import { defineConfig } from "vite";
 
+import { docsServerConfig } from "./docs-site.js";
+
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   root: appDir,
-  server: {
-    port: 5174,
-  },
+  server: docsServerConfig(),
 });

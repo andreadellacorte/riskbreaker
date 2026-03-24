@@ -31,4 +31,4 @@ A **maintainable source layout** for the vendored browser PS1 bundle: break the 
 ## Next Steps
 
 - [x] **`/groove-work-plan`** — [`docs/plans/rsk-v50c-playstation-bundle.md`](../plans/rsk-v50c-playstation-bundle.md) (stage **`RSK-483p`**). **Keep `pnpm e2e` green** after each step.
-- **Groove epic `RSK-v50c`** — _PlayStation bundle: modular TS, telemetry, **backtick shadcn overlay**_ (children: **`RSK-fye3`**, **`RSK-7lri`**, **`RSK-74eh`**, **`RSK-xfc8`**, **`RSK-wquv`**). The brainstorm bean `RSK-opo3` was removed in favour of this epic.
+- **Groove epic `RSK-v50c`** — _PlayStation bundle: modular TS, telemetry, **backtick shadcn overlay**_ (children: **`RSK-fye3`**, **`RSK-7lri`**, **`RSK-74eh`**, **`RSK-xfc8`** (epic: **`RSK-n8wk`**, **`RSK-p4jm`**), **`RSK-wquv`**). The brainstorm bean `RSK-opo3` was removed in favour of this epic.

@@ -3,7 +3,12 @@ import type { IGamePlugin, PluginRegistration } from "@riskbreaker/plugin-sdk";
 import { CommandBus, CommandTranslator } from "@riskbreaker/command-engine";
 import { createLogger, EventTimeline } from "@riskbreaker/devtools";
 import { SnapshotMapper, ViewModelBuilder } from "@riskbreaker/domain-engine";
-import { MockRuntimeAdapter, type RuntimeSnapshotFactory } from "@riskbreaker/psx-runtime";
+import {
+  MockRuntimeAdapter,
+  type IRuntime,
+  type RuntimeSnapshotFactory,
+} from "@riskbreaker/psx-runtime";
+import type { SessionRuntimeFactory } from "@riskbreaker/psx-runtime";
 import { SaveSlotBrowser } from "@riskbreaker/save-service";
 import { StateStore } from "@riskbreaker/state-engine";
 import { ScreenRegistry } from "@riskbreaker/ux-platform";
@@ -14,7 +19,7 @@ export type ActiveSession = {
   readonly manifest: GameManifest;
   readonly plugin: IGamePlugin;
   readonly registration: PluginRegistration;
-  readonly runtime: MockRuntimeAdapter;
+  readonly runtime: IRuntime;
   readonly stateStore: StateStore;
   readonly viewModelBuilder: ViewModelBuilder;
   readonly commandBus: CommandBus;
@@ -30,6 +35,7 @@ export class SessionOrchestrator {
   constructor(
     registrations: readonly PluginRegistration[],
     private readonly snapshotFactory?: RuntimeSnapshotFactory,
+    private readonly createRuntime: SessionRuntimeFactory = (sf) => new MockRuntimeAdapter(sf),
   ) {
     this.plugins = new PluginRegistry(registrations);
   }
@@ -54,7 +60,7 @@ export class SessionOrchestrator {
       );
     }
 
-    const runtime = new MockRuntimeAdapter(this.snapshotFactory);
+    const runtime = this.createRuntime(this.snapshotFactory);
     await Promise.resolve(runtime.loadManifest(manifest));
 
     const stateStore = new StateStore(decoder);

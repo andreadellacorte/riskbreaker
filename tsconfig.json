@@ -22,6 +22,7 @@
       "@riskbreaker/app-shell": ["packages/app-shell/src/index.ts"]
     }
   },
+  "exclude": ["packages/pcsx-kxkx-shell/**"],
   "include": [
     "packages/*/src/**/*.ts",
     "plugins/*/src/**/*.ts",

@@ -5,7 +5,7 @@ status: in-progress
 type: epic
 priority: normal
 created_at: 2026-03-22T00:47:25Z
-updated_at: 2026-03-22T01:06:50Z
+updated_at: 2026-03-22T14:00:00Z
 ---
 
 ## Context
@@ -50,10 +50,10 @@ Stack (conceptual): **browser shell (1)** → **PlayStation bundle (2)** → **p
 1. **RSK-fye3** — build pipeline (foundation; E2E gate).
 2. **RSK-7lri** — modular split + emulator **bridge** (2↔3↔4 edges).
 3. **RSK-74eh** — **backtick → shadcn overlay** spike (depends on having a maintainable bundle / mount point — often lands after **7lri** starts; can parallelise late **fye3** if bridge hooks exist).
-4. **RSK-xfc8** — dev telemetry (can overlap **7lri** / **74eh**).
+4. **RSK-xfc8** — **epic:** debug telemetry, perf HUD, Riskbreaker menu runtime toggles — children **RSK-n8wk**, **RSK-p4jm** (can overlap **7lri** / **74eh**).
 5. **RSK-wquv** — docs / LICENSE / CI / architecture narrative last.
 
-**Children:** **RSK-fye3**, **RSK-7lri**, **RSK-74eh**, **RSK-xfc8**, **RSK-wquv**.
+**Children:** **RSK-fye3** (completed), **RSK-7lri** (in progress — core split + bridge done; unit tests next), **RSK-74eh** (completed), **RSK-xfc8** (epic in progress — children **RSK-n8wk**, **RSK-p4jm**), **RSK-wquv** (completed).
 
 
 

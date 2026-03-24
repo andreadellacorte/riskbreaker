@@ -22,7 +22,7 @@ Prior brainstorm exists: [`docs/brainstorms/playstation-js-modularize-typescript
 - **Entry/output:** Source under e.g. **`apps/web/playstation-src/entry.ts`** (name TBD) → **esbuild** writes **`apps/web/public/playstation/PlayStation.js`**. `PlayStation.htm` stays unchanged in the first milestone except if we add a **source map** query (optional).
 - **WASM in v1:** Keep **`WASM_FILE` base64** in a dedicated module (imported string or `readFileSync` at build time from a checked-in `.txt` slice) to avoid changing runtime load semantics; external `.wasm` + `locateFile` is **RSK-wquv** or a follow-up.
 - **TypeScript scope:** Strict types for **Riskbreaker bootstrap** and **message shapes**; allow `// @ts-nocheck` or ambient `Module` for the largest Emscripten paste until **RSK-7lri** splits it.
-- **Telemetry:** Gate with **`import.meta.env.DEV`** and/or **`URLSearchParams`** (`?riskbreaker=1` already used — could add `debug=1` parsing in one place) so **`pnpm e2e`** never depends on debug output (per **RSK-xfc8**).
+- **Telemetry / HUD / menu:** Gate with **`import.meta.env.DEV`** and/or **`URLSearchParams`** using **constant query keys** (`QUERY.DEBUG` etc.; `?riskbreaker=1` unchanged) so **`pnpm e2e`** never depends on debug output (epic **RSK-xfc8** — children **RSK-n8wk**, **RSK-p4jm**).
 - **Root scripts:** Add **`pnpm build:playstation`** (and optionally wire **`apps/web` `build`** to run it **before** `vite build` once stable — document in **RSK-wquv**; start with **manual** `build:playstation` to avoid CI surprises).
 
 ## Implementation Steps
@@ -53,12 +53,13 @@ Prior brainstorm exists: [`docs/brainstorms/playstation-js-modularize-typescript
 3. Placeholder content OK; **no** full `SessionOrchestrator` / plugin wiring required for done.
 4. **`pnpm e2e`** passes; optional lightweight keyboard test or manual QA in docs.
 
-### Milestone D — **RSK-xfc8** (telemetry)
+### Milestone D — **RSK-xfc8** (epic: telemetry, perf HUD, Riskbreaker menu)
 
-1. Add small **`telemetry.ts`**: `performance.mark` / `measure` around **script eval**, **worker init**, **first frame** (best-effort hooks where the glue exposes lifecycle).
-2. **`if (import.meta.env.DEV || getDebugFlag())`** — no noisy logs in production build output.
-3. Optional: overlay open/close marks when **RSK-74eh** exists.
-4. **`pnpm e2e`** unchanged.
+**RSK-n8wk** — debug query constants, central flag, **steady-state** frame zones (`Browser.mainLoop` / `runIter`, optional audio), **on-screen perf HUD** when enabled; optional `performance.mark` / `measure`.
+
+**RSK-p4jm** — Riskbreaker overlay **menu**: toggles for **perf HUD**, **speed hack** (main-loop timing), **upscaling** (canvas / `scaleMode` path); persist via namespaced `localStorage`; wire through **`__riskbreakerEmulatorHost`** / glue hooks (**RSK-7lri**).
+
+**Epic criteria:** default **off** on prod-like paths; **`pnpm e2e`** unchanged / never depends on HUD or toggles.
 
 ### Milestone E — **RSK-wquv** (docs, LICENSE, CI)
 
@@ -84,5 +85,5 @@ Prior brainstorm exists: [`docs/brainstorms/playstation-js-modularize-typescript
 | **RSK-fye3** | Milestone A |
 | **RSK-7lri** | Milestone B |
 | **RSK-74eh** | Milestone C |
-| **RSK-xfc8** | Milestone D |
+| **RSK-xfc8** | Milestone D (epic; **RSK-n8wk** + **RSK-p4jm**) |
 | **RSK-wquv** | Milestone E |

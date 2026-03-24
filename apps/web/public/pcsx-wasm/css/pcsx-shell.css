@@ -1,0 +1,194 @@
+/**
+ * PCSX kxkx shell — PlayStation-style chrome + boot / game-state transitions.
+ */
+
+html {
+  margin: 0;
+  padding: 0;
+  /* Key legend bottom offset — load button is centered between here and viewport bottom */
+  --shell-controls-bottom: 210px;
+  --shell-upload-size: 80px;
+}
+
+body.pcsx-shell {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
+  min-height: 100vh;
+  color: #fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.shell_canvas_layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.shell_canvas_layer canvas.emscripten {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background-color: #000;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+.shell_chrome {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+  transition: opacity 1.2s ease;
+}
+
+.shell_chrome .gui_container,
+.shell_chrome .gui_upload {
+  pointer-events: auto;
+}
+
+.gui_container {
+  text-align: left;
+}
+
+/* Centered Sony PlayStation wordmark (wide PNG); fades when disc is running */
+.gui_background {
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
+  position: fixed;
+  left: 0;
+  top: -60px;
+  z-index: -1;
+  /* Asset is ~2.4:1; size by width so the mark stays readable */
+  background-size: min(88vw, 720px) auto;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-image: url("../assets/ps-logo.png");
+  opacity: 1;
+  transition: opacity 1.2s ease;
+  pointer-events: none;
+}
+
+/* Load-disc control — visible immediately; disc can queue until worker is up (kxkx-main.js) */
+.gui_upload {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc((var(--shell-controls-bottom) - var(--shell-upload-size)) / 2);
+  width: var(--shell-upload-size);
+  height: var(--shell-upload-size);
+  margin: 0 auto;
+  cursor: pointer;
+  /* Red disc upload hit target (lrusso-style .gui_upload) */
+  background-image: url("../assets/gui-upload-red.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 60px 60px;
+  z-index: 999;
+  filter: drop-shadow(2px 2px 2px #000);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: opacity 0.45s ease, filter 0.2s ease;
+}
+
+.gui_upload:hover {
+  filter: drop-shadow(2px 2px 2px #000) brightness(110%);
+}
+
+.gui_controls {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--shell-controls-bottom);
+  z-index: 99;
+  text-align: center;
+  line-height: 2;
+  font-size: 20px;
+  color: #fff;
+}
+
+.gui_controls_key {
+  color: #808080;
+}
+
+/* Wikimedia Commons face buttons + key bindings */
+.ps_face_row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.9375rem 1.5625rem;
+  margin-top: 0.4375rem;
+}
+
+.ps_face_pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.ps_face_svg {
+  width: 27.5px;
+  height: 23.75px;
+  display: block;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+.gui_controls_file {
+  display: none;
+}
+
+/* GitHub link — bottom right */
+.shell_github {
+  position: fixed;
+  right: 36px;
+  bottom: 14px;
+  z-index: 5;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  padding: 12px 15px;
+  border-radius: 12px;
+  color: #8b949e;
+  text-decoration: none;
+  font-size: 16.5px;
+  max-width: min(50vw, 420px);
+  line-height: 1.25;
+  opacity: 0.88;
+  transition: opacity 1.2s ease, color 0.2s ease;
+  pointer-events: auto;
+}
+
+.shell_github:hover {
+  color: #c9d1d9;
+  opacity: 1;
+}
+
+.shell_github_icon {
+  flex-shrink: 0;
+  display: block;
+  width: 42px;
+  height: 42px;
+}
+
+.shell_github_label {
+  word-break: break-all;
+  text-align: left;
+}
+
+/* Hide all chrome while a disc is running (see kxkx-main.js runDiscLoad) */
+.pcsx-shell.pcsx-game-active .shell_chrome,
+.pcsx-shell.pcsx-game-active .shell_github {
+  opacity: 0;
+  pointer-events: none;
+}

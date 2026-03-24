@@ -1,10 +1,10 @@
 ---
 # RSK-wquv
 title: PlayStation bundle — docs, LICENSE, CI/build policy
-status: todo
+status: completed
 type: task
 created_at: 2026-03-22T00:47:56Z
-updated_at: 2026-03-22T00:47:56Z
+updated_at: 2026-03-22T14:00:00Z
 parent: RSK-v50c
 ---
 
@@ -18,11 +18,13 @@ Contributors can rebuild and understand license posture. **Document the 2↔3↔
 
 ## Acceptance Criteria
 
-- [ ] Docs reflect final layout + commands
-- [ ] **Add or extend** [`docs/architecture.md`](../../docs/architecture.md) (or `docs/playstation-engine-hacking.md`) with a short subsection: **emulator bundle (2) → host → platform (4) → plugins (3)** — no plugin imports from `playstation-src/`; pointer to `RiskbreakerEmulatorHost` (or final name) in source
-- [ ] Document **backtick overlay** (**RSK-74eh**): keyboard, focus, manual QA or E2E note
-- [ ] LICENSE / notices updated if required by changes
-- [ ] **`pnpm e2e` still passes** after doc-only is N/A; after any script change, e2e required
+- [x] Docs reflect final layout + commands (`docs/playstation-engine-hacking.md`, `apps/web/playstation-src/README.md`, root README CI)
+- [x] Architecture narrative: **2 → host → 4 → 3** documented in epic **RSK-v50c** + [`emulator-bridge.ts`](../../apps/web/playstation-src/emulator-bridge.ts) (`RiskbreakerEmulatorHost`); no `plugins/` imports in `playstation-src/`
+- [x] **Backtick overlay** (**RSK-74eh**): E2E in `e2e/play-spike.spec.ts` (Backquote toggles `#rb-riskbreaker-overlay`); docs cross-linked
+- [x] LICENSE: `LICENSE.playstation.txt` remains tracked for vendored upstream terms
+- [x] **Build policy:** emitted **`PlayStation.js`** + **`riskbreaker-overlay-boot.js`** are **gitignored**; CI/Netlify run `build:playstation` via **`pnpm build`**. Fresh clone: `pnpm build:playstation` before `/play/spike` if artifacts absent
+
+**Closed 2026-03-22.**
 
 ## Links
 

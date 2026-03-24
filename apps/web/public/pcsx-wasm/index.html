@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <title>PlayStation</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="pcsx_worker.js" as="worker" crossorigin />
+    <link rel="preload" href="pcsx_worker.wasm" as="fetch" crossorigin />
+    <link rel="stylesheet" href="css/pcsx.css" />
+    <link rel="stylesheet" href="css/pcsx-shell.css" />
+    <!-- Face-button SVGs: Wikimedia Commons (e.g. PlayStationTriangle.svg — PD simple geometry; trademark may apply). -->
+  </head>
+  <body class="pcsx-shell">
+    <div id="pcsx_app" class="shell_canvas_layer">
+      <canvas class="emscripten" id="canvas" width="640" height="480"></canvas>
+    </div>
+
+    <div class="wrapper shell_chrome">
+      <div class="gui_container">
+        <div class="gui_background" aria-hidden="true"></div>
+        <div class="gui_controls">
+          <span class="gui_controls_key">L1 = </span>W&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="gui_controls_key"
+            >L2 = </span
+          >E&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="gui_controls_key">R1 = </span>R&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="gui_controls_key"
+            >R2 = </span
+          >T<br />
+          <span class="gui_controls_key">SELECT = </span>C&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span
+            class="gui_controls_key"
+            >START = </span
+          >V<br />
+          <span class="ps_face_row">
+            <span class="ps_face_pair"
+              ><img
+                class="ps_face_svg"
+                src="assets/PlayStationCross.svg"
+                alt="Cross (X)"
+              />
+              <span class="gui_controls_key"> = </span>Z</span
+            >
+            <span class="ps_face_pair"
+              ><img class="ps_face_svg" src="assets/PlayStationCircle.svg" alt="Circle" />
+              <span class="gui_controls_key"> = </span>X</span
+            >
+            <span class="ps_face_pair"
+              ><img class="ps_face_svg" src="assets/PlayStationSquare.svg" alt="Square" />
+              <span class="gui_controls_key"> = </span>S</span
+            >
+            <span class="ps_face_pair"
+              ><img class="ps_face_svg" src="assets/PlayStationTriangle.svg" alt="Triangle" />
+              <span class="gui_controls_key"> = </span>D</span
+            >
+          </span>
+        </div>
+
+        <input
+          type="file"
+          id="iso_opener"
+          class="gui_controls_file"
+          multiple
+          accept=".cue,.bin,.iso,.img,.mdf,.toc,.ccd,.sub"
+        />
+        <label for="iso_opener" class="gui_upload" title="Load disc image"></label>
+      </div>
+    </div>
+
+    <a
+      id="shell_github_link"
+      class="shell_github"
+      href="https://github.com/andreadellacorte/riskbreaker"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Riskbreaker on GitHub"
+    >
+      <svg
+        class="shell_github_icon"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 98 96"
+        width="28"
+        height="28"
+        aria-hidden="true"
+      >
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M48.854 0C21.839 0 0 22 0 49.217c0 21.756 13.993 40.172 33.405 46.69 2.427.49 3.316-1.059 3.316-2.362 0-1.141-.08-5.052-.08-9.127-13.59 2.934-16.42-5.867-16.42-5.867-2.184-5.704-5.42-7.17-5.42-7.17-4.448-3.015.324-3.015.324-3.015 4.934.326 7.523 5.052 7.523 5.052 4.367 7.496 11.404 5.378 14.294 4.074.404-3.178 1.699-5.378 3.074-6.6-10.839-1.141-22.229-5.378-22.229-24.134 0-5.378 1.94-9.697 5.014-13.127-.485-1.218-2.184-6.275.486-13.038 0 0 4.125-1.304 13.426 5.052a46.97 46.97 0 0 1 12.214-1.63c4.125 0 8.33.571 12.213 1.63 9.302-6.356 13.427-5.052 13.427-5.052 2.67 6.763.97 11.82.485 13.038 3.155 3.43 5.014 7.749 5.014 13.127 0 18.756-11.414 22.993-22.229 24.129 1.75 1.492 3.316 4.367 3.316 8.822 0 6.6-.08 11.896-.08 13.526 0 1.304.89 2.853 3.316 2.364 19.412-6.52 33.405-24.934 33.405-46.691C97.707 22 75.788 0 48.854 0z"
+          clip-rule="evenodd"
+        />
+      </svg>
+      <span class="shell_github_label">andreadellacorte/riskbreaker</span>
+    </a>
+
+    <script type="text/javascript" src="js/riskbreaker-kxkx-boot.js"></script>
+    <script type="text/javascript" src="js/pcsx_ui.js"></script>
+    <script type="text/javascript" src="js/kxkx-main.js"></script>
+  </body>
+</html>

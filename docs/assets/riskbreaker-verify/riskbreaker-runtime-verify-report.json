@@ -1,0 +1,65 @@
+{
+  "startUrl": "http://127.0.0.1:5173/play/spike",
+  "romPath": "/Users/andreadellacorte/Workspace/Myself/riskbreaker/e2e/fixtures/240pTestSuitePS1-EMU.bin",
+  "romBytes": 865536,
+  "timings": {
+    "afterCanvasMs": 12000,
+    "hudPollMs": 25000,
+    "speedSampleMs": 2000
+  },
+  "baseline": {
+    "canvasWidth": 640,
+    "canvasHeight": 480,
+    "upscaleFactor": 1,
+    "lastLogical": null,
+    "burst": 1,
+    "perfHudText": "—",
+    "fpsReadout": "—",
+    "storage": {
+      "perfHud": "0",
+      "speedHack": "0",
+      "upscaling": "0",
+      "internalScale": null
+    }
+  },
+  "fps": {
+    "afterPerfHudEnabled": 591,
+    "beforeSpeedHackSample": 591,
+    "beforeSpeedHackSample2": 591,
+    "afterSpeedHackSample": 591,
+    "speedHackRaisedFps": false
+  },
+  "speedHack": {
+    "runnerBurstCount": 16
+  },
+  "upscaling": {
+    "before": {
+      "canvasW": 640,
+      "canvasH": 480,
+      "factor": 1,
+      "logical": null
+    },
+    "after": {
+      "canvasW": 640,
+      "canvasH": 480,
+      "factor": 3,
+      "logical": null
+    },
+    "canvasBackingStoreGrew": null
+  },
+  "screenshots": [
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/riskbreaker-verify/01-after-disc.png",
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/riskbreaker-verify/02-overlay-open.png",
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/riskbreaker-verify/03-perf-hud-on.png",
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/riskbreaker-verify/04-speed-hack-on.png",
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/riskbreaker-verify/05-upscaling-on.png",
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/riskbreaker-verify/06-overlay-closed.png"
+  ],
+  "consoleLineCount": 3,
+  "pageErrors": [],
+  "sampleConsole": [
+    "[debug] [vite] connecting...",
+    "[debug] [vite] connected.",
+    "[info] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold"
+  ]
+}

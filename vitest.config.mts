@@ -7,10 +7,30 @@ import { workspaceAliases } from "./vite.workspace.mjs";
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 
+/** First-party sources (e2e/ excluded — Playwright). */
+const coverageInclude = [
+  "packages/*/src/**/*.ts",
+  "plugins/*/src/**/*.ts",
+  "apps/web/src/**/*.{ts,tsx}",
+  "apps/docs/**/*.ts",
+];
+
+const coverageExclude = [
+  "**/*.test.ts",
+  "**/*.test.mjs",
+  "**/*.spec.ts",
+  "**/*.d.ts",
+  "apps/web/legacy/playstation-src/wasm-embed.ts",
+  "apps/web/legacy/playstation-src/emscripten-glue.js",
+  /** Config entry only; not loaded by Vitest (would run side effects). */
+  "apps/docs/vite.config.ts",
+];
+
 export default defineConfig({
   resolve: { alias: workspaceAliases(root) },
   test: {
     environment: "node",
+    environmentMatchGlobs: [["packages/pcsx-kxkx-shell/src/**/*.test.ts", "happy-dom"]],
     include: [
       "packages/*/src/**/*.test.ts",
       "packages/*/src/**/*.spec.ts",
@@ -18,7 +38,22 @@ export default defineConfig({
       "plugins/*/src/**/*.spec.ts",
       "tests/**/*.test.ts",
       "tests/**/*.spec.ts",
+      "scripts/**/*.test.mjs",
+      "apps/docs/**/*.test.ts",
     ],
     passWithNoTests: true,
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json-summary"],
+      include: coverageInclude,
+      exclude: coverageExclude,
+      /** Whole-repo aggregate (~2026-03); raise as tests land. */
+      thresholds: {
+        lines: 62,
+        functions: 55,
+        branches: 42,
+        statements: 62,
+      },
+    },
   },
 });

@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 test.describe("apps/web mock session", () => {
   test("home loads and mock session shows manifest and inventory", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/mock");
     await expect(page.getByRole("heading", { name: "Riskbreaker", level: 1 })).toBeVisible();
 
     await page.getByRole("button", { name: /Load mock session \(Vagrant Story\)/i }).click();

@@ -1,10 +1,10 @@
 ---
 # RSK-74eh
 title: PlayStation — backtick Riskbreaker overlay (shadcn spike)
-status: todo
+status: completed
 type: task
 created_at: 2026-03-22T00:59:11Z
-updated_at: 2026-03-22T00:59:11Z
+updated_at: 2026-03-22T14:00:00Z
 parent: RSK-v50c
 ---
 
@@ -20,10 +20,12 @@ Prove **layer 1 (browser) + layer 2 (bundle)** can host **Riskbreaker chrome** i
 
 ## Acceptance Criteria
 
-- [ ] **Backtick** (`` ` ``) toggles overlay visibility during gameplay (default US keyboard; document if intl layouts differ).
-- [ ] Overlay is **visually** consistent with Riskbreaker / shadcn direction (use existing stack from `apps/web` where practical).
-- [ ] Game remains usable when overlay is **closed**; when **open**, document focus behaviour (e.g. game paused vs input still reaching emulator — pick one for v1 and note gaps).
-- [ ] **`pnpm e2e` passes**; optional: extend `e2e/play-spike.spec.ts` with a **skipped** or **light** keyboard test if flakiness is a concern — otherwise **manual QA** steps in `docs/playstation-engine-hacking.md` or plan doc.
+- [x] **Backtick** (**Backquote** key) toggles `#rb-riskbreaker-overlay` (`riskbreaker-overlay-boot.js` + `riskbreaker-overlay.ts`); US layout; intl TBD
+- [x] Overlay uses host styles / panel spike (shadcn-aligned direction); placeholder content OK for v1
+- [x] E2E asserts hidden → visible → hidden via `e2e/play-spike.spec.ts`; focus/pause semantics documented in `playstation-src/README.md` / hacking doc as needed
+- [x] **`pnpm e2e`** passes (keyboard smoke on overlay)
+
+**Closed 2026-03-22.**
 
 ## Links
 

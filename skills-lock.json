@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "e45c0ee94791e67e355130109fd827bd8b4bd0fb1d6b2ff8f782eb566d435174"
     },
+    "browser-use": {
+      "source": "browser-use/browser-use",
+      "sourceType": "github",
+      "computedHash": "f974fac2783f80ac2a1a2cb45d576b5cca55123015dc73db8adfd02277002461"
+    },
     "find-skills": {
       "source": "andreadellacorte/groove",
       "sourceType": "github",

@@ -1,11 +1,11 @@
 ---
 # RSK-9c07
 title: Riskbreaker — Phase 1 foundation (incremental)
-status: in-progress
+status: completed
 type: epic
 priority: normal
 created_at: 2026-03-21T20:09:47Z
-updated_at: 2026-03-21T23:00:00Z
+updated_at: 2026-03-22T14:00:00Z
 ---
 
 ## Context
@@ -19,7 +19,7 @@ Develop on the **target end stack from the beginning**, not “plain Node now, i
 - **pnpm** + **TypeScript** — monorepo default (always).
 - **Nix** — `nix develop` / `flake.nix` + `flake.lock` for reproducible toolchain (Node via corepack + pinned pnpm, git, terraform CLI, netlify-cli).
 - ~~**Docker**~~ — removed; **Netlify** builds static `apps/web`.
-- **Terraform / K8s / CI / Playwright** — introduced in **Harness 06–07** as **full scaffolding** (`infra/terraform`, K8s manifests, GHA, `@playwright/test`, Nix notes for browser deps). **Status today:** Terraform **CLI** is in the Nix shell; **IaC layout** and **Playwright** are **not** in the repo yet (see child tasks **RSK-0o5v**, **RSK-7q8c**).
+- **Terraform / CI / Playwright** — **Harness 06–07** delivered Vitest, Playwright, Nix CI, Terraform for GitHub (`infra/terraform/environments/github`). **Docker / K8s** were removed in favour of **Netlify** static deploys (see **RSK-7q8c** note).
 
 ## Goal
 
@@ -27,10 +27,12 @@ Deliver a runnable pnpm workspace with typed packages, builds, tests, and README
 
 ## Acceptance Criteria
 
-- [ ] Epic tracks 8 ordered child tasks (workspace → shared/sdk → **mock plugin + fixtures** → engines/app-shell → web → test/CI wiring + E2E → infra → docs)
-- [ ] **End-stack policy** (see Context): pnpm + Nix + Docker baseline early; Terraform **modules** + Playwright **install** completed in Harness **06–07** (not only at the very end)
-- [ ] Each phase ends with `pnpm typecheck` (and tests where applicable) green
-- [ ] Implementation follows `project-spec.md` and `.groove/memory/specs/psx-ux-remaster-harness.md`
+- [x] Epic tracks 8 ordered child tasks (workspace → shared/sdk → **mock plugin + fixtures** → engines/app-shell → web → test/CI wiring + E2E → infra → docs) — **RSK-raps … RSK-slzy** completed
+- [x] **End-stack policy** (see Context): pnpm + Nix early; Terraform + Playwright + CI in **06–07**; **no** Docker/K8s in-repo (Netlify for static)
+- [x] Each phase ends with `pnpm typecheck` (and tests where applicable) green
+- [x] Implementation follows `project-spec.md` and `.groove/memory/specs/psx-ux-remaster-harness.md` (ongoing product work continues outside this epic)
+
+**Closed 2026-03-22:** All harness child tasks **RSK-raps** through **RSK-slzy**, plus **RSK-0o5v**, **RSK-7q8c**, **RSK-9nf7**, are **completed**. Phase 2 “Playable” beans (**RSK-l7qp** …) remain future work.
 
 ## Links
 
@@ -40,10 +42,11 @@ Deliver a runnable pnpm workspace with typed packages, builds, tests, and README
 
 ### Browser play (Phase 2 — real emulator, not in Harness 01–08)
 
-Ordered beans to reach **test the game in the browser** using local `bins/`:
+Baseline spikes:
 
 1. **`RSK-l7qp`** — Playable 01: emulator WASM/core spike in the browser (boot to menu/title).
-2. **`RSK-l7qr`** — Playable 02: dev-only loading from `bins/` + play page ergonomics.
-3. **`RSK-l7qs`** — Playable 03: `IRuntime` / session bridge (`EmulatorRuntimeAdapter` vs `MockRuntimeAdapter`).
+2. **`RSK-l7qr`** — Playable 02: dev-only loading from `bins/` + play page ergonomics (**scrapped**).
+
+**Further work** (emulator-backed session, Vagrant Story remaster UI, incremental Triangle menu replacement) is tracked under epic **`RSK-uxvs`**, starting with **`RSK-l7qs`** (Playable 03: `IRuntime` / `EmulatorRuntimeAdapter`).
 
 These depend on **Harness 05** (`RSK-gc8g`) for a real Vite shell; Playable 01 can start as a spike route in parallel if needed.

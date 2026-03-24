@@ -10,26 +10,32 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "format:playstation": "prettier --write apps/web/public/playstation/PlayStation.js --ignore-path /dev/null",
-    "build:playstation": "node scripts/build-playstation.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json",
+    "build:pcsx-kxkx-shell": "node packages/pcsx-kxkx-shell/build.mjs",
+    "sync:pcsx-kxkx": "node scripts/sync-pcsx-kxkx-public.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json && tsc --noEmit -p apps/docs/tsconfig.json",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "e2e:ui": "playwright test --ui"
+    "e2e:ui": "playwright test --ui",
+    "verify:playstation-riskbreaker-controls": "node scripts/verify-playstation-riskbreaker-controls.mjs",
+    "prepare": "husky"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.0",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@riskbreaker/app-shell": "workspace:*",
     "@riskbreaker/plugin-vagrant-story": "workspace:*",
     "@types/node": "^24.0.0",
-    "esbuild": "^0.25.12",
+    "esbuild": "^0.27.4",
+    "happy-dom": "^20.0.10",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.57.1",
+    "husky": "^9.1.7",
     "vitest": "^4.1.0"
   }
 }

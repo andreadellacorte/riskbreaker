@@ -27,3 +27,10 @@ crash.log
 !*.tfvars.example
 # Local Netlify folder
 .netlify
+
+# Generated PCSX kxkx artifacts (build outputs; do not commit)
+third_party/kxkx5150-PCSX-wasm/pcsx_worker.js
+third_party/kxkx5150-PCSX-wasm/pcsx_worker.wasm
+third_party/kxkx5150-PCSX-wasm/pcsx_ww.js
+third_party/kxkx5150-PCSX-wasm/pcsx_ww.wasm
+

@@ -1,0 +1,28 @@
+{
+  "url": "http://127.0.0.1:5173/playstation/PlayStation.htm?riskbreaker=1",
+  "romPath": "/Users/andreadellacorte/Workspace/Myself/riskbreaker/bins/roms/Vagrant Story (USA)/Vagrant Story (USA).bin",
+  "romBytes": 750643152,
+  "bootWaitMaxMs": 180000,
+  "bootPollMs": 250,
+  "bootHeartbeatStaleMs": 750,
+  "bootWaitElapsedMs": 1258,
+  "startMashPresses": 3,
+  "startMashDelayMs": 250,
+  "startMashDurationMs": null,
+  "startMashesOverride": 3,
+  "inGameWaitMs": 500,
+  "triangleHoldMs": 500,
+  "toggleCameraBeforeTriangle": false,
+  "riskbreakerSpeedHack": true,
+  "riskbreakerUpscaling": false,
+  "riskbreakerInternalScale": null,
+  "riskbreakerPerfHud": false,
+  "screenshots": [
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/vagrant-story/vagrant-story-real-before-triangle.png",
+    "/Users/andreadellacorte/Workspace/Myself/riskbreaker/docs/assets/vagrant-story/vagrant-story-real-after-triangle.png"
+  ],
+  "performanceMarks": [],
+  "consoleLineCount": 0,
+  "pageErrors": [],
+  "sampleConsole": []
+}

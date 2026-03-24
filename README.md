@@ -7,7 +7,7 @@
 | Doc                                                                      | Purpose                                                                                                         |
 | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
 | [**docs/architecture.md**](./docs/architecture.md)                       | **Package boundaries**, **plugin model**, **data flow**, **Mermaid diagrams** — read this for the system shape. |
-| [**docs/playable-emulator-spike.md**](./docs/playable-emulator-spike.md) | Browser PS1 spike (`/play/spike`), lrusso/PlayStation, BIOS / legal notes.                                      |
+| [**docs/playable-emulator-spike.md**](./docs/playable-emulator-spike.md) | Browser PS1 spike (`/play/spike` → `/pcsx-kxkx/`), PCSX-wasm kxkx, BIOS / legal notes.                            |
 | [**docs/README.md**](./docs/README.md)                                   | Index of spec + memory links.                                                                                   |
 | [**project-spec.md**](./project-spec.md)                                 | Full Phase 1 product and technical spec.                                                                        |
 
@@ -37,9 +37,9 @@ pnpm install
 
 **direnv:** optional `.envrc` runs `use flake` — run `direnv allow` once if you use [direnv](https://direnv.net/).
 
-**Web app (Harness 05):** after `pnpm install`, run `pnpm dev` and open http://localhost:5173 . Click **Load mock session (Vagrant Story)** to run the mock pipeline (`SessionOrchestrator` + fixtures) in the browser: manifest, inventory view model, and a sample **EquipItem** command plan.
+**Web app (Harness 05):** after `pnpm install`, run `pnpm dev` and open http://localhost:5173/mock . Click **Load mock session (Vagrant Story)** to run the mock pipeline (`SessionOrchestrator` + fixtures) in the browser: manifest, inventory view model, and a sample **EquipItem** command plan. The site root **`/`** redirects to the PCSX browser emulator (`/pcsx-kxkx/`).
 
-**Playable emulator spike (Playable 01):** open http://localhost:5173/play/spike for a **WASM PS1** proof-of-concept (vendored [lrusso/PlayStation](https://github.com/lrusso/PlayStation)). It is **not** wired to Riskbreaker engines yet — see [`docs/playable-emulator-spike.md`](./docs/playable-emulator-spike.md). **Do not commit** BIOS or disc images; keep dumps under local **`bins/`** only if you have the right to use them for testing.
+**Playable emulator spike (Playable 01):** open http://localhost:5173/play/spike (redirects to **`/pcsx-kxkx/index.html`**) for a **WASM PS1** proof-of-concept (**PCSX-wasm** / kxkx5150). It is **not** wired to Riskbreaker engines yet — see [`docs/playable-emulator-spike.md`](./docs/playable-emulator-spike.md). **Do not commit** BIOS or disc images; keep dumps under local **`bins/`** only if you have the right to use them for testing.
 
 Root `tsconfig.json` maps `@riskbreaker/*` workspace packages to **source** `index.ts` files so `pnpm typecheck` works before `dist/` exists. Vite uses [`vite.workspace.mjs`](./vite.workspace.mjs) to resolve the same paths during `pnpm dev` / `pnpm build` without pre-building every package.
 
