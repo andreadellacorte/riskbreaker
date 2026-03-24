@@ -22,7 +22,10 @@
       "@riskbreaker/app-shell": ["packages/app-shell/src/index.ts"]
     }
   },
-  "exclude": ["packages/pcsx-wasm-shell/**"],
+  "exclude": [
+    "packages/pcsx-wasm-shell/**",
+    "plugins/vagrant-story/src/emulator-overlay-panel.ts"
+  ],
   "include": [
     "packages/*/src/**/*.ts",
     "plugins/*/src/**/*.ts",

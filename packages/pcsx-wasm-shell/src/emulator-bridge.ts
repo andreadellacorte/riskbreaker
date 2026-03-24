@@ -12,6 +12,12 @@ export interface RiskbreakerEmulatorHost {
   setInternalScaleFactor?: (factor: number) => void;
   /** Re-read `localStorage` flags and apply (safe if main loop not ready yet). */
   applyRuntimeControls?: () => void;
+  /**
+   * RSK-wbmb: read raw bytes from the WASM linear memory (HEAPU8).
+   * `address` is a WASM heap offset — NOT a PS1 virtual address.
+   * Returns a Promise that resolves when the worker responds.
+   */
+  peek?: (address: number, length: number) => Promise<Uint8Array>;
 }
 
 declare global {

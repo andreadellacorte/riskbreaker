@@ -17,13 +17,25 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "build:overlay-panel": "node build-overlay-panel.mjs",
     "clean": "rm -rf dist"
   },
   "dependencies": {
+    "@riskbreaker/app-shell": "workspace:*",
     "@riskbreaker/plugin-sdk": "workspace:*",
     "@riskbreaker/shared-types": "workspace:*"
   },
   "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1",
     "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1"
   }
 }

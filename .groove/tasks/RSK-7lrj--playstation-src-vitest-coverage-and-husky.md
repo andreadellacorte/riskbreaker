@@ -1,7 +1,7 @@
 ---
 # RSK-7lrj
 title: PlayStation bundle — Vitest coverage for playstation-src + Husky gate
-status: ready
+status: completed
 type: task
 created_at: 2026-03-22T00:00:00Z
 updated_at: 2026-03-22T00:00:00Z

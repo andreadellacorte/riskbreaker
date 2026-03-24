@@ -1,5 +1,6 @@
 import { resolvePluginForManifest } from "@riskbreaker/plugin-sdk";
 import { describe, expect, it } from "vitest";
+import { getFixtureInventoryViewModel } from "./load-fixtures.js";
 
 import {
   createVagrantStoryPlugin,
@@ -61,6 +62,22 @@ describe("createVagrantStoryPlugin", () => {
     expect(equip?.mode).toBe("composite");
     const sort = await Promise.resolve(pack!.plan({ kind: "SortInventory" }));
     expect(sort?.mode).toBe("input-sequence");
+  });
+});
+
+describe("getFixtureInventoryViewModel", () => {
+  it("returns rows with name, category, detail matching the overlay panel shape", () => {
+    const vm = getFixtureInventoryViewModel() as {
+      rows: Array<{ name: string; category: string; detail: string }>;
+      characterSummary: string;
+    };
+    expect(vm.rows.length).toBeGreaterThan(0);
+    for (const row of vm.rows) {
+      expect(typeof row.name).toBe("string");
+      expect(typeof row.category).toBe("string");
+      expect(typeof row.detail).toBe("string");
+    }
+    expect(typeof vm.characterSummary).toBe("string");
   });
 });
 

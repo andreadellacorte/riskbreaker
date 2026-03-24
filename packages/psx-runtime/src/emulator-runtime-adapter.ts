@@ -1,6 +1,6 @@
 import type { GameManifest, RuntimeSnapshot } from "@riskbreaker/shared-types";
 
-import type { IRuntime, RuntimeLifecycle } from "./contracts.js";
+import type { IMemoryBridge, IRuntime, RuntimeLifecycle } from "./contracts.js";
 import { MockInputInjector } from "./mock-input-injector.js";
 import { MockMemoryAccessor } from "./mock-memory-accessor.js";
 import { MockSavestateStore } from "./mock-savestate-store.js";
@@ -19,10 +19,18 @@ export const defaultEmulatorStubSnapshot = (): RuntimeSnapshot => ({
   mockStateTag: "psx-runtime-emulator-stub",
 });
 
+/** Size of PS1 main RAM in bytes (2 MB). */
+const PSX_MAIN_RAM_SIZE = 2 * 1024 * 1024;
+
 /**
- * Session runtime backed by the **browser emulator** in principle; v1 returns a **stub**
- * snapshot until **RSK-vs12** wires real memory/save capture. Implements {@link IRuntime}
- * alongside {@link MockRuntimeAdapter} — no `plugins/*` imports.
+ * Session runtime backed by the **browser emulator** in principle.
+ *
+ * - Without a bridge: returns a stub snapshot (unchanged from RSK-l7qs).
+ * - With an {@link IMemoryBridge}: reads `PSX_MAIN_RAM_SIZE` bytes starting at WASM heap offset 0
+ *   (best-effort PS1 main RAM; actual offset depends on the emulator build — see
+ *   `docs/emulator-runtime-gaps.md`) and produces a real `RuntimeSnapshot`.
+ *
+ * Implements {@link IRuntime} alongside {@link MockRuntimeAdapter} — no `plugins/*` imports.
  */
 export class EmulatorRuntimeAdapter implements IRuntime {
   readonly memory: MockMemoryAccessor = new MockMemoryAccessor();
@@ -34,6 +42,7 @@ export class EmulatorRuntimeAdapter implements IRuntime {
 
   constructor(
     private readonly snapshotFactory: RuntimeSnapshotFactory = defaultEmulatorStubSnapshot,
+    private readonly memoryBridge?: IMemoryBridge,
   ) {}
 
   loadManifest(manifest: GameManifest): void {
@@ -41,11 +50,20 @@ export class EmulatorRuntimeAdapter implements IRuntime {
     this.lifecycle = "loaded";
   }
 
-  captureSnapshot(): RuntimeSnapshot {
+  async captureSnapshot(): Promise<RuntimeSnapshot> {
     if (!this.manifest) {
       throw new Error("EmulatorRuntimeAdapter.captureSnapshot: loadManifest first");
     }
     this.lifecycle = "running";
+    if (this.memoryBridge) {
+      const bytes = await this.memoryBridge.peek(0, PSX_MAIN_RAM_SIZE);
+      return {
+        timestamp: Date.now(),
+        memorySegments: [{ name: "psx_main_ram", offset: 0, size: PSX_MAIN_RAM_SIZE, bytes }],
+        registers: { pc: 0 },
+        activeScene: "emulator-live",
+      };
+    }
     return this.snapshotFactory();
   }
 

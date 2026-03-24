@@ -1,7 +1,9 @@
 /**
- * RSK-74eh + RSK-xfc8: Riskbreaker overlay (`?riskbreaker=1`). Backquote toggles panel; menu toggles persist to `localStorage`.
+ * RSK-74eh + RSK-xfc8 + RSK-vs12: Riskbreaker overlay (`?riskbreaker=1`). Backquote toggles panel; menu toggles persist to `localStorage`.
+ * Plugin panels registered via `overlay-panels.ts` are rendered generically below the emulator controls.
  */
 import type { RiskbreakerEmulatorHost } from "./emulator-bridge.js";
+import { getOverlayPanels, patchOverlayPanel } from "./overlay-panels.js";
 import {
   QUERY,
   STORAGE,
@@ -222,6 +224,11 @@ export function installRiskbreakerOverlay(): void {
   scaleInput.addEventListener("change", onToggle);
   pixelInput.addEventListener("change", onToggle);
 
+  // ── RSK-vs12: plugin panel container — populated by registered overlay panels ──
+  const pluginPanelsContainer = document.createElement("div");
+  pluginPanelsContainer.id = "rb-plugin-panels";
+  // ── end RSK-vs12 ──────────────────────────────────────────────────────────────
+
   const meta = document.createElement("p");
   meta.textContent = `Query: ?${QUERY.RISKBREAKER}=1 · debug: ?${QUERY.DEBUG}=1`;
   meta.style.cssText = "margin:12px 0 0 0;font-size:11px;color:#6b7388;word-break:break-all";
@@ -235,6 +242,7 @@ export function installRiskbreakerOverlay(): void {
   root.appendChild(scaleRow);
   root.appendChild(scalePickerWrap);
   root.appendChild(pixelRow);
+  root.appendChild(pluginPanelsContainer);
   root.appendChild(meta);
 
   document.body.appendChild(root);
@@ -243,9 +251,107 @@ export function installRiskbreakerOverlay(): void {
     `?${QUERY.DEBUG}=1 or localStorage['${STORAGE.DEBUG}']=1 — overlay key diagnostics use console.debug.`,
   );
 
+  function renderPluginPanels(): void {
+    pluginPanelsContainer.innerHTML = "";
+    for (const panel of getOverlayPanels()) {
+      const heading = document.createElement("div");
+      heading.textContent = panel.heading;
+      heading.style.cssText =
+        "margin:14px 0 0 0;font-size:12px;font-weight:600;color:#8a93a8;letter-spacing:0.04em;display:flex;align-items:center;gap:8px";
+
+      if (panel.refresh) {
+        const btn = document.createElement("button");
+        btn.textContent = "↻";
+        btn.title = "Refresh";
+        btn.style.cssText =
+          "background:none;border:none;color:#8a93a8;cursor:pointer;font-size:13px;padding:0;line-height:1";
+        btn.addEventListener("click", () => {
+          btn.disabled = true;
+          btn.textContent = "…";
+          void panel.refresh!().then((patch) => {
+            patchOverlayPanel(panel.id, patch);
+            renderPluginPanels();
+          }).catch(() => {
+            btn.disabled = false;
+            btn.textContent = "↻";
+          });
+        });
+        heading.appendChild(btn);
+      }
+
+      pluginPanelsContainer.appendChild(heading);
+
+      if (panel.actions && panel.actions.length > 0) {
+        const actionsRow = document.createElement("div");
+        actionsRow.style.cssText = "display:flex;gap:6px;margin:6px 0 0 0;flex-wrap:wrap";
+        for (const action of panel.actions) {
+          const btn = document.createElement("button");
+          btn.textContent = action.label;
+          if (action.title) btn.title = action.title;
+          btn.style.cssText =
+            "background:#1e2840;border:1px solid #2c3344;color:#a8b0c4;cursor:pointer;font-size:11px;padding:3px 8px;border-radius:4px;line-height:1.4";
+          btn.addEventListener("click", () => {
+            btn.disabled = true;
+            const orig = btn.textContent;
+            btn.textContent = "…";
+            void Promise.resolve(action.onClick()).finally(() => {
+              btn.disabled = false;
+              btn.textContent = orig;
+            });
+          });
+          actionsRow.appendChild(btn);
+        }
+        pluginPanelsContainer.appendChild(actionsRow);
+      }
+
+      if (panel.summary) {
+        const summary = document.createElement("p");
+        summary.textContent = panel.summary;
+        summary.style.cssText = "margin:6px 0 0 0;font-size:11px;color:#6b7388";
+        pluginPanelsContainer.appendChild(summary);
+      }
+
+      if (panel.rows.length > 0) {
+        const table = document.createElement("div");
+        table.style.cssText =
+          "margin:6px 0 0 0;border:1px solid #1e2840;border-radius:3px;overflow:hidden";
+        for (const row of panel.rows) {
+          const rowEl = document.createElement("div");
+          rowEl.style.cssText =
+            "display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #161e38;font-size:12px";
+          const label = document.createElement("span");
+          label.textContent = row.label;
+          label.style.cssText = "flex:1;color:#c8cfe8";
+          const value = document.createElement("span");
+          value.textContent = row.value;
+          value.style.cssText = "color:#4a5270;font-size:10px;min-width:80px;text-align:right";
+          rowEl.appendChild(label);
+          if (row.badge) {
+            const badge = document.createElement("span");
+            badge.textContent = row.badge;
+            badge.style.cssText =
+              "color:#86efac;font-size:10px;letter-spacing:0.06em;text-transform:uppercase";
+            rowEl.appendChild(badge);
+          }
+          rowEl.appendChild(value);
+          table.appendChild(rowEl);
+        }
+        pluginPanelsContainer.appendChild(table);
+      }
+
+      if (panel.note) {
+        const note = document.createElement("p");
+        note.textContent = panel.note;
+        note.style.cssText = "margin:4px 0 0 0;font-size:10px;color:#3a4260;font-style:italic";
+        pluginPanelsContainer.appendChild(note);
+      }
+    }
+  }
+
   function setOpen(open: boolean): void {
     root.hidden = !open;
     root.setAttribute("aria-hidden", open ? "false" : "true");
+    if (open) renderPluginPanels();
   }
 
   window.addEventListener(

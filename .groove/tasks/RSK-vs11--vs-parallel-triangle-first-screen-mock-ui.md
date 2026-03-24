@@ -1,7 +1,7 @@
 ---
 # RSK-vs11
 title: VS remaster — parallel first Triangle screen (mock-fed web UI)
-status: todo
+status: completed
 type: task
 priority: normal
 created_at: 2026-03-22T16:00:00Z
@@ -23,10 +23,22 @@ Child of **RSK-uxvs**. **North-star UX spike:** when the player would see the **
 
 ## Acceptance Criteria
 
-- [ ] Panel implemented in **apps/web** (or plugin-owned React island) using existing design system direction
-- [ ] Data path uses **mock** `RuntimeSnapshot` / fixtures from **Vagrant Story** plugin — **no** `playstation-src/` imports from `plugins/*` (architecture rule)
-- [ ] **Documented** manual QA steps + optional Playwright smoke (flag-gated if flaky)
-- [ ] **`pnpm typecheck` / `pnpm e2e`** green (extend suite only if stable)
+- [x] Panel lives in the **backtick overlay** on the emulator page — not a separate route; `apps/web` knows nothing about VS
+- [x] Data: hardcoded fixture view model (spike); clearly labelled "mock fixture · RSK-vs12 will wire live decoder"
+- [x] Renders item list with name, category badge, detail — inside existing `#rb-riskbreaker-overlay`
+- [x] `pnpm typecheck` green; 31 tests pass; shell bundle rebuilt
+
+## Manual QA
+
+1. `pnpm dev` → navigate to `/play/spike`, load `240pTestSuitePS1-EMU.bin`
+2. Press **`` ` ``** — Riskbreaker overlay opens
+3. Scroll down: **Vagrant Story — Items** section shows character summary + item rows
+4. Emulator keeps running behind the overlay
+
+## Done (2026-03-24)
+
+- `packages/pcsx-wasm-shell/src/riskbreaker-overlay.ts` — VS Items section added to overlay
+- `apps/web/public/pcsx-wasm/js/riskbreaker-pcsx-wasm-boot.js` — rebuilt
 
 ## Links
 

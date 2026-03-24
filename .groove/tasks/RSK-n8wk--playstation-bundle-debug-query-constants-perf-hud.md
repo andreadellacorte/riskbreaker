@@ -1,7 +1,7 @@
 ---
 # RSK-n8wk
 title: PlayStation bundle — debug query constants & perf HUD
-status: in-progress
+status: completed
 type: task
 created_at: 2026-03-22T18:00:00Z
 updated_at: 2026-03-22T18:00:00Z

@@ -247,6 +247,9 @@ importers:
 
   plugins/vagrant-story:
     dependencies:
+      '@riskbreaker/app-shell':
+        specifier: workspace:*
+        version: link:../../packages/app-shell
       '@riskbreaker/plugin-sdk':
         specifier: workspace:*
         version: link:../../packages/plugin-sdk
@@ -254,6 +257,21 @@ importers:
         specifier: workspace:*
         version: link:../../packages/shared-types
     devDependencies:
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.4(react@19.2.4)
+      react-router-dom:
+        specifier: ^7.13.1
+        version: 7.13.1(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

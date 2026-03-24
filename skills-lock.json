@@ -236,6 +236,11 @@
       "sourceType": "github",
       "computedHash": "e3dd07ce604ef4f79f6e639d9981daf4adac8b985156fe60b9d14b585429a598"
     },
+    "nix-best-practices": {
+      "source": "0xbigboss/claude-code",
+      "sourceType": "github",
+      "computedHash": "61556cac2f029a37e2884ec977aa06122c3b5595ee1f5a1ec254dfadafa61c10"
+    },
     "pdf-to-markdown": {
       "source": "andreadellacorte/groove",
       "sourceType": "github",

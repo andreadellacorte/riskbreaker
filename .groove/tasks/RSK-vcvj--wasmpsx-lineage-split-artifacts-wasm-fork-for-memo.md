@@ -1,7 +1,7 @@
 ---
 # RSK-vcvj
 title: wasmpsx lineage — split artifacts + WASM fork for memory access
-status: in-progress
+status: cancelled
 type: feature
 created_at: 2026-03-22T18:23:35Z
 updated_at: 2026-03-22T20:30:00Z

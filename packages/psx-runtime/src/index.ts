@@ -1,6 +1,7 @@
 export type {
   IInputInjector,
   IMemoryAccessor,
+  IMemoryBridge,
   IRuntime,
   ISavestateStore,
   RuntimeLifecycle,

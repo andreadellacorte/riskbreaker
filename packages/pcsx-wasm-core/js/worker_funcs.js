@@ -219,6 +219,17 @@ var main_onmessage = function (event) {
 
 			break;
 
+		case "peek":
+			var peekLo = data.address >>> 0;
+			var peekLen = (data.length >>> 0) || 4;
+			if (peekLo + peekLen <= HEAPU8.length) {
+				var peekCopy = HEAPU8.slice(peekLo, peekLo + peekLen);
+				postMessage({ cmd: "peek_result", reqId: data.reqId, data: peekCopy }, [peekCopy.buffer]);
+			} else {
+				postMessage({ cmd: "peek_error", reqId: data.reqId, msg: "address out of range" });
+			}
+			break;
+
 		default:
 			postMessage({
 				cmd: "print",

@@ -1,7 +1,7 @@
 ---
 # RSK-v50c
 title: 'Epic: PlayStation bundle — modular TS, telemetry, backtick Riskbreaker overlay'
-status: in-progress
+status: completed
 type: epic
 priority: normal
 created_at: 2026-03-22T00:47:25Z

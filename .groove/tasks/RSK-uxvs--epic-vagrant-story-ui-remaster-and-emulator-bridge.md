@@ -27,8 +27,9 @@ updated_at: 2026-03-22T16:00:00Z
 |------:|------|---------|
 | 1 | [**RSK-l7qs**](./RSK-l7qs--playable-03-iruntime-emulator-adapter.md) | Playable 03 — `IRuntime` / **EmulatorRuntimeAdapter** vs **MockRuntimeAdapter** — **done** |
 | 2 | [**RSK-vs10**](./RSK-vs10--vs-menu-research-ram-feasibility.md) | Menu topology + RAM / feasibility **research doc** — **done** ([`docs/vagrant-story-menu-research.md`](../../docs/vagrant-story-menu-research.md)) |
+| 2.5 | [**RSK-wbmb**](./RSK-wbmb--spike-pcsx-wasm-memory-bus-to-iruntime-bridge.md) | **Spike: WASM memory bus → `IRuntime` bridge** — postMessage peek/poke; unblocks vs12–vs15 |
 | 3 | [**RSK-vs11**](./RSK-vs11--vs-parallel-triangle-first-screen-mock-ui.md) | **Parallel first Triangle screen** — web panel, **mock** data, touch + mouse |
-| 4 | [**RSK-vs12**](./RSK-vs12--vs-emulator-snapshot-decoder-pipeline.md) | **Emulator → decoder → view model** (inventory-first live path) |
+| 4 | [**RSK-vs12**](./RSK-vs12--vs-emulator-snapshot-decoder-pipeline.md) | **Emulator → decoder → view model** (inventory-first live path) — **needs RSK-wbmb** |
 | 5 | [**RSK-vs13**](./RSK-vs13--vs-input-bridge-web-to-game.md) | **Input bridge** — one web action → game (minimal scope) |
 | 6 | [**RSK-vs14**](./RSK-vs14--vs-equip-surface-modern-ui.md) | **Equip** surface — incremental replacement |
 | 7 | [**RSK-vs15**](./RSK-vs15--vs-weapon-modify-surface-modern-ui.md) | **Weapon modify** surface — incremental replacement |
@@ -39,7 +40,8 @@ updated_at: 2026-03-22T16:00:00Z
 ```mermaid
 flowchart TD
   vs10[RSK-vs10 research]
-  l7qs[RSK-l7qs adapter]
+  l7qs[RSK-l7qs adapter ✅]
+  wbmb[RSK-wbmb WASM memory bus spike]
   vs11[RSK-vs11 mock panel]
   vs12[RSK-vs12 live snapshot]
   vs13[RSK-vs13 input bridge]
@@ -48,7 +50,8 @@ flowchart TD
   vs16[RSK-vs16 polish]
   vs10 --> vs12
   vs10 --> vs13
-  l7qs --> vs12
+  l7qs --> wbmb
+  wbmb --> vs12
   vs11 --> vs12
   vs12 --> vs13
   vs13 --> vs14
@@ -56,7 +59,7 @@ flowchart TD
   vs11 --> vs16
 ```
 
-- **RSK-vs11** can start on **mock** path before **l7qs** finishes; **RSK-vs12** needs **l7qs**.
+- **RSK-vs11** can start on **mock** path immediately; **RSK-vs12** needs **RSK-wbmb** (WASM memory bus spike).
 - **RSK-vs14** / **RSK-vs15** may **overlap** in planning but should stay **sequential** in delivery to limit risk.
 
 ## Related work (sibling epics / tasks)

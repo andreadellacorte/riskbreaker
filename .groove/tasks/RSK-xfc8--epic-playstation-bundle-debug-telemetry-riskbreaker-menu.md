@@ -1,7 +1,7 @@
 ---
 # RSK-xfc8
 title: 'Epic: PlayStation bundle — debug telemetry, perf HUD, Riskbreaker menu runtime controls'
-status: in-progress
+status: completed
 type: epic
 priority: normal
 created_at: 2026-03-22T00:47:56Z

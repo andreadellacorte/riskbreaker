@@ -1,7 +1,7 @@
 ---
 # RSK-p4jm
 title: PlayStation bundle — Riskbreaker menu runtime toggles (HUD, speed hack, upscaling)
-status: in-progress
+status: completed
 type: task
 created_at: 2026-03-22T18:00:00Z
 updated_at: 2026-03-22T18:00:00Z
