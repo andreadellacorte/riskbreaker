@@ -87,9 +87,10 @@ var SendSound = function (pSound_ptr, lBytes) {
 }
 
 
-function pcsx_mainloop() {
-	_one_iter();
+var pcsx_paused = false;
 
+function pcsx_mainloop() {
+	if (!pcsx_paused) _one_iter();
 }
 var pcsx_init = Module.cwrap("pcsx_init", "number", ["string"])
 var ls = Module.cwrap("ls", "null", ["string"])
@@ -225,6 +226,16 @@ var main_onmessage = function (event) {
 
 			load_or_fetch(data.iso)
 
+			break;
+
+		case "pause":
+			pcsx_paused = true;
+			postMessage({ cmd: "pause_ack" });
+			break;
+
+		case "resume":
+			pcsx_paused = false;
+			postMessage({ cmd: "resume_ack" });
 			break;
 
 		case "peek":

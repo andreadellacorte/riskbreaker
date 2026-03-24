@@ -578,26 +578,40 @@ async function refreshStats(root: HTMLElement): Promise<void> {
   }
 }
 
+type PcsxGlobals = {
+  __riskbreakerPcsxPause?: () => void;
+  __riskbreakerPcsxResume?: () => void;
+};
+
+function pcsxPause(): void {
+  (globalThis as PcsxGlobals).__riskbreakerPcsxPause?.();
+}
+
+function pcsxResume(): void {
+  (globalThis as PcsxGlobals).__riskbreakerPcsxResume?.();
+}
+
 // ── Open / close ─────────────────────────────────────────────────────────────
 
 function openMenu(root: HTMLElement): void {
-  // vs-open sets display:flex; then opacity transition kicks in
+  pcsxPause();
   root.classList.add("vs-open");
-  // force reflow so opacity transition fires
-  void root.offsetWidth;
+  void root.offsetWidth; // force reflow so opacity transition fires
   root.style.opacity = "1";
   void refreshStats(root);
 }
 
 function closeMenu(root: HTMLElement): void {
   root.style.opacity = "0";
-  root.addEventListener("transitionend", () => { root.classList.remove("vs-open"); }, { once: true });
+  root.addEventListener("transitionend", () => {
+    root.classList.remove("vs-open");
+    pcsxResume();
+  }, { once: true });
 }
 
 // ── Install ───────────────────────────────────────────────────────────────────
 
 function install(): void {
-  // Inject styles
   const style = document.createElement("style");
   style.textContent = CSS;
   document.head.appendChild(style);
@@ -607,20 +621,27 @@ function install(): void {
 
   let open = false;
 
+  // Capture ALL keys while menu is open so nothing leaks to the game.
   document.addEventListener("keydown", (e) => {
-    // d = Triangle (menu toggle); Escape = close
+    if (open) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (e.key === "d" || e.key === "Escape") {
+        open = false;
+        closeMenu(root);
+      }
+      return;
+    }
+
+    // Menu closed — only intercept D to open
     if (e.key === "d" && !e.ctrlKey && !e.metaKey && !e.altKey) {
-      // Don't intercept if user is typing in an input
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       e.preventDefault();
-      open = !open;
-      open ? openMenu(root) : closeMenu(root);
-    } else if (e.key === "Escape" && open) {
-      open = false;
-      closeMenu(root);
+      open = true;
+      openMenu(root);
     }
-  });
+  }, true); // capture phase so we intercept before the game's listeners
 }
 
 install();
