@@ -330,6 +330,7 @@ export function installRiskbreakerOverlay(): void {
     pluginPanelsContainer.innerHTML = "";
     for (const panel of getOverlayPanels()) {
       const heading = document.createElement("div");
+      heading.dataset.panelId = panel.id;
       heading.textContent = panel.heading;
       heading.style.cssText =
         "margin:14px 0 0 0;font-size:12px;font-weight:600;color:#8a93a8;letter-spacing:0.04em;display:flex;align-items:center;gap:8px";
@@ -382,22 +383,26 @@ export function installRiskbreakerOverlay(): void {
       if (panel.summary) {
         const summary = document.createElement("p");
         summary.textContent = panel.summary;
+        summary.dataset.panelSummary = panel.id;
         summary.style.cssText = "margin:6px 0 0 0;font-size:11px;color:#6b7388";
         pluginPanelsContainer.appendChild(summary);
       }
 
       if (panel.rows.length > 0) {
         const table = document.createElement("div");
+        table.dataset.panelRows = panel.id;
         table.style.cssText =
           "margin:6px 0 0 0;border:1px solid #1e2840;border-radius:3px;overflow:hidden";
         for (const row of panel.rows) {
           const rowEl = document.createElement("div");
+          rowEl.dataset.rowLabel = row.label;
           rowEl.style.cssText =
             "display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #161e38;font-size:12px";
           const label = document.createElement("span");
           label.textContent = row.label;
           label.style.cssText = "flex:1;color:#c8cfe8";
           const value = document.createElement("span");
+          value.dataset.rowValue = row.label;
           value.textContent = row.value;
           value.style.cssText = "color:#4a5270;font-size:10px;min-width:80px;text-align:right";
           rowEl.appendChild(label);
