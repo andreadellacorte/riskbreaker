@@ -14,18 +14,36 @@ const outFile = path.join(
   "apps/web/public/pcsx-wasm/js/riskbreaker-vs-panel.js",
 );
 
-await esbuild.build({
-  absWorkingDir: pkgDir,
-  entryPoints: [path.join("src", "emulator-overlay-panel.ts")],
-  outfile: outFile,
-  bundle: true,
-  format: "iife",
-  platform: "browser",
-  target: "es2020",
-  legalComments: "none",
-  logLevel: "error",
-  // Resolve JSON imports
-  loader: { ".json": "json" },
-});
+const menuOutFile = path.join(
+  root,
+  "apps/web/public/pcsx-wasm/js/riskbreaker-vs-menu.js",
+);
+
+await Promise.all([
+  esbuild.build({
+    absWorkingDir: pkgDir,
+    entryPoints: [path.join("src", "emulator-overlay-panel.ts")],
+    outfile: outFile,
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: "es2020",
+    legalComments: "none",
+    logLevel: "error",
+    loader: { ".json": "json" },
+  }),
+  esbuild.build({
+    absWorkingDir: pkgDir,
+    entryPoints: [path.join("src", "vs-fullscreen-menu.ts")],
+    outfile: menuOutFile,
+    bundle: true,
+    format: "iife",
+    platform: "browser",
+    target: "es2020",
+    legalComments: "none",
+    logLevel: "error",
+  }),
+]);
 
 console.log(`vagrant-story overlay panel: → ${path.relative(root, outFile)}`);
+console.log(`vagrant-story fullscreen menu: → ${path.relative(root, menuOutFile)}`);

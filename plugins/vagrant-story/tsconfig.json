@@ -8,5 +8,5 @@
     "jsx": "react-jsx"
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
-  "exclude": ["src/emulator-overlay-panel.ts"]
+  "exclude": ["src/emulator-overlay-panel.ts", "src/vs-fullscreen-menu.ts"]
 }

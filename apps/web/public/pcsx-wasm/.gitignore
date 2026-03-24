@@ -13,3 +13,4 @@ js/riskbreaker-pcsx-wasm-boot.js
 
 # Built by plugins/vagrant-story build-overlay-panel.mjs
 js/riskbreaker-vs-panel.js
+js/riskbreaker-vs-menu.js
