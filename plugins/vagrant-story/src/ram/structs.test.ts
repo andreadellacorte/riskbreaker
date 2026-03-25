@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  ACTOR_DATA_MIN_SIZE,
   EQUIP_DATA_SIZE,
   MATERIAL_NAMES,
   SKILL_DATA_SIZE,
+  readActorData,
   readEquipData,
   readSkillData,
 } from "./structs.js";
@@ -106,6 +108,27 @@ describe("readEquipData", () => {
     const d = readEquipData(makeEquipBuf());
     expect(d.classes).toHaveLength(6);
     expect(d.types).toHaveLength(7);
+  });
+});
+
+// ── readActorData ─────────────────────────────────────────────────────────────
+
+describe("readActorData", () => {
+  it("returns zeroed ActorData for empty buffer", () => {
+    const b = new Uint8Array(ACTOR_DATA_MIN_SIZE);
+    const d = readActorData(b);
+    expect(d.nextPtr).toBe(0);
+    expect(d.x).toBe(0);
+    expect(d.y).toBe(0);
+    expect(d.stats.hpCur).toBe(0);
+    expect(d.stats.risk).toBe(0);
+  });
+
+  it("reads nextPtr as u32LE from bytes 0-3", () => {
+    const b = new Uint8Array(ACTOR_DATA_MIN_SIZE);
+    b[0] = 0x34; b[1] = 0x12; b[2] = 0x78; b[3] = 0x56;
+    const d = readActorData(b);
+    expect(d.nextPtr).toBe(0x56781234);
   });
 });
 

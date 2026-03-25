@@ -83,4 +83,40 @@ describe("SessionOrchestrator", () => {
     const snap = session.stateStore.getSnapshot();
     expect(snap?.runtimeState).toMatchObject({ tag: "emulator-path" });
   });
+
+  it("throws when no plugin handles the manifest", async () => {
+    const orch = new SessionOrchestrator([]);
+    await expect(orch.bootstrap(testManifest())).rejects.toThrow("no plugin handles");
+  });
+
+  it("bootstraps successfully when plugin has no UI screen pack", async () => {
+    const noUiReg: PluginRegistration = {
+      ...stubRegistration(),
+      create: () => ({
+        ...stubRegistration().create(),
+        getUIScreenPack: () => null,
+      }),
+    };
+    const orch = new SessionOrchestrator([noUiReg]);
+    const session = await orch.bootstrap(testManifest());
+    expect(session.screenRegistry.list()).toHaveLength(0);
+  });
+
+  it("throws when plugin missing required packs", async () => {
+    const bad: PluginRegistration = {
+      metadata: { id: "bad", name: "Bad", version: "0", games: [] as const },
+      create: () => ({
+        metadata: { id: "bad", name: "Bad", version: "0", games: [] as const },
+        canHandle: () => true,
+        getStateDecoder: () => null,
+        getDomainPack: () => null,
+        getCommandPack: () => null,
+        getUIScreenPack: () => null,
+        getSaveCodec: () => null,
+        getPatchPack: () => null,
+      }),
+    };
+    const orch = new SessionOrchestrator([bad]);
+    await expect(orch.bootstrap(testManifest())).rejects.toThrow("decoder, domain, and command");
+  });
 });

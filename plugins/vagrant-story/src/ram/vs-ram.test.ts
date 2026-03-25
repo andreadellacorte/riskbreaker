@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { Ashley, CurrentRoom, EquippedItems, VagrantStoryRam } from "./vs-ram.js";
-import { EQUIP_DATA_SIZE } from "./structs.js";
+import { ActorList, Ashley, CurrentRoom, EquippedItems, SkillsTable, VagrantStoryRam } from "./vs-ram.js";
+import { ACTOR_DATA_MIN_SIZE, EQUIP_DATA_SIZE, SKILL_DATA_SIZE } from "./structs.js";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -160,6 +160,109 @@ describe("CurrentRoom", () => {
   it("roomId() returns number", async () => {
     const r = new CurrentRoom(fixedPeek(new Uint8Array([7])));
     expect(await r.roomId()).toBe(7);
+  });
+});
+
+// ── ActorList ─────────────────────────────────────────────────────────────────
+
+describe("ActorList", () => {
+  it("first() returns null when head pointer is zero", async () => {
+    const actors = new ActorList(zeroPeek());
+    expect(await actors.first()).toBeNull();
+  });
+
+  it("all() returns empty array when head pointer is zero", async () => {
+    const actors = new ActorList(zeroPeek());
+    expect(await actors.all()).toEqual([]);
+  });
+
+  it("first() returns ActorData when pointer is non-zero", async () => {
+    // Return a non-zero pointer (0x00110000) for the head read, then a zeroed actor block
+    let call = 0;
+    const peek = vi.fn(async (_addr: number, len: number) => {
+      call++;
+      if (call === 1) {
+        // head pointer bytes: lo=0x0000, hi=0x0011 → ptr = 0x00110000
+        return new Uint8Array([0x00, 0x00, 0x11, 0x00]);
+      }
+      return new Uint8Array(len); // actor block all zeros (nextPtr=0)
+    });
+    const actors = new ActorList(peek);
+    const actor = await actors.first();
+    expect(actor).not.toBeNull();
+    expect(actor?.nextPtr).toBe(0);
+  });
+
+  it("all() follows nextPtr chain and returns multiple actors", async () => {
+    // head ptr → 0x00110000, actor1.nextPtr → 0x00120000, actor2.nextPtr → 0
+    let call = 0;
+    const peek = vi.fn(async (_addr: number, len: number) => {
+      call++;
+      if (call === 1) {
+        // head ptr bytes
+        return new Uint8Array([0x00, 0x00, 0x11, 0x00]);
+      }
+      if (call === 2) {
+        // actor1: nextPtr = 0x00120000 at bytes 0-3
+        const b = new Uint8Array(len);
+        b[0] = 0x00; b[1] = 0x00; b[2] = 0x12; b[3] = 0x00;
+        return b;
+      }
+      // actor2: nextPtr = 0
+      return new Uint8Array(len);
+    });
+    const actors = new ActorList(peek);
+    const all = await actors.all();
+    expect(all).toHaveLength(2);
+  });
+
+  it("all() respects limit", async () => {
+    // head ptr non-zero, actor nextPtr always non-zero (loop forever without limit)
+    let call = 0;
+    const peek = vi.fn(async (_addr: number, len: number) => {
+      call++;
+      if (call === 1) return new Uint8Array([0x00, 0x00, 0x11, 0x00]);
+      const b = new Uint8Array(len);
+      b[2] = 0x11; // always point somewhere non-zero
+      return b;
+    });
+    const actors = new ActorList(peek);
+    const all = await actors.all(3);
+    expect(all).toHaveLength(3);
+  });
+});
+
+// ── SkillsTable ───────────────────────────────────────────────────────────────
+
+describe("SkillsTable", () => {
+  it("get() returns a SkillData", async () => {
+    const skills = new SkillsTable(zeroPeek());
+    const s = await skills.get(0);
+    expect(s).toHaveProperty("type");
+    expect(s).toHaveProperty("learned");
+  });
+
+  it("all() returns 256 skills", async () => {
+    const peek = vi.fn(async (_addr: number, len: number) => new Uint8Array(len));
+    const skills = new SkillsTable(peek);
+    const all = await skills.all();
+    expect(all).toHaveLength(256);
+  });
+});
+
+// ── EquippedItems — remaining slots ──────────────────────────────────────────
+
+describe("EquippedItems — all slots", () => {
+  it("all equip slots return EquipData", async () => {
+    const e = new EquippedItems(zeroPeek());
+    const slots = await Promise.all([
+      e.weaponGrip(), e.weaponGem1(), e.weaponGem2(), e.weaponGem3(),
+      e.shieldGem1(), e.shieldGem2(), e.shieldGem3(),
+      e.armRight(), e.armLeft(), e.helm(), e.breastplate(), e.leggings(),
+    ]);
+    for (const s of slots) {
+      expect(s).toHaveProperty("raw");
+    }
   });
 });
 

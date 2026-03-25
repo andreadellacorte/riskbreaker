@@ -51,7 +51,7 @@ export default defineConfig({
         // code paths; reduce global thresholds so the pre-commit hook reflects reality.
         lines: 40,
         functions: 40,
-        branches: 20,
+        branches: 50,
         statements: 40,
       },
     },

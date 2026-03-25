@@ -47,6 +47,11 @@ describe("riskbreaker-query", () => {
     expect(riskbreakerDebugQueryMatches("")).toBe(false);
   });
 
+  it("readInternalScaleFactor returns default for non-numeric stored value", () => {
+    store["rb_internal_scale"] = "not-a-number";
+    expect(readInternalScaleFactor()).toBe(3);
+  });
+
   it("readInternalScaleFactor defaults to 3 and clamps 2..5", () => {
     writeInternalScaleFactor(3);
     expect(readInternalScaleFactor()).toBe(3);

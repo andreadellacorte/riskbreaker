@@ -66,4 +66,9 @@ describe("EmulatorRuntimeAdapter", () => {
     expect(capturedAddress).toBe(0);
     expect(capturedLength).toBe(PSX_RAM_SIZE);
   });
+
+  it("throws when captureSnapshot called before loadManifest", async () => {
+    const rt = new EmulatorRuntimeAdapter();
+    await expect(rt.captureSnapshot()).rejects.toThrow("loadManifest");
+  });
 });
