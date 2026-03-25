@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { ActorList, Ashley, CurrentRoom, EquippedItems, SkillsTable, VagrantStoryRam } from "./vs-ram.js";
-import { ACTOR_DATA_MIN_SIZE, EQUIP_DATA_SIZE, SKILL_DATA_SIZE } from "./structs.js";
+import { EQUIP_DATA_SIZE } from "./structs.js";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 

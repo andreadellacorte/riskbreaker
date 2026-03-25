@@ -184,6 +184,11 @@ var check_controller = function () {
   _CheckJoy();
   _CheckKeyboard();
   var states_src = HEAPU8.subarray(padStatus1, padStatus1 + 48);
+  if (typeof globalThis.__riskbreakerApplyKeySuppression === 'function') {
+    var suppressed = new Uint8Array(states_src);
+    globalThis.__riskbreakerApplyKeySuppression(suppressed);
+    states_src = suppressed;
+  }
   var states_arr;
   while (states_arrs.length > 50) {
     states_arrs.pop();

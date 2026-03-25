@@ -103,6 +103,16 @@ describe("peekWorkerVram", () => {
     delete g.__riskbreakerPcsxWorkerActive;
   });
 
+  it("throws when worker not active (worker set, active=false)", () => {
+    g.__riskbreakerPcsxWorkerActive = false;
+    expect(() => peekWorkerVram()).toThrow("not active");
+  });
+
+  it("throws when worker not set", () => {
+    delete g.__riskbreakerPcsxWorker;
+    expect(() => peekWorkerVram()).toThrow("not active");
+  });
+
   it("resolves with data on vram_result", async () => {
     const data = new Uint8Array(1024 * 512 * 2);
     data[0] = 0xde;
@@ -140,6 +150,11 @@ describe("peekCdFile", () => {
   afterEach(() => {
     delete g.__riskbreakerPcsxWorker;
     delete g.__riskbreakerPcsxWorkerActive;
+  });
+
+  it("throws when worker not active", () => {
+    g.__riskbreakerPcsxWorkerActive = false;
+    expect(() => peekCdFile("X.BIN;1")).toThrow("not active");
   });
 
   it("resolves with file bytes on cd-file_result", async () => {

@@ -996,9 +996,9 @@ function openMenu(root: HTMLElement): void {
 
 function closeMenu(root: HTMLElement): void {
   root.style.opacity = "0";
+  pcsxResume();
   root.addEventListener("transitionend", () => {
     root.classList.remove("vs-open");
-    pcsxResume();
   }, { once: true });
 }
 
@@ -1019,7 +1019,7 @@ function install(): void {
     if (open) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      if (e.key === "d" || e.key === "Escape") {
+      if ((e.key === "f" && !e.repeat) || e.key === "Escape") {
         open = false;
         closeMenu(root);
       }
@@ -1027,7 +1027,7 @@ function install(): void {
     }
 
     // Menu closed — only intercept D to open
-    if (e.key === "d" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    if (e.key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat) {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       e.preventDefault();

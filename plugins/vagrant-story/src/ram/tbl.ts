@@ -58,7 +58,7 @@ const TBL: Record<number, string> = {
 const TBL_TERMINATOR = 0xe7;
 const TBL_FILLER     = 0xeb;
 const TBL_CR         = 0xe8;
-const TBL_SPACE_ALT  = 0x8f; // already in table above
+
 
 /**
  * Decode a Vagrant Story encoded string from a byte slice.

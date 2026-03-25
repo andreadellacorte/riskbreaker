@@ -2,6 +2,7 @@
  * Single IIFE entry for `pcsx-wasm/index.html`: register emulator host (canvas = #canvas), then Riskbreaker overlay.
  */
 import { registerRiskbreakerEmulatorHost } from "./emulator-bridge.js";
+import { installKeySuppression } from "./emulator-key-suppress.js";
 import { peekWorkerMemory } from "./emulator-peek.js";
 import { loadWorkerState, saveWorkerState } from "./emulator-savestate.js";
 import { installOverlayPanelRegistry } from "./overlay-panels.js";
@@ -27,6 +28,7 @@ applyPersistedRuntimeControls();
 setTimeout(applyPersistedRuntimeControls, 1500);
 setTimeout(applyPersistedRuntimeControls, 4000);
 
+installKeySuppression();
 installOverlayPanelRegistry();
 installRiskbreakerOverlay();
 installPsxRamApiClient();

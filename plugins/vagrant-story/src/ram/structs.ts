@@ -224,7 +224,6 @@ export interface ActorData {
 }
 
 // Offsets from the start of an actor_data block
-const ACTOR_OFFSET_NEXT   = 0x00;
 const ACTOR_OFFSET_X      = 0x2c;
 const ACTOR_OFFSET_Y      = 0x2e;
 const ACTOR_OFFSET_NAME   = 0x50; // 24-byte VS-encoded string

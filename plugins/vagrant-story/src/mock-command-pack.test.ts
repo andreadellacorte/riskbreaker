@@ -9,8 +9,8 @@ describe("createMockVagrantStoryCommandPack", () => {
     expect(pack.id).toBe("vagrant-story.command.mock");
   });
 
-  it("plans OpenInventory", () => {
-    const plan = pack.plan({ kind: "OpenInventory" } as CommandIntent);
+  it("plans OpenInventory", async () => {
+    const plan = await pack.plan({ kind: "OpenInventory" } as CommandIntent);
     expect(plan).not.toBeNull();
     expect(plan?.mode).toBe("input-sequence");
   });
@@ -25,8 +25,8 @@ describe("createMockVagrantStoryCommandPack", () => {
     expect(plan).not.toBeNull();
   });
 
-  it("plans ShowComparePanel", () => {
-    const plan = pack.plan({ kind: "ShowComparePanel" } as CommandIntent);
+  it("plans ShowComparePanel", async () => {
+    const plan = await pack.plan({ kind: "ShowComparePanel" } as CommandIntent);
     expect(plan?.mode).toBe("hook-call");
   });
 });

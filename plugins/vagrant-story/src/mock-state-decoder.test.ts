@@ -18,26 +18,26 @@ describe("createMockVagrantStoryStateDecoder", () => {
     expect(gs).toBeDefined();
   });
 
-  it("overlays activeScene when present", () => {
-    const gs = decoder.decode(snap({ activeScene: "dungeon" } as never));
+  it("overlays activeScene when present", async () => {
+    const gs = await decoder.decode(snap({ activeScene: "dungeon" } as never));
     const rs = gs.runtimeState as Record<string, unknown>;
     expect(rs.sceneId).toBe("dungeon");
   });
 
-  it("does not overlay sceneId when activeScene is null", () => {
-    const gs = decoder.decode(snap({ activeScene: null } as never));
+  it("does not overlay sceneId when activeScene is null", async () => {
+    const gs = await decoder.decode(snap({ activeScene: null } as never));
     const rs = gs.runtimeState as Record<string, unknown>;
     expect(rs.sceneId).not.toBe(null);
   });
 
-  it("overlays mockStateTag when present", () => {
-    const gs = decoder.decode(snap({ mockStateTag: "battle" } as never));
+  it("overlays mockStateTag when present", async () => {
+    const gs = await decoder.decode(snap({ mockStateTag: "battle" } as never));
     const rs = gs.runtimeState as Record<string, unknown>;
     expect(rs.mockStateTag).toBe("battle");
   });
 
-  it("does not set mockStateTag when absent", () => {
-    const gs = decoder.decode(snap());
+  it("does not set mockStateTag when absent", async () => {
+    const gs = await decoder.decode(snap());
     const rs = gs.runtimeState as Record<string, unknown>;
     expect(rs.mockStateTag).toBeUndefined();
   });
