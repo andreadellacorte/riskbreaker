@@ -22,6 +22,9 @@ const coverageExclude = [
   "**/*.d.ts",
   /** Config entry only; not loaded by Vitest (would run side effects). */
   "apps/docs/vite.config.ts",
+  /** Browser IIFE bundles — not runnable in a Node/happy-dom test environment. */
+  "plugins/vagrant-story/src/vs-fullscreen-menu.ts",
+  "plugins/vagrant-story/src/emulator-overlay-panel.ts",
 ];
 
 export default defineConfig({

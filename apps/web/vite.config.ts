@@ -6,12 +6,13 @@ import { defineConfig } from "vite";
 
 import { workspaceAliases } from "../../vite.workspace.mjs";
 import { psxRamApiPlugin } from "./vite-plugin-psx-ram-api";
+import { overlayReloadPlugin } from "./vite-plugin-overlay-reload";
 
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = path.resolve(appDir, "..", "..");
 
 export default defineConfig({
-  plugins: [react(), psxRamApiPlugin()],
+  plugins: [react(), psxRamApiPlugin(), overlayReloadPlugin()],
   resolve: {
     alias: workspaceAliases(monorepoRoot),
   },

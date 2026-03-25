@@ -41,7 +41,7 @@ function btnRing(svg: string): string {
 }
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
 
 #vs-menu-root {
   position: fixed;
@@ -53,8 +53,8 @@ const CSS = `
   zoom: 1.5;
   z-index: 9000;
   background: #0a0b0d;
-  color: #d4c8a8;
-  font-family: 'Crimson Text', Georgia, serif;
+  color: #ffffff;
+  font-family: 'Josefin Sans', sans-serif;
   display: none;
   flex-direction: column;
   overflow: hidden;
@@ -83,10 +83,10 @@ const CSS = `
 
 /* L1/R1: corner indicators */
 .vs-tab-trigger {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.08em;
-  color: #3a3428;
+  color: rgba(255,255,255,0.15);
   padding: 0 16px;
   display: flex;
   align-items: flex-end;
@@ -103,8 +103,8 @@ const CSS = `
   left: 10px;
   width: 10px;
   height: 10px;
-  border-top: 1px solid #3a3428;
-  border-left: 1px solid #3a3428;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  border-left: 1px solid rgba(255,255,255,0.15);
 }
 
 .vs-tab-trigger.right {
@@ -115,14 +115,14 @@ const CSS = `
   left: auto;
   right: 10px;
   border-left: none;
-  border-right: 1px solid #3a3428;
+  border-right: 1px solid rgba(255,255,255,0.15);
 }
 
 .vs-tab-nav {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 10px;
   letter-spacing: 0.14em;
-  color: #3a3428;
+  color: rgba(255,255,255,0.4);
   padding: 14px 20px;
   cursor: default;
   font-weight: 400;
@@ -131,11 +131,11 @@ const CSS = `
 }
 
 .vs-tab-name {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
-  color: #d4c8a8;
+  color: #ffffff;
   padding: 14px 24px 14px 20px;
   text-transform: uppercase;
   border-bottom: 2px solid #c8a84a;
@@ -172,7 +172,7 @@ const CSS = `
 .vs-section-label {
   font-size: 11px;
   letter-spacing: 0.02em;
-  color: #c8bea0;
+  color: rgba(255,255,255,0.7);
   margin-bottom: 0;
   margin-top: 12px;
   font-weight: 400;
@@ -182,7 +182,7 @@ const CSS = `
 
 .vs-section-value {
   font-size: 11px;
-  color: #7a6e54;
+  color: rgba(255,255,255,0.55);
   letter-spacing: 0.04em;
 }
 
@@ -195,7 +195,7 @@ const CSS = `
 
 .vs-full-bar-track {
   width: 100%;
-  height: 2px;
+  height: 3px;
   background: #1e1c14;
   margin-top: 4px;
   margin-bottom: 10px;
@@ -233,24 +233,24 @@ const CSS = `
 }
 
 .vs-stat-label {
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
   letter-spacing: 0.1em;
-  color: #c8bea0;
+  color: rgba(255,255,255,0.7);
   text-transform: uppercase;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .vs-stat-value {
-  font-size: 11px;
-  color: #7a6e54;
+  font-size: 10px;
+  color: rgba(255,255,255,0.55);
   letter-spacing: 0.01em;
 }
 
 .vs-stat-bar-track {
   margin-top: 5px;
-  height: 2px;
-  background: #1e1c14;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
 }
 
 .vs-stat-bar-fill {
@@ -280,20 +280,20 @@ const CSS = `
 .vs-loadout-btn {
   width: 28px;
   height: 28px;
-  border: 1px solid #2a2518;
+  border: 1px solid rgba(255,255,255,0.15);
   background: #0d0c0a;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #3a3428;
+  color: rgba(255,255,255,0.15);
   transition: border-color 0.15s, color 0.15s;
   flex-shrink: 0;
 }
 
 .vs-loadout-btn.active {
-  border-color: #5a5040;
-  color: #c8bea0;
+  border-color: rgba(255,255,255,0.28);
+  color: rgba(255,255,255,0.7);
   background: #141210;
 }
 
@@ -315,26 +315,26 @@ const CSS = `
 }
 
 .vs-equip-icon {
-  color: #c8bea0;
+  color: rgba(255,255,255,0.7);
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 
 .vs-weapon-name {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 12px;
   font-weight: 700;
-  color: #d4c8a8;
+  color: #ffffff;
   letter-spacing: 0.04em;
   flex: 1;
 }
 
 .vs-weapon-slot {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.1em;
-  color: #4a4030;
+  color: rgba(255,255,255,0.5);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -349,13 +349,13 @@ const CSS = `
 .vs-weapon-divider-line {
   flex: 1;
   height: 0;
-  border-top: 1px dashed #252018;
+  border-top: 1px dashed rgba(255,255,255,0.15);
 }
 
 .vs-weapon-divider-diamond {
   width: 5px;
   height: 5px;
-  background: #3a3428;
+  background: rgba(255,255,255,0.2);
   transform: rotate(45deg);
   flex-shrink: 0;
   margin-left: 3px;
@@ -376,10 +376,10 @@ const CSS = `
 }
 
 .vs-bar-label {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 7px;
   letter-spacing: 0.1em;
-  color: #4a4030;
+  color: rgba(255,255,255,0.45);
   text-transform: uppercase;
   flex-shrink: 0;
 }
@@ -387,7 +387,7 @@ const CSS = `
 .vs-bar-track {
   width: 52px;
   height: 2px;
-  background: #1e1c14;
+  background: rgba(255,255,255,0.08);
 }
 
 .vs-bar-fill {
@@ -401,7 +401,7 @@ const CSS = `
   align-items: center;
   gap: 4px;
   font-size: 8px;
-  color: #5a5040;
+  color: rgba(255,255,255,0.5);
   letter-spacing: 0.04em;
 }
 
@@ -409,7 +409,7 @@ const CSS = `
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #5a5040;
+  background: rgba(255,255,255,0.5);
 }
 
 /* ── Statistics row ── */
@@ -429,7 +429,7 @@ const CSS = `
 .vs-stat-dashes {
   flex: 1;
   height: 0;
-  border-top: 1px dashed #1e1c14;
+  border-top: 1px dashed rgba(255,255,255,0.15);
   min-width: 8px;
 }
 
@@ -440,9 +440,9 @@ const CSS = `
 }
 
 .vs-stat-diamond-badge {
-  width: 26px;
-  height: 26px;
-  background: #d4c8a8;
+  width: 14px;
+  height: 14px;
+  background: rgba(255,255,255,0.85);
   transform: rotate(45deg);
   display: flex;
   align-items: center;
@@ -452,8 +452,8 @@ const CSS = `
 
 .vs-stat-diamond-badge-inner {
   transform: rotate(-45deg);
-  font-family: 'Cinzel', serif;
-  font-size: 9px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 6px;
   font-weight: 700;
   color: #0a0b0d;
   line-height: 1;
@@ -461,18 +461,18 @@ const CSS = `
 }
 
 .vs-stat-diamond-name {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.1em;
-  color: #3a3428;
+  color: rgba(255,255,255,0.45);
   text-transform: uppercase;
 }
 
 .vs-stats-label {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.1em;
-  color: #3a3428;
+  color: rgba(255,255,255,0.45);
   text-transform: uppercase;
   margin-left: 4px;
   white-space: nowrap;
@@ -490,28 +490,29 @@ const CSS = `
 }
 
 .vs-abilities-col-label {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 7px;
   letter-spacing: 0.14em;
-  color: #5a5040;
+  color: rgba(255,255,255,1);
   text-transform: uppercase;
   padding-bottom: 5px;
-  border-bottom: 1px solid #3a3428;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
 .vs-abilities-col-label.dim {
-  color: #2e2820;
-  border-bottom-color: #1e1c14;
+  color: rgba(255,255,255,0.45);
+  border-bottom-color: rgba(255,255,255,0.15);
 }
 
 .vs-ability {
-  display: flex;
+  display: grid;
+  grid-template-columns: 30px 1fr;
   align-items: center;
   gap: 10px;
-  padding: 6px 0;
+  padding: 9px 0;
   border-bottom: 1px solid #161410;
 }
 
@@ -520,10 +521,10 @@ const CSS = `
 }
 
 .vs-ability-ring {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  border: 1px solid #3a3830;
+  border: 1px solid rgba(255,255,255,0.22);
   background: #111010;
   display: flex;
   align-items: center;
@@ -532,20 +533,20 @@ const CSS = `
 }
 
 .vs-ability-name {
-  font-family: 'Cinzel', serif;
-  font-size: 11px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 12px;
   font-weight: 600;
-  color: #c8bea0;
+  color: #ffffff;
   letter-spacing: 0.04em;
-  flex: 1;
+  white-space: nowrap;
 }
 
 .vs-ability-desc {
-  font-size: 9px;
-  color: #5a5040;
+  font-size: 10px;
+  color: rgba(255,255,255,0.35);
   text-align: right;
   line-height: 1.4;
-  max-width: 120px;
+  max-width: 110px;
 }
 
 /* ── Centre: portrait ── */
@@ -621,10 +622,10 @@ const CSS = `
 }
 
 .vs-location-title {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 13px;
   font-weight: 600;
-  color: #d4c8a8;
+  color: #ffffff;
   letter-spacing: 0.07em;
   line-height: 1.3;
 }
@@ -637,18 +638,18 @@ const CSS = `
 }
 
 .vs-location-tag {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 7px;
   letter-spacing: 0.1em;
-  color: #4a4030;
+  color: rgba(255,255,255,0.4);
   text-transform: uppercase;
-  border: 1px solid #252016;
+  border: 1px solid rgba(255,255,255,0.15);
   padding: 2px 5px;
 }
 
 .vs-location-desc {
   font-size: 10px;
-  color: #4a4030;
+  color: rgba(255,255,255,0.4);
   line-height: 1.65;
 }
 
@@ -663,10 +664,10 @@ const CSS = `
 }
 
 .vs-hint {
-  font-family: 'Cinzel', serif;
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.12em;
-  color: #3a3020;
+  color: rgba(255,255,255,0.15);
   text-transform: uppercase;
   display: flex;
   align-items: center;
@@ -675,8 +676,8 @@ const CSS = `
 
 /* ── Loading state ── */
 .vs-loading {
-  color: #3a3020;
-  font-family: 'Cinzel', serif;
+  color: rgba(255,255,255,0.15);
+  font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -833,21 +834,7 @@ function buildMenu(): HTMLElement {
               Defense Abilities
             </div>
           </div>
-          <div class="vs-ability">
-            ${btnRing(SVG_CIRCLE)}
-            <span class="vs-ability-name">Heavy Shot</span>
-            <span class="vs-ability-desc">Deals 70% damage to foe.</span>
-          </div>
-          <div class="vs-ability">
-            ${btnRing(SVG_TRIANGLE)}
-            <span class="vs-ability-name">Snake Venom</span>
-            <span class="vs-ability-desc">Poisons foe.</span>
-          </div>
-          <div class="vs-ability">
-            ${btnRing(SVG_SQUARE)}
-            <span class="vs-ability-name">Temper</span>
-            <span class="vs-ability-desc">Deals 40% damage to foe and repairs small amount weapon DP.</span>
-          </div>
+          <div id="vs-abilities-list"></div>
         </div>
       </div>
 
@@ -970,6 +957,38 @@ async function refreshEquipment(root: HTMLElement): Promise<void> {
   }
 }
 
+const ABILITY_BTNS = [SVG_CIRCLE, SVG_TRIANGLE, SVG_SQUARE, SVG_CROSS];
+
+async function refreshAbilities(root: HTMLElement): Promise<void> {
+  const ram = getRam();
+  const list = root.querySelector<HTMLElement>("#vs-abilities-list");
+  if (!list) return;
+
+  if (!ram) {
+    list.innerHTML = "";
+    return;
+  }
+
+  try {
+    const skills = await ram.skills.all();
+    const chain = skills.filter(s => s.type === "battle_ability" && s.learned);
+
+    if (chain.length === 0) {
+      list.innerHTML = "";
+      return;
+    }
+
+    list.innerHTML = chain.map((s, i) => `
+      <div class="vs-ability">
+        ${btnRing(ABILITY_BTNS[i % ABILITY_BTNS.length]!)}
+        <span class="vs-ability-name">${s.name}</span>
+      </div>
+    `).join("");
+  } catch {
+    // worker not active
+  }
+}
+
 type PcsxGlobals = {
   __riskbreakerPcsxPause?: () => void;
   __riskbreakerPcsxResume?: () => void;
@@ -992,6 +1011,7 @@ function openMenu(root: HTMLElement): void {
   root.style.opacity = "1";
   void refreshStats(root);
   void refreshEquipment(root);
+  void refreshAbilities(root);
 }
 
 function closeMenu(root: HTMLElement): void {

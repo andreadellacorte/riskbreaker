@@ -19,8 +19,11 @@ const menuOutFile = path.join(
   "apps/web/public/pcsx-wasm/js/riskbreaker-vs-menu.js",
 );
 
-await Promise.all([
-  esbuild.build({
+const watch = process.argv.includes("--watch");
+
+/** @type {import("esbuild").BuildOptions[]} */
+const configs = [
+  {
     absWorkingDir: pkgDir,
     entryPoints: [path.join("src", "emulator-overlay-panel.ts")],
     outfile: outFile,
@@ -29,10 +32,10 @@ await Promise.all([
     platform: "browser",
     target: "es2020",
     legalComments: "none",
-    logLevel: "error",
+    logLevel: "info",
     loader: { ".json": "json" },
-  }),
-  esbuild.build({
+  },
+  {
     absWorkingDir: pkgDir,
     entryPoints: [path.join("src", "vs-fullscreen-menu.ts")],
     outfile: menuOutFile,
@@ -41,10 +44,17 @@ await Promise.all([
     platform: "browser",
     target: "es2020",
     legalComments: "none",
-    logLevel: "error",
+    logLevel: "info",
     loader: { ".png": "dataurl", ".gif": "dataurl" },
-  }),
-]);
+  },
+];
 
-console.log(`vagrant-story overlay panel: → ${path.relative(root, outFile)}`);
-console.log(`vagrant-story fullscreen menu: → ${path.relative(root, menuOutFile)}`);
+if (watch) {
+  const contexts = await Promise.all(configs.map((c) => esbuild.context(c)));
+  await Promise.all(contexts.map((ctx) => ctx.watch()));
+  console.log("vagrant-story overlay: watching for changes…");
+} else {
+  await Promise.all(configs.map((c) => esbuild.build(c)));
+  console.log(`vagrant-story overlay panel: → ${path.relative(root, outFile)}`);
+  console.log(`vagrant-story fullscreen menu: → ${path.relative(root, menuOutFile)}`);
+}

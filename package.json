@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@10.32.1",
   "scripts": {
-    "dev": "pnpm --filter @riskbreaker/web dev",
+    "dev": "pnpm --parallel --filter @riskbreaker/web --filter @riskbreaker/plugin-vagrant-story dev",
     "dev:docs": "pnpm --filter @riskbreaker/docs dev",
     "build": "pnpm -r run build",
     "lint": "eslint .",
