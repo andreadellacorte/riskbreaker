@@ -58,6 +58,7 @@ import {
   ADDR_ZONE_ID,
   ADDR_ROOM_ID,
   ADDR_SKILLS_TABLE,
+  ADDR_ITEM_NAMES_PTR,
   CODE_LIST_WEAPON,
   CODE_LIST_SHIELD,
   CODE_LIST_ARMOUR,
@@ -325,6 +326,23 @@ export class SkillsTable {
   }
 }
 
+// ── Item names table ──────────────────────────────────────────────────────────
+
+const ITEM_NAME_ENTRY_SIZE = 0x18;
+
+/**
+ * Read the display name for an item by its itemNameIndex (equip_data $0).
+ * Returns null if the transient table is not currently loaded in RAM
+ * (i.e. the in-game menu has not been opened yet this session).
+ */
+export async function readItemName(peek: PeekFn, nameIndex: number): Promise<string | null> {
+  const ptrBytes = await peek(toPhysical(ADDR_ITEM_NAMES_PTR), 4);
+  const tablePtr = (ptrBytes[3]! << 24) | (ptrBytes[2]! << 16) | (ptrBytes[1]! << 8) | (ptrBytes[0]! );
+  if (!tablePtr) return null;
+  const nameBytes = await peek(toPhysical(tablePtr) + nameIndex * ITEM_NAME_ENTRY_SIZE, ITEM_NAME_ENTRY_SIZE);
+  return decodeVsString(nameBytes) || null;
+}
+
 // ── Battle Engine — code addresses ───────────────────────────────────────────
 
 /**
@@ -392,11 +410,19 @@ export class VagrantStoryRam {
   /** Battle engine code addresses (constants, not RAM reads). */
   readonly battleEngine: typeof battleEngine;
 
+  private readonly _peek: PeekFn;
+
   constructor(peek: PeekFn) {
+    this._peek       = peek;
     this.ashley      = new Ashley(peek);
     this.room        = new CurrentRoom(peek);
     this.actors      = new ActorList(peek);
     this.skills      = new SkillsTable(peek);
     this.battleEngine = battleEngine;
+  }
+
+  /** Read the real item name for the given itemNameIndex from the transient RAM table. Returns null if the table isn't loaded. */
+  async itemName(nameIndex: number): Promise<string | null> {
+    return readItemName(this._peek, nameIndex);
   }
 }

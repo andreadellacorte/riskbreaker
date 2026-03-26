@@ -12,7 +12,7 @@
  *   - addresses        — all raw RAM address constants
  */
 
-export { VagrantStoryRam, battleEngine } from "./vs-ram.js";
+export { VagrantStoryRam, battleEngine, readItemName } from "./vs-ram.js";
 export type { PeekFn, AshleyMode } from "./vs-ram.js";
 export type { EquipData, SkillData, ActorData, SkillType, StatsCostType, ActorStats } from "./structs.js";
 export { readEquipData, readSkillData, readActorData, MATERIAL_NAMES, EQUIP_DATA_SIZE, SKILL_DATA_SIZE } from "./structs.js";

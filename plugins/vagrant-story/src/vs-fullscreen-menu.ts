@@ -15,7 +15,7 @@ import workshopBgUrl from "./assets/workshop-bg.png";
  * Vanilla TS + inline CSS — no framework, IIFE bundle.
  */
 
-import { VagrantStoryRam, type PeekFn } from "./ram/index.js";
+import { VagrantStoryRam, readItemName, type PeekFn } from "./ram/index.js";
 
 type Host = { peek?: PeekFn };
 
@@ -1494,8 +1494,12 @@ const EQ_SLOTS: Array<{ key: string; label: string; isWeaponOrShield: boolean }>
 
 // Map slot key → EquipData stored on last refresh
 const _eqSlotData = new Map<string, import("./ram/index.js").EquipData>();
+// Map slot key → item name read from RAM (when the in-game menu has loaded the table)
+const _eqRamItemName = new Map<string, string>();
 let _eqWeaponName = "—";
 let _eqStrEqp = 0, _eqIntEqp = 0, _eqAglEqp = 0;
+let _eqWeaponCatId = 0;
+let _eqRange = 0;
 
 // Loadout persistence — loadout 0 = RAM (live), 1 & 2 = localStorage
 let _activeLoadout = 0;
@@ -1507,11 +1511,85 @@ function _loadSavedLoadout(idx: number): SavedLoadout {
 }
 const _savedLoadouts: [SavedLoadout, SavedLoadout] = [_loadSavedLoadout(1), _loadSavedLoadout(2)];
 
-function _eqItemDisplayName(slotKey: string, data: import("./ram/index.js").EquipData | undefined, slotLabel: string): string {
+/**
+ * Fallback item names keyed by itemNameIndex (u16 at equip_data $0).
+ * Used when the transient RAM table (loaded from CD only while in-game menu is open) is unavailable.
+ * Keys confirmed from live RAM; names from DataCrystal armours_list + accessories_list.
+ */
+const ITEM_NAME_FALLBACK: Record<number, string> = {
+  // Shields 0x7F–0x8E
+  0x7F:"Buckler",0x80:"Pelta Shield",0x81:"Targe",0x82:"Quad Shield",0x83:"Circle Shield",
+  0x84:"Tower Shield",0x85:"Spiked Shield",0x86:"Round Shield",0x87:"Kite Shield",
+  0x88:"Casserole Shield",0x89:"Heater Shield",0x8A:"Oval Shield",0x8B:"Knight Shield",
+  0x8C:"Hoplite Shield",0x8D:"Jazeraint Shield",0x8E:"Dread Shield",
+  // Helms 0x8F–0x9E
+  0x8F:"Bandana",0x90:"Bear Mask",0x91:"Wizard Hat",0x92:"Bone Helm",0x93:"Chain Coif",
+  0x94:"Spangenhelm",0x95:"Cabasset",0x96:"Sallet",0x97:"Barbut",0x98:"Basinet",
+  0x99:"Armet",0x9A:"Close Helm",0x9B:"Burgonet",0x9C:"Hoplite Helm",
+  0x9D:"Jazeraint Helm",0x9E:"Dread Helm",
+  // Body 0x9F–0xAE
+  0x9F:"Jerkin",0xA0:"Hauberk",0xA1:"Wizard Robe",0xA2:"Cuirass",0xA3:"Banded Mail",
+  0xA4:"Ring Mail",0xA5:"Chain Mail",0xA6:"Breastplate",0xA7:"Segmentata",
+  0xA8:"Scale Armor",0xA9:"Brigandine",0xAA:"Plate Mail",0xAB:"Fluted Armor",
+  0xAC:"Hoplite Armor",0xAD:"Jazeraint Armor",0xAE:"Dread Armor",
+  // Legs 0xAF–0xBE
+  0xAF:"Sandals",0xB0:"Boots",0xB1:"Long Boots",0xB2:"Cuisse",0xB3:"Light Greave",
+  0xB4:"Ring Leggings",0xB5:"Chain Leggings",0xB6:"Fusskampf",0xB7:"Poleyn",
+  0xB8:"Jambeau",0xB9:"Missaglia",0xBA:"Plate Leggings",0xBB:"Fluted Leggings",
+  0xBC:"Hoplite Leggings",0xBD:"Jazeraint Leggings",0xBE:"Dread Leggings",
+  // Arms 0xBF–0xCE
+  0xBF:"Bandage",0xC0:"Leather Glove",0xC1:"Reinforced Glove",0xC2:"Knuckles",
+  0xC3:"Ring Sleeve",0xC4:"Chain Sleeve",0xC5:"Gauntlet",0xC6:"Vambrace",
+  0xC7:"Plate Glove",0xC8:"Rondanche",0xC9:"Tilt Glove",0xCA:"Freiturnier",
+  0xCB:"Fluted Glove",0xCC:"Hoplite Glove",0xCD:"Jazeraint Glove",0xCE:"Dread Glove",
+  // Accessories 0xDF–0xFD
+  0xDF:"Rood Necklace",0xE0:"Rune Earrings",0xE1:"Lionhead",0xE2:"Rusted Nails",
+  0xE3:"Sylphid Ring",0xE4:"Marduk",0xE5:"Salamander Ring",0xE6:"Tamulis Tongue",
+  0xE7:"Gnome Bracelet",0xE8:"Palolo's Ring",0xE9:"Undine Bracelet",0xEA:"Talian Ring",
+  0xEB:"Agrias's Balm",0xEC:"Kadesh Ring",0xED:"Agrippa's Choker",0xEE:"Diadra's Earring",
+  0xEF:"Titan's Ring",0xF0:"Lau Fei's Armlet",0xF1:"Swan Song",0xF2:"Pushpaka",
+  0xF3:"Edgar's Earrings",0xF4:"Cross Choker",0xF5:"Ghost Hound",0xF6:"Beaded Anklet",
+  0xF7:"Dragonhead",0xF8:"Faufnir's Tear",0xF9:"Agales's Chain",0xFA:"Balam Ring",
+  0xFB:"Nimje Coif",0xFC:"Morgan's Nails",0xFD:"Marlene's Ring",
+};
+
+/** Weapon category id (from ADDR_ASHLEY_WEAPON_CAT) → {type, hand}. */
+const WEAPON_CAT: Record<number, { type: string; hand: string }> = {
+  0:  { type: "Edged",    hand: "One-Handed" }, // Short Sword
+  1:  { type: "Edged",    hand: "Two-Handed" }, // Long Sword
+  2:  { type: "Edged",    hand: "Two-Handed" }, // Great Sword
+  3:  { type: "Edged",    hand: "One-Handed" }, // Dagger
+  4:  { type: "Blunt",    hand: "One-Handed" }, // Mace
+  5:  { type: "Blunt",    hand: "Two-Handed" }, // Staff
+  6:  { type: "Blunt",    hand: "Two-Handed" }, // Axe
+  7:  { type: "Piercing", hand: "Two-Handed" }, // Bow
+  8:  { type: "Piercing", hand: "Two-Handed" }, // Crossbow
+  9:  { type: "Piercing", hand: "Two-Handed" }, // Polearm
+  10: { type: "Blunt",    hand: "One-Handed" }, // Hand-to-Hand
+  11: { type: "Piercing", hand: "One-Handed" }, // Missile
+};
+
+// Material colors (CSS hex) for VS aesthetic
+const MATERIAL_COLORS: Record<number, string> = {
+  0: "",
+  1: "#c8a86b", // Wood — tan
+  2: "#c4965a", // Leather — amber
+  3: "#cd7f32", // Bronze — copper
+  4: "#8a9aaa", // Iron — steel
+  5: "#7090c0", // Hagane — blue-steel
+  6: "#ccd8e0", // Silver — bright silver
+  7: "#e8c850", // Damascus — gold
+};
+
+function _eqMaterialColor(materialIndex: number): string {
+  return MATERIAL_COLORS[materialIndex] ?? "";
+}
+
+/** Real item name — RAM table first, static fallback second, slot label last resort. */
+function _eqItemName(slotKey: string, data: import("./ram/index.js").EquipData | undefined, slotLabel: string): string {
   if (!data?.equipped) return "—";
   if (slotKey === "weapon") return _eqWeaponName;
-  const mat = data.materialName !== "—" ? data.materialName : "";
-  return mat ? `${mat} ${slotLabel}` : slotLabel;
+  return _eqRamItemName.get(slotKey) ?? ITEM_NAME_FALLBACK[data.itemNameIndex] ?? slotLabel;
 }
 
 function _eqSetAffinityVal(el: HTMLElement, val: number): void {
@@ -1532,20 +1610,23 @@ function _eqUpdateDetail(
   const slot = EQ_SLOTS.find(s => s.key === slotKey);
   const isWeaponOrShield = slot?.isWeaponOrShield ?? false;
 
-  // Header name
+  // Header name — use real item name; tint by material
   const nameEl = screen.querySelector<HTMLElement>("#vs-eq-detail-name");
-  if (nameEl) nameEl.textContent = _eqItemDisplayName(slotKey, data, slot?.label ?? slotKey);
+  if (nameEl) {
+    nameEl.textContent = _eqItemName(slotKey, data, slot?.label ?? slotKey);
+    nameEl.style.color = data?.equipped ? (_eqMaterialColor(data.materialIndex) || "") : "";
+  }
 
   // Sub-line: material · damage type · cost
   const subEl = screen.querySelector<HTMLElement>("#vs-eq-detail-sub");
   if (subEl) {
     if (data?.equipped) {
-      const DAMAGE_TYPES = ["Blunt", "Edged", "Piercing"];
       const parts: string[] = [];
       if (data.materialName !== "—") parts.push(data.materialName);
       if (slotKey === "weapon") {
-        const dt = DAMAGE_TYPES[data.damageType] ?? `Type ${data.damageType}`;
-        parts.push(dt);
+        const cat = WEAPON_CAT[_eqWeaponCatId];
+        if (cat) parts.push(`${cat.type}/${cat.hand}`);
+        parts.push(`Range ${_eqRange}`);
         if (data.costValue > 0) parts.push(`${data.statsCost} ${data.costValue}`);
       } else if (isWeaponOrShield) {
         if (data.gemSlots > 0) parts.push(`${data.gemSlots} gem${data.gemSlots > 1 ? "s" : ""}`);
@@ -1556,16 +1637,17 @@ function _eqUpdateDetail(
     }
   }
 
-  // DP/PP bars
+  // DP/PP bars — show DP for any equipped item with durability; PP is weapon/shield only
   const dpPpRow = screen.querySelector<HTMLElement>("#vs-eq-dp-pp-row");
   if (dpPpRow) {
-    if (isWeaponOrShield) {
+    const showDp = data?.equipped && (data.dpMax > 0 || isWeaponOrShield);
+    if (showDp) {
       dpPpRow.classList.remove("hidden");
       const dpBar = screen.querySelector<HTMLElement>("#vs-eq-dp-bar");
       const ppBar = screen.querySelector<HTMLElement>("#vs-eq-pp-bar");
       if (data && data.equipped) {
         if (dpBar) dpBar.style.width = data.dpMax > 0 ? `${Math.round((data.dpCur / data.dpMax) * 100)}%` : "0%";
-        if (ppBar) ppBar.style.width = data.ppMax > 0 ? `${Math.round((data.ppCur / data.ppMax) * 100)}%` : "0%";
+        if (ppBar) ppBar.style.width = isWeaponOrShield && data.ppMax > 0 ? `${Math.round((data.ppCur / data.ppMax) * 100)}%` : "0%";
       } else {
         if (dpBar) dpBar.style.width = "0%";
         if (ppBar) ppBar.style.width = "0%";
@@ -1618,6 +1700,17 @@ function _eqGetActiveSlot(screen: HTMLElement): string {
   return row?.dataset.slot ?? "weapon";
 }
 
+const SLOT_CLASS_NAMES: Record<string, string> = {
+  weapon:      "Weapon",
+  shield:      "Shield",
+  armRight:    "Armor",
+  armLeft:     "Armor",
+  helm:        "Armor",
+  breastplate: "Armor",
+  leggings:    "Armor",
+  accessory:   "Accessory",
+};
+
 function _eqUpdateInfoBar(screen: HTMLElement, slotKey: string): void {
   const bar = screen.querySelector<HTMLElement>("#vs-eq-info-bar");
   if (!bar) return;
@@ -1627,9 +1720,16 @@ function _eqUpdateInfoBar(screen: HTMLElement, slotKey: string): void {
     bar.textContent = slot ? `Slot: ${slot.label}` : "—";
     return;
   }
-  const typeNames = ["Blunt", "Edged", "Piercing"];
-  const dtype = data.damageType < typeNames.length ? typeNames[data.damageType] : `Type ${data.damageType}`;
-  bar.textContent = `Class: ${slot?.label ?? slotKey}  ·  ${data.materialName} (${dtype})`;
+  const className = SLOT_CLASS_NAMES[slotKey] ?? slot?.label ?? slotKey;
+  if (slotKey === "weapon") {
+    const cat = WEAPON_CAT[_eqWeaponCatId];
+    const typeStr = cat ? ` · ${cat.type}/${cat.hand}` : "";
+    bar.textContent = `Class: ${className}  ·  ${data.materialName}${typeStr}`;
+  } else if (slot?.isWeaponOrShield) {
+    bar.textContent = `Class: ${className}  ·  ${data.materialName}`;
+  } else {
+    bar.textContent = `Class: ${className}  ·  ${data.materialName}`;
+  }
 }
 
 function initEquipmentScreen(root: HTMLElement): void {
@@ -1717,6 +1817,8 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       strEquipped,
       intEquipped,
       aglEquipped,
+      weaponCatId,
+      rangeVal,
     ] = await Promise.all([
       ram.ashley.equip.weaponName(),
       ram.ashley.equip.weaponBlade(),
@@ -1731,12 +1833,16 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       ram.ashley.strEquipped(),
       ram.ashley.intEquipped(),
       ram.ashley.aglEquipped(),
+      ram.ashley.weaponCategoryId(),
+      ram.ashley.range(),
     ]);
 
     _eqWeaponName = weaponName;
     _eqStrEqp = strEquipped;
     _eqIntEqp = intEquipped;
     _eqAglEqp = aglEquipped;
+    _eqWeaponCatId = weaponCatId;
+    _eqRange = rangeVal;
     _eqSlotData.set("weapon",      blade);
     _eqSlotData.set("weaponGrip",  grip);
     _eqSlotData.set("shield",      shield);
@@ -1747,6 +1853,17 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
     _eqSlotData.set("leggings",    leggings);
     _eqSlotData.set("accessory",   accessory);
 
+    // Best-effort: fetch item names from the transient RAM table (only available when in-game menu is open)
+    await Promise.all([
+      ["shield", shield], ["armRight", armRight], ["armLeft", armLeft],
+      ["helm", helm], ["breastplate", breastplate], ["leggings", leggings], ["accessory", accessory],
+    ].map(async ([key, data]) => {
+      const d = data as import("./ram/index.js").EquipData;
+      if (!d.equipped) return;
+      const name = await ram.itemName(d.itemNameIndex);
+      if (name) _eqRamItemName.set(key as string, name);
+    }));
+
     // Update slot name elements using display name helper (only when viewing live RAM loadout)
     if (_activeLoadout === 0) {
       const slotLabels: Record<string, string> = {
@@ -1755,7 +1872,10 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       };
       Object.entries(slotLabels).forEach(([slot, label]) => {
         const el = screen.querySelector<HTMLElement>(`[data-slot-name="${slot}"]`);
-        if (el) el.textContent = _eqItemDisplayName(slot, _eqSlotData.get(slot), label);
+        if (!el) return;
+        const d = _eqSlotData.get(slot);
+        el.textContent = _eqItemName(slot, d, label);
+        el.style.color = d?.equipped ? (_eqMaterialColor(d.materialIndex) || "") : "";
       });
     }
 

@@ -111,15 +111,15 @@ test.describe("VS equipment screen — initial loadout from save state", () => {
     // Shield: NONE in-game → unequipped → "—"
     await expect(screen.locator("[data-slot-name='shield']")).toHaveText("—");
 
-    // Leather armour: material "Leather" + slot label
-    await expect(screen.locator("[data-slot-name='armRight']")).toHaveText("Leather R.Arm");
-    await expect(screen.locator("[data-slot-name='armLeft']")).toHaveText("Leather L.Arm");
-    await expect(screen.locator("[data-slot-name='helm']")).toHaveText("Leather Helm");
-    await expect(screen.locator("[data-slot-name='breastplate']")).toHaveText("Leather Chest");
-    await expect(screen.locator("[data-slot-name='leggings']")).toHaveText("Leather Legs");
+    // Armour slots show real item names (tinted by material color, no material prefix in text)
+    await expect(screen.locator("[data-slot-name='armRight']")).toHaveText("Bandage");
+    await expect(screen.locator("[data-slot-name='armLeft']")).toHaveText("Bandage");
+    await expect(screen.locator("[data-slot-name='helm']")).toHaveText("Bandana");
+    await expect(screen.locator("[data-slot-name='breastplate']")).toHaveText("Jerkin");
+    await expect(screen.locator("[data-slot-name='leggings']")).toHaveText("Sandals");
 
-    // Accessory: Rood Necklace has no material (index 0 → "—") so shows bare label
-    await expect(screen.locator("[data-slot-name='accessory']")).toHaveText("Acc.");
+    // Accessory: Rood Necklace
+    await expect(screen.locator("[data-slot-name='accessory']")).toHaveText("Rood Necklace");
 
     // ── Weapon detail panel ────────────────────────────────────────────────────
     // Weapon row is active by default — detail should already reflect Fandango
@@ -133,7 +133,9 @@ test.describe("VS equipment screen — initial loadout from save state", () => {
     // ── R.ARM detail panel ─────────────────────────────────────────────────────
     await screen.locator(".vs-eq-slot-row[data-slot='armRight']").click();
 
-    await expect(screen.locator("#vs-eq-detail-name")).toHaveText("Leather R.Arm");
+    // Detail name: real VS item name (not "Leather R.Arm" constructed label)
+    await expect(screen.locator("#vs-eq-detail-name")).toHaveText("Bandage");
+    // Sub-line: material name still shown
     await expect(screen.locator("#vs-eq-detail-sub")).toContainText("Leather");
 
     // Type sub-tab: Bandage is a Blunt-type gauntlet
@@ -141,5 +143,20 @@ test.describe("VS equipment screen — initial loadout from save state", () => {
     await expect(screen.locator("[data-type-idx='0']")).toHaveText("+1"); // Blunt
     await expect(screen.locator("[data-type-idx='1']")).toHaveText("0");  // Edged
     await expect(screen.locator("[data-type-idx='2']")).toHaveText("0");  // Piercing
+
+    // ── R.ARM info bar: class name and no damage type ──────────────────────────
+    // PSX shows "Class: Armor" — not the slot label "R.Arm"
+    const infoBar = screen.locator("#vs-eq-info-bar");
+    await expect(infoBar).toContainText("Armor");
+    await expect(infoBar).not.toContainText("R.Arm");
+    // Armor pieces have no damage type — should not show "(Blunt)" etc.
+    await expect(infoBar).not.toContainText("(Blunt)");
+    await expect(infoBar).not.toContainText("(Edged)");
+    await expect(infoBar).not.toContainText("(Piercing)");
+
+    // ── R.ARM DP bar: armor has durability, bar must be visible ───────────────
+    const dpPpRow = screen.locator("#vs-eq-dp-pp-row");
+    await expect(dpPpRow).toBeVisible();
+    await expect(dpPpRow).not.toHaveClass(/hidden/);
   });
 });

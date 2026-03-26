@@ -23,6 +23,14 @@ export const ADDR_FADE_ROOM         = 0x800f1aa0;
 
 /** 256 × $34-byte skill records. */
 export const ADDR_SKILLS_TABLE      = 0x8004b9dc;
+/**
+ * Pointer to the transient item-names table (u32 LE).
+ * Written when the in-game workshop/equipment menus load the table from CD;
+ * zero when not loaded. Dereference → base of 0x200 × $18-byte VS-string entries
+ * indexed by equip_data.itemNameIndex.
+ * Confirmed from live RAM: physical 0x10229c = 0 (no menu) / 0x801ef080 (menu open).
+ */
+export const ADDR_ITEM_NAMES_PTR    = 0x8010229c;
 /** 64-byte bit-field of map tracking flags. */
 export const ADDR_MAP_FLAGS         = 0x80060f68; // also 0x800e8508
 /** Gadget Bag misc items ($100 bytes). */
