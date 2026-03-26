@@ -68,6 +68,12 @@ Modules:
 | `ram/vs-ram.ts` | `VagrantStoryRam`, `Ashley`, `EquippedItems`, `ActorList`, `SkillsTable`, `CurrentRoom`, `battleEngine` |
 | `ram/index.ts` | Public re-export barrel |
 
+## Fullscreen menu — equipment UX (spike)
+
+The Equipment tab **reads** Ashley’s loadout via `VagrantStoryRam` (`peek` only). **Mock Equip** on category tiles updates the overlay preview and combat summary; it **does not** call emulator `poke` or change PS1 RAM (see button tooltip in `vs-fullscreen-menu.ts`). **Loadout buttons 2 and 3** show labels stored in `localStorage` (`vs-loadout-2` / `vs-loadout-3`); they do not snapshot or restore RAM. Switching back to loadout **1** re-runs a RAM refresh so slot names match the live save again.
+
+Playwright covers both behaviors in `e2e/vagrant-story-equipment.spec.ts` (including the `VS_SAVE_STATE` fixture dated **2026-03-26** — Tovarisch + Buckler — vs the **2026-03-24** Fandango / no-shield fixture).
+
 ## References
 
 - [DataCrystal — Vagrant Story](https://datacrystal.tcrf.net/wiki/Vagrant_Story) — game data wiki

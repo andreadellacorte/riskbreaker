@@ -1687,7 +1687,6 @@ const _eqRamItemName = new Map<string, string>();
 let _eqWeaponName = "—";
 let _eqAglEqp = 0;
 let _eqStrBase = 0, _eqIntBase = 0, _eqAglBase = 0;
-let _eqWeaponCatId = 0;
 let _eqRange = 0;
 // Loadout persistence — loadout 0 = RAM (live), 1 & 2 = localStorage
 let _activeLoadout = 0;
@@ -1741,6 +1740,26 @@ const ITEM_NAME_FALLBACK: Record<number, string> = {
   0xFB:"Nimje Coif",0xFC:"Morgan's Nails",0xFD:"Marlene's Ring",
 };
 
+/** Stub inventory rows for the equipment category gallery (WEP index + label). Not RAM-backed. */
+const WEAPON_INVENTORY_EXTRAS: readonly { name: string; wepFile: number }[] = [
+  { name: "Fandango", wepFile: 16 },
+  { name: "Tovarisch", wepFile: 35 },
+];
+
+const SHIELD_INVENTORY_EXTRAS: readonly { name: string; wepFile: number }[] = [
+  { name: "Buckler", wepFile: 96 },
+  { name: "Pelta Shield", wepFile: 97 },
+];
+
+/** Preview-only equip_data for mock Equip — does not write RAM. */
+function _eqStubEquipPreview(base: EquipData | undefined, wepFile: number): EquipData {
+  const raw = new Uint8Array(0x30);
+  if (base?.equipped && base.raw.length >= 0x30) raw.set(base.raw);
+  else raw[0x08] = 1;
+  raw[0x03] = wepFile & 0xff;
+  return readEquipData(raw);
+}
+
 /** Weapon category id (from blade.category in equip_data) → {type, hand}. */
 const WEAPON_CAT: Record<number, { type: string; hand: string }> = {
   2:  { type: "Edged",    hand: "One-Handed" }, // Short Sword
@@ -1775,7 +1794,6 @@ function deriveWeaponTypeHand(
   bladeCategoryId: number,
   bladeDamageTypeByte: number,
   gripTypes: readonly number[] | undefined,
-  ashleyWeaponCategoryId: number | undefined,
   rangeStat: number,
 ): WeaponTypeHand | undefined {
   const typeDefault = WEAPON_CAT[bladeCategoryId];
@@ -1795,8 +1813,7 @@ function deriveWeaponTypeHand(
   const fromBladeByte = BLADE_DAMAGE_TYPE[bladeDamageTypeByte];
   const displayType = fromBladeByte ?? dominantType ?? typeDefault.type;
 
-  // Handedness from blade `category` only. Do not use ADDR_ASHLEY_WEAPON_CAT for hand:
-  // it can read "Long Sword" while the blade struct is still Short Sword (e.g. Fandango).
+  // Handedness from blade `category` only (not ADDR_ASHLEY_WEAPON_CAT — can disagree with blade, e.g. Fandango).
   let hand = typeDefault.hand;
   // Two-handed class in RAM but reach ≤ 10 → treat as one-handed (starter swords, short axes, etc.).
   // Skip ranged classes (9–11) by only applying to blade categories used for melee in WEAPON_CAT.
@@ -2486,6 +2503,8 @@ function initEquipmentScreen(root: HTMLElement): void {
             el.textContent = "—";
           }
         });
+      } else {
+        void refreshEquipmentScreen(root);
       }
     });
   });
@@ -2562,7 +2581,6 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
     _eqAglEqp = aglEquipped;
     _eqStrBase = strBase;
     _eqIntBase = intBase;
-    _eqWeaponCatId = blade.category;
     _eqRange = rangeVal;
     _eqSlotData.set("weapon",      blade);
     _eqSlotData.set("weaponGrip",  grip);
