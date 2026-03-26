@@ -1553,20 +1553,20 @@ const ITEM_NAME_FALLBACK: Record<number, string> = {
   0xFB:"Nimje Coif",0xFC:"Morgan's Nails",0xFD:"Marlene's Ring",
 };
 
-/** Weapon category id (from ADDR_ASHLEY_WEAPON_CAT) → {type, hand}. */
+/** Weapon category id (from blade.category in equip_data) → {type, hand}. */
 const WEAPON_CAT: Record<number, { type: string; hand: string }> = {
-  0:  { type: "Edged",    hand: "One-Handed" }, // Short Sword
-  1:  { type: "Edged",    hand: "Two-Handed" }, // Long Sword
-  2:  { type: "Edged",    hand: "Two-Handed" }, // Great Sword
-  3:  { type: "Edged",    hand: "One-Handed" }, // Dagger
-  4:  { type: "Blunt",    hand: "One-Handed" }, // Mace
-  5:  { type: "Blunt",    hand: "Two-Handed" }, // Staff
-  6:  { type: "Blunt",    hand: "Two-Handed" }, // Axe
-  7:  { type: "Piercing", hand: "Two-Handed" }, // Bow
-  8:  { type: "Piercing", hand: "Two-Handed" }, // Crossbow
-  9:  { type: "Piercing", hand: "Two-Handed" }, // Polearm
-  10: { type: "Blunt",    hand: "One-Handed" }, // Hand-to-Hand
-  11: { type: "Piercing", hand: "One-Handed" }, // Missile
+  2:  { type: "Edged",    hand: "One-Handed" }, // Short Sword
+  3:  { type: "Edged",    hand: "Two-Handed" }, // Long Sword
+  4:  { type: "Edged",    hand: "Two-Handed" }, // Great Sword
+  5:  { type: "Edged",    hand: "One-Handed" }, // Dagger
+  6:  { type: "Blunt",    hand: "One-Handed" }, // Mace
+  7:  { type: "Blunt",    hand: "Two-Handed" }, // Staff
+  8:  { type: "Blunt",    hand: "Two-Handed" }, // Axe
+  9:  { type: "Piercing", hand: "Two-Handed" }, // Bow
+  10: { type: "Piercing", hand: "Two-Handed" }, // Crossbow
+  11: { type: "Piercing", hand: "Two-Handed" }, // Polearm
+  12: { type: "Blunt",    hand: "One-Handed" }, // Hand-to-Hand
+  13: { type: "Piercing", hand: "One-Handed" }, // Missile
 };
 
 // Material colors (CSS hex) for VS aesthetic
@@ -1817,7 +1817,6 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       strEquipped,
       intEquipped,
       aglEquipped,
-      weaponCatId,
       rangeVal,
     ] = await Promise.all([
       ram.ashley.equip.weaponName(),
@@ -1833,7 +1832,6 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       ram.ashley.strEquipped(),
       ram.ashley.intEquipped(),
       ram.ashley.aglEquipped(),
-      ram.ashley.weaponCategoryId(),
       ram.ashley.range(),
     ]);
 
@@ -1841,7 +1839,7 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
     _eqStrEqp = strEquipped;
     _eqIntEqp = intEquipped;
     _eqAglEqp = aglEquipped;
-    _eqWeaponCatId = weaponCatId;
+    _eqWeaponCatId = blade.category;
     _eqRange = rangeVal;
     _eqSlotData.set("weapon",      blade);
     _eqSlotData.set("weaponGrip",  grip);
