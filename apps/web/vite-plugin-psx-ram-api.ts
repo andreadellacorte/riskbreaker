@@ -26,6 +26,7 @@ const UPLOAD_PATH      = "/api/v1/psxram-upload";   // binary RAM dump
 const RESULT_PATH      = "/api/v1/psxram-result";   // JSON results (poke, exec-flow, vram)
 
 const RAM_RAW_PATH     = "/api/v1/cpu/ram/raw";
+const RAM_SEARCH_PATH  = "/api/v1/cpu/ram/search";
 const EXEC_FLOW_PATH   = "/api/v1/execution-flow";
 const VRAM_RAW_PATH    = "/api/v1/gpu/vram/raw";
 const CD_FILES_PATH    = "/api/v1/cd/files";
@@ -53,11 +54,6 @@ function noGame(res: ServerResponse): void {
   res.end(JSON.stringify({ error: "no_game", message: "No active pcsx-wasm game connected. Open /pcsx-wasm/index.html?riskbreaker=1 first." }));
 }
 
-function notImplemented(res: ServerResponse, detail = ""): void {
-  res.statusCode = 501;
-  res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify({ error: "not_implemented", message: detail || "Not implemented in this backend." }));
-}
 
 // ── Plugin ────────────────────────────────────────────────────────────────────
 
@@ -214,6 +210,81 @@ export function psxRamApiPlugin(): Plugin {
         }
 
         res.statusCode = 405; res.end();
+      });
+
+      // ── GET /api/v1/cpu/ram/search — Search RAM for a byte pattern ──────────
+      //
+      // Query params:
+      //   pattern  (required) comma-separated bytes, each as decimal or 0x hex
+      //            e.g. pattern=0,4,1  or  pattern=0x00,0x04,0x01
+      //   offset   (optional) physical start offset into RAM, default 0
+      //   size     (optional) number of bytes to search, default full RAM
+      //
+      // Returns: { matches: number[] }  — physical offsets of every occurrence
+      server.middlewares.use(RAM_SEARCH_PATH, async (req, res) => {
+        if (req.method !== "GET") { res.statusCode = 405; res.end(); return; }
+        if (!withSubscribers(res)) return;
+
+        const url = new URL(req.url ?? "", "http://localhost");
+
+        const patternStr = url.searchParams.get("pattern") ?? "";
+        if (!patternStr) {
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ error: "bad_request", message: "pattern query param required, e.g. pattern=0,4,1" }));
+          return;
+        }
+        const pattern: number[] = patternStr.split(",").map(s => {
+          const t = s.trim();
+          return t.startsWith("0x") || t.startsWith("0X") ? parseInt(t, 16) : parseInt(t, 10);
+        });
+        if (pattern.some(isNaN) || pattern.length === 0) {
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ error: "bad_request", message: "pattern contains invalid byte values" }));
+          return;
+        }
+
+        const offsetStr = url.searchParams.get("offset") ?? "0";
+        const offset = offsetStr.startsWith("0x") || offsetStr.startsWith("0X")
+          ? parseInt(offsetStr, 16) : parseInt(offsetStr, 10);
+        const sizeStr = url.searchParams.get("size");
+        const size = sizeStr
+          ? (sizeStr.startsWith("0x") || sizeStr.startsWith("0X") ? parseInt(sizeStr, 16) : parseInt(sizeStr, 10))
+          : (0x200000 - offset);
+
+        if (isNaN(offset) || offset < 0 || offset >= 0x200000) {
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ error: "bad_request", message: "offset out of range [0, 0x1FFFFF]" }));
+          return;
+        }
+
+        const reqId = newReqId();
+        console.log(`[psx-api] RAM search ${reqId} pattern=[${pattern.join(",")}] offset=0x${offset.toString(16)} size=0x${size.toString(16)}`);
+
+        const timer = setTimeout(() => {
+          pendingBinary.delete(reqId);
+          noGame(res);
+        }, TIMEOUT_MS);
+
+        pendingBinary.set(reqId, (buf) => {
+          clearTimeout(timer);
+          pendingBinary.delete(reqId);
+          const matches: number[] = [];
+          const end = buf.length - pattern.length;
+          outer: for (let i = 0; i <= end; i++) {
+            for (let j = 0; j < pattern.length; j++) {
+              if (buf[i + j] !== pattern[j]) continue outer;
+            }
+            matches.push(offset + i);
+          }
+          res.setHeader("Content-Type", "application/json");
+          res.setHeader("Access-Control-Allow-Origin", "*");
+          res.end(JSON.stringify({ matches, pattern, offset, size: buf.length }));
+        });
+
+        broadcast({ type: "peek-range", reqId, offset, size });
       });
 
       // ── GET+POST /api/v1/execution-flow — Emulation status / control ────────

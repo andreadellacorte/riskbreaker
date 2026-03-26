@@ -5,6 +5,7 @@
   "description": "Riskbreaker shell + overlay bundle for pcsx-wasm (esbuild → public/pcsx-wasm/js)",
   "type": "module",
   "scripts": {
-    "build": "node build.mjs"
+    "build": "node build.mjs",
+    "dev": "node build.mjs --watch"
   }
 }

@@ -93,7 +93,7 @@ describe("saveWorkerState", () => {
     const p = saveWorkerState();
     const call = worker.postMessage.mock.calls[0][0] as { cmd: string };
     expect(call.cmd).toBe("savestate");
-    const { reqId } = call as { reqId: number };
+    const { reqId } = call as unknown as { reqId: number };
     worker.emit({ cmd: "savestate_result", reqId, data: new Uint8Array(0) });
     await p;
   });

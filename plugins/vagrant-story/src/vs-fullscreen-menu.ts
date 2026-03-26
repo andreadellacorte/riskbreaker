@@ -4,6 +4,8 @@ import ashleyPortraitUrl from "./assets/ashley-portrait.png";
 import locationEntranceUrl from "./assets/location-entrance-to-darkness.png";
 // @ts-ignore — bundled as data URL by esbuild
 import locationEntranceGifUrl from "./assets/location-entrance-to-darkness.gif";
+// @ts-ignore — bundled as data URL by esbuild
+import workshopBgUrl from "./assets/workshop-bg.png";
 
 /**
  * RSK-uxvs: Vagrant Story fullscreen menu overlay.
@@ -124,23 +126,26 @@ const CSS = `
   letter-spacing: 0.14em;
   color: rgba(255,255,255,0.4);
   padding: 14px 20px;
-  cursor: default;
+  cursor: pointer;
   font-weight: 400;
   text-transform: uppercase;
   white-space: nowrap;
+  user-select: none;
 }
 
-.vs-tab-name {
-  font-family: 'Josefin Sans', sans-serif;
+.vs-tab-nav:hover {
+  color: rgba(255,255,255,0.7);
+}
+
+.vs-tab-nav.active {
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.2em;
   color: #ffffff;
   padding: 14px 24px 14px 20px;
-  text-transform: uppercase;
   border-bottom: 2px solid #c8a84a;
   margin-bottom: -1px;
-  white-space: nowrap;
+  cursor: default;
 }
 
 /* ── Body layout ── */
@@ -149,6 +154,7 @@ const CSS = `
   display: grid;
   grid-template-columns: 270px 1fr 250px;
   min-height: 0;
+  overflow: hidden;
 }
 
 /* ── Left column ── */
@@ -549,6 +555,297 @@ const CSS = `
   max-width: 110px;
 }
 
+/* ── Screens ── */
+.vs-screen {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.vs-screen.active {
+  display: flex;
+}
+
+/* Ashley screen passes its grid through */
+.vs-screen[data-screen="ashley"] {
+  flex-direction: column;
+}
+
+/* ── Equipment screen ── */
+.vs-screen-equipment {
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vs-eq-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 220px 1fr 280px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left panel */
+.vs-eq-left {
+  border-right: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vs-eq-loadout-bar {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.vs-eq-loadout-btn {
+  width: 28px;
+  height: 22px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: #0d0c0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.28);
+  letter-spacing: 0.05em;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.vs-eq-loadout-btn.active {
+  border-color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.8);
+  background: #141210;
+}
+
+.vs-eq-slot-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.vs-eq-slot-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.vs-eq-slot-row:hover {
+  background: rgba(255,255,255,0.04);
+}
+
+.vs-eq-slot-row.active {
+  background: rgba(255,255,255,0.06);
+}
+
+.vs-eq-slot-label {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: rgba(255,255,255,0.28);
+  text-transform: uppercase;
+  flex-shrink: 0;
+  width: 52px;
+}
+
+.vs-eq-slot-name {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Centre portrait */
+.vs-eq-portrait-col {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Right detail panel */
+.vs-eq-right {
+  border-left: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.vs-eq-detail-header {
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.vs-eq-detail-name {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vs-eq-detail-sub {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vs-eq-dp-pp-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.vs-eq-dp-pp-row.hidden {
+  display: none;
+}
+
+.vs-eq-sub-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 7px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.vs-eq-sub-tab {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.4);
+  cursor: pointer;
+  padding: 0 1px;
+  transition: color 0.1s;
+}
+
+.vs-eq-sub-tab.active {
+  color: #ffffff;
+}
+
+.vs-eq-sub-sep {
+  font-size: 8px;
+  color: rgba(255,255,255,0.2);
+  padding: 0 5px;
+  user-select: none;
+}
+
+.vs-eq-sub-panel {
+  display: none;
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 14px;
+}
+
+.vs-eq-sub-panel.active {
+  display: flex;
+}
+
+.vs-eq-affinity-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.vs-eq-affinity-row:last-child {
+  border-bottom: none;
+}
+
+.vs-eq-affinity-label {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.28);
+  text-transform: uppercase;
+}
+
+.vs-eq-affinity-val {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 10px;
+  color: #ffffff;
+}
+
+.vs-eq-affinity-val.pos { color: rgba(100,200,100,0.9); }
+.vs-eq-affinity-val.neg { color: rgba(255,0,0,0.7); }
+.vs-eq-affinity-val.zero { color: rgba(255,255,255,0.28); }
+
+.vs-eq-diamond-block {
+  padding: 8px 14px 10px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.vs-eq-diamond-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.vs-eq-diamond-label {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.28);
+  text-transform: uppercase;
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.vs-eq-stat-diff {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.04em;
+  min-width: 24px;
+  text-align: right;
+}
+.vs-eq-stat-diff.pos { color: rgba(100,200,100,0.9); }
+.vs-eq-stat-diff.neg { color: rgba(255,80,80,0.8); }
+.vs-eq-stat-diff.zero { color: rgba(255,255,255,0.28); }
+
+/* Info bar */
+.vs-eq-info-bar {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 5px 14px;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* ── Centre: portrait ── */
 .vs-portrait-col {
   position: relative;
@@ -696,7 +993,7 @@ function buildMenu(): HTMLElement {
     <!-- Tab bar -->
     <div class="vs-tabs">
       <span class="vs-tab-trigger">L1</span>
-      <span class="vs-tab-name">Ashley</span>
+      <span class="vs-tab-nav active" data-tab="ashley">Ashley</span>
       <span class="vs-tab-nav" data-tab="items">Items</span>
       <span class="vs-tab-nav" data-tab="equipment">Equipment</span>
       <span class="vs-tab-nav" data-tab="leamonde">Lea Monde</span>
@@ -706,7 +1003,8 @@ function buildMenu(): HTMLElement {
       <span class="vs-tab-trigger right">R1</span>
     </div>
 
-    <!-- Body -->
+    <!-- Ashley screen -->
+    <div class="vs-screen active" data-screen="ashley">
     <div class="vs-body">
 
       <!-- Left: stats -->
@@ -866,6 +1164,197 @@ function buildMenu(): HTMLElement {
       </div>
     </div>
 
+    </div> <!-- /vs-body -->
+    </div> <!-- /vs-screen ashley -->
+
+    <!-- Equipment screen -->
+    <div class="vs-screen vs-screen-equipment" data-screen="equipment">
+      <div class="vs-eq-body">
+
+        <!-- Left: slot list -->
+        <div class="vs-eq-left">
+          <div class="vs-eq-loadout-bar">
+            <div class="vs-eq-loadout-btn active" data-loadout="1">1</div>
+            <div class="vs-eq-loadout-btn" data-loadout="2">2</div>
+            <div class="vs-eq-loadout-btn" data-loadout="3">3</div>
+          </div>
+          <div class="vs-eq-slot-list">
+            <div class="vs-eq-slot-row active" data-slot="weapon">
+              <span class="vs-eq-slot-label">Weapon</span>
+              <span class="vs-eq-slot-name" data-slot-name="weapon">—</span>
+            </div>
+            <div class="vs-eq-slot-row" data-slot="shield">
+              <span class="vs-eq-slot-label">Shield</span>
+              <span class="vs-eq-slot-name" data-slot-name="shield">—</span>
+            </div>
+            <div class="vs-eq-slot-row" data-slot="armRight">
+              <span class="vs-eq-slot-label">R.Arm</span>
+              <span class="vs-eq-slot-name" data-slot-name="armRight">—</span>
+            </div>
+            <div class="vs-eq-slot-row" data-slot="armLeft">
+              <span class="vs-eq-slot-label">L.Arm</span>
+              <span class="vs-eq-slot-name" data-slot-name="armLeft">—</span>
+            </div>
+            <div class="vs-eq-slot-row" data-slot="helm">
+              <span class="vs-eq-slot-label">Head</span>
+              <span class="vs-eq-slot-name" data-slot-name="helm">—</span>
+            </div>
+            <div class="vs-eq-slot-row" data-slot="breastplate">
+              <span class="vs-eq-slot-label">Body</span>
+              <span class="vs-eq-slot-name" data-slot-name="breastplate">—</span>
+            </div>
+            <div class="vs-eq-slot-row" data-slot="leggings">
+              <span class="vs-eq-slot-label">Legs</span>
+              <span class="vs-eq-slot-name" data-slot-name="leggings">—</span>
+            </div>
+            <div class="vs-eq-slot-row" data-slot="accessory">
+              <span class="vs-eq-slot-label">Accessory</span>
+              <span class="vs-eq-slot-name" data-slot-name="accessory">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Centre: portrait -->
+        <div class="vs-eq-portrait-col vs-portrait-col">
+          <div class="vs-portrait-bg"></div>
+          <img class="vs-portrait" src="${ashleyPortraitUrl}" alt="Ashley Riot" />
+        </div>
+
+        <!-- Right: detail panel -->
+        <div class="vs-eq-right">
+          <div class="vs-eq-detail-header">
+            <div class="vs-eq-detail-name" id="vs-eq-detail-name">—</div>
+            <div class="vs-eq-detail-sub" id="vs-eq-detail-sub"></div>
+            <div class="vs-eq-dp-pp-row" id="vs-eq-dp-pp-row">
+              <div class="vs-bar-group">
+                <span class="vs-bar-label">DP</span>
+                <div class="vs-bar-track"><div class="vs-bar-fill dp" id="vs-eq-dp-bar" style="width:0%"></div></div>
+              </div>
+              <div class="vs-bar-group">
+                <span class="vs-bar-label">PP</span>
+                <div class="vs-bar-track"><div class="vs-bar-fill pp" id="vs-eq-pp-bar" style="width:0%"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="vs-eq-sub-tabs">
+            <span class="vs-eq-sub-tab active" data-subtab="class">Class</span>
+            <span class="vs-eq-sub-sep">/</span>
+            <span class="vs-eq-sub-tab" data-subtab="affinity">Affinity</span>
+            <span class="vs-eq-sub-sep">/</span>
+            <span class="vs-eq-sub-tab" data-subtab="type">Type</span>
+          </div>
+
+          <!-- CLASS sub-panel -->
+          <div class="vs-eq-sub-panel active" data-subtab-panel="class">
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Human</span>
+              <span class="vs-eq-affinity-val zero" data-class-idx="0">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Beast</span>
+              <span class="vs-eq-affinity-val zero" data-class-idx="1">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Undead</span>
+              <span class="vs-eq-affinity-val zero" data-class-idx="2">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Phantom</span>
+              <span class="vs-eq-affinity-val zero" data-class-idx="4">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Dragon</span>
+              <span class="vs-eq-affinity-val zero" data-class-idx="3">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Evil</span>
+              <span class="vs-eq-affinity-val zero" data-class-idx="5">—</span>
+            </div>
+          </div>
+
+          <!-- AFFINITY sub-panel (indices: Physical=0,Air=1,Fire=2,Earth=3,Water=4,Light=5,Dark=6) -->
+          <div class="vs-eq-sub-panel" data-subtab-panel="affinity">
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Physical</span>
+              <span class="vs-eq-affinity-val zero" data-affinity-idx="0">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Air</span>
+              <span class="vs-eq-affinity-val zero" data-affinity-idx="1">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Fire</span>
+              <span class="vs-eq-affinity-val zero" data-affinity-idx="2">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Earth</span>
+              <span class="vs-eq-affinity-val zero" data-affinity-idx="3">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Water</span>
+              <span class="vs-eq-affinity-val zero" data-affinity-idx="4">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Light</span>
+              <span class="vs-eq-affinity-val zero" data-affinity-idx="5">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Dark</span>
+              <span class="vs-eq-affinity-val zero" data-affinity-idx="6">—</span>
+            </div>
+          </div>
+
+          <!-- TYPE sub-panel -->
+          <div class="vs-eq-sub-panel" data-subtab-panel="type">
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Blunt</span>
+              <span class="vs-eq-affinity-val zero" data-type-idx="0">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Edged</span>
+              <span class="vs-eq-affinity-val zero" data-type-idx="1">—</span>
+            </div>
+            <div class="vs-eq-affinity-row">
+              <span class="vs-eq-affinity-label">Piercing</span>
+              <span class="vs-eq-affinity-val zero" data-type-idx="2">—</span>
+            </div>
+          </div>
+
+          <!-- Stats block — diamonds show equipped total, diff shows this item's contribution -->
+          <div class="vs-eq-diamond-block">
+            <div class="vs-eq-diamond-row">
+              <span class="vs-eq-diamond-label">STR</span>
+              <div class="vs-stat-diamond">
+                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-str-val">—</div></div>
+              </div>
+              <div class="vs-stat-dashes"></div>
+              <span class="vs-eq-stat-diff zero" id="vs-eq-str-diff"></span>
+            </div>
+            <div class="vs-eq-diamond-row">
+              <span class="vs-eq-diamond-label">INT</span>
+              <div class="vs-stat-diamond">
+                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-int-val">—</div></div>
+              </div>
+              <div class="vs-stat-dashes"></div>
+              <span class="vs-eq-stat-diff zero" id="vs-eq-int-diff"></span>
+            </div>
+            <div class="vs-eq-diamond-row">
+              <span class="vs-eq-diamond-label">AGL</span>
+              <div class="vs-stat-diamond">
+                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-agl-val">—</div></div>
+              </div>
+              <div class="vs-stat-dashes"></div>
+              <span class="vs-eq-stat-diff zero" id="vs-eq-agl-diff"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Info bar -->
+      <div class="vs-eq-info-bar" id="vs-eq-info-bar">—</div>
+    </div>
+
     <!-- Footer -->
     <div class="vs-footer">
       <span class="vs-hint">${SVG_TRIANGLE} Exit Menu</span>
@@ -989,6 +1478,295 @@ async function refreshAbilities(root: HTMLElement): Promise<void> {
   }
 }
 
+// ── Equipment screen ──────────────────────────────────────────────────────────
+
+// Slot key → RAM method name
+const EQ_SLOTS: Array<{ key: string; label: string; isWeaponOrShield: boolean }> = [
+  { key: "weapon",      label: "Weapon",    isWeaponOrShield: true  },
+  { key: "shield",      label: "Shield",    isWeaponOrShield: true  },
+  { key: "armRight",    label: "R.Arm",     isWeaponOrShield: false },
+  { key: "armLeft",     label: "L.Arm",     isWeaponOrShield: false },
+  { key: "helm",        label: "Head",      isWeaponOrShield: false },
+  { key: "breastplate", label: "Body",      isWeaponOrShield: false },
+  { key: "leggings",    label: "Legs",      isWeaponOrShield: false },
+  { key: "accessory",   label: "Accessory", isWeaponOrShield: false },
+];
+
+// Map slot key → EquipData stored on last refresh
+const _eqSlotData = new Map<string, import("./ram/index.js").EquipData>();
+let _eqWeaponName = "—";
+let _eqStrEqp = 0, _eqIntEqp = 0, _eqAglEqp = 0;
+
+// Loadout persistence — loadout 0 = RAM (live), 1 & 2 = localStorage
+let _activeLoadout = 0;
+type SavedLoadout = Record<string, { materialName: string; label: string } | null>;
+function _loadoutKey(idx: number): string { return `vs-loadout-${idx + 1}`; }
+function _loadSavedLoadout(idx: number): SavedLoadout {
+  try { return JSON.parse(localStorage.getItem(_loadoutKey(idx)) ?? "{}") as SavedLoadout; }
+  catch { return {}; }
+}
+const _savedLoadouts: [SavedLoadout, SavedLoadout] = [_loadSavedLoadout(1), _loadSavedLoadout(2)];
+
+function _eqItemDisplayName(slotKey: string, data: import("./ram/index.js").EquipData | undefined, slotLabel: string): string {
+  if (!data?.equipped) return "—";
+  if (slotKey === "weapon") return _eqWeaponName;
+  const mat = data.materialName !== "—" ? data.materialName : "";
+  return mat ? `${mat} ${slotLabel}` : slotLabel;
+}
+
+function _eqSetAffinityVal(el: HTMLElement, val: number): void {
+  el.textContent = val === 0 ? "0" : (val > 0 ? `+${val}` : `${val}`);
+  el.className = "vs-eq-affinity-val" + (val > 0 ? " pos" : val < 0 ? " neg" : " zero");
+}
+
+function _eqSetDiff(el: HTMLElement, val: number): void {
+  el.textContent = val === 0 ? "" : (val > 0 ? `+${val}` : `${val}`);
+  el.className = "vs-eq-stat-diff" + (val > 0 ? " pos" : val < 0 ? " neg" : " zero");
+}
+
+function _eqUpdateDetail(
+  screen: HTMLElement,
+  slotKey: string,
+): void {
+  const data = _eqSlotData.get(slotKey);
+  const slot = EQ_SLOTS.find(s => s.key === slotKey);
+  const isWeaponOrShield = slot?.isWeaponOrShield ?? false;
+
+  // Header name
+  const nameEl = screen.querySelector<HTMLElement>("#vs-eq-detail-name");
+  if (nameEl) nameEl.textContent = _eqItemDisplayName(slotKey, data, slot?.label ?? slotKey);
+
+  // Sub-line: material · damage type · cost
+  const subEl = screen.querySelector<HTMLElement>("#vs-eq-detail-sub");
+  if (subEl) {
+    if (data?.equipped) {
+      const DAMAGE_TYPES = ["Blunt", "Edged", "Piercing"];
+      const parts: string[] = [];
+      if (data.materialName !== "—") parts.push(data.materialName);
+      if (slotKey === "weapon") {
+        const dt = DAMAGE_TYPES[data.damageType] ?? `Type ${data.damageType}`;
+        parts.push(dt);
+        if (data.costValue > 0) parts.push(`${data.statsCost} ${data.costValue}`);
+      } else if (isWeaponOrShield) {
+        if (data.gemSlots > 0) parts.push(`${data.gemSlots} gem${data.gemSlots > 1 ? "s" : ""}`);
+      }
+      subEl.textContent = parts.join(" · ");
+    } else {
+      subEl.textContent = "";
+    }
+  }
+
+  // DP/PP bars
+  const dpPpRow = screen.querySelector<HTMLElement>("#vs-eq-dp-pp-row");
+  if (dpPpRow) {
+    if (isWeaponOrShield) {
+      dpPpRow.classList.remove("hidden");
+      const dpBar = screen.querySelector<HTMLElement>("#vs-eq-dp-bar");
+      const ppBar = screen.querySelector<HTMLElement>("#vs-eq-pp-bar");
+      if (data && data.equipped) {
+        if (dpBar) dpBar.style.width = data.dpMax > 0 ? `${Math.round((data.dpCur / data.dpMax) * 100)}%` : "0%";
+        if (ppBar) ppBar.style.width = data.ppMax > 0 ? `${Math.round((data.ppCur / data.ppMax) * 100)}%` : "0%";
+      } else {
+        if (dpBar) dpBar.style.width = "0%";
+        if (ppBar) ppBar.style.width = "0%";
+      }
+    } else {
+      dpPpRow.classList.add("hidden");
+    }
+  }
+
+  // CLASS sub-panel
+  screen.querySelectorAll<HTMLElement>("[data-class-idx]").forEach(el => {
+    const idx = parseInt(el.dataset.classIdx ?? "0", 10);
+    const val = data?.equipped ? (data.classes[idx] ?? 0) : 0;
+    _eqSetAffinityVal(el, val);
+    if (!data?.equipped) el.textContent = "—";
+  });
+
+  // AFFINITY sub-panel
+  screen.querySelectorAll<HTMLElement>("[data-affinity-idx]").forEach(el => {
+    const idx = parseInt(el.dataset.affinityIdx ?? "0", 10);
+    const val = data?.equipped ? (data.affinities[idx] ?? 0) : 0;
+    _eqSetAffinityVal(el, val);
+    if (!data?.equipped) el.textContent = "—";
+  });
+
+  // TYPE sub-panel — weapon type (Blunt/Edged/Piercing) lives in the grip, not the blade
+  const typeData = slotKey === "weapon" ? _eqSlotData.get("weaponGrip") : data;
+  screen.querySelectorAll<HTMLElement>("[data-type-idx]").forEach(el => {
+    const idx = parseInt(el.dataset.typeIdx ?? "0", 10);
+    const val = typeData?.equipped ? (typeData.types[idx] ?? 0) : 0;
+    _eqSetAffinityVal(el, val);
+    if (!typeData?.equipped) el.textContent = "—";
+  });
+
+  // Diamond stat block — badge = total equipped, diff = this item's contribution
+  const getEl = (id: string) => screen.querySelector<HTMLElement>(`#${id}`);
+  const strVal = getEl("vs-eq-str-val"), intVal = getEl("vs-eq-int-val"), aglVal = getEl("vs-eq-agl-val");
+  const strDiff = getEl("vs-eq-str-diff"), intDiff = getEl("vs-eq-int-diff"), aglDiff = getEl("vs-eq-agl-diff");
+  if (strVal) strVal.textContent = `${_eqStrEqp}`;
+  if (intVal) intVal.textContent = `${_eqIntEqp}`;
+  if (aglVal) aglVal.textContent = `${_eqAglEqp}`;
+  if (strDiff) _eqSetDiff(strDiff, data?.equipped ? data.str : 0);
+  if (intDiff) _eqSetDiff(intDiff, data?.equipped ? data.int : 0);
+  if (aglDiff) _eqSetDiff(aglDiff, data?.equipped ? data.agi : 0);
+}
+
+
+function _eqGetActiveSlot(screen: HTMLElement): string {
+  const row = screen.querySelector<HTMLElement>(".vs-eq-slot-row.active");
+  return row?.dataset.slot ?? "weapon";
+}
+
+function _eqUpdateInfoBar(screen: HTMLElement, slotKey: string): void {
+  const bar = screen.querySelector<HTMLElement>("#vs-eq-info-bar");
+  if (!bar) return;
+  const data = _eqSlotData.get(slotKey);
+  const slot = EQ_SLOTS.find(s => s.key === slotKey);
+  if (!data?.equipped) {
+    bar.textContent = slot ? `Slot: ${slot.label}` : "—";
+    return;
+  }
+  const typeNames = ["Blunt", "Edged", "Piercing"];
+  const dtype = data.damageType < typeNames.length ? typeNames[data.damageType] : `Type ${data.damageType}`;
+  bar.textContent = `Class: ${slot?.label ?? slotKey}  ·  ${data.materialName} (${dtype})`;
+}
+
+function initEquipmentScreen(root: HTMLElement): void {
+  const screen = root.querySelector<HTMLElement>('.vs-screen[data-screen="equipment"]');
+  if (!screen) return;
+
+  // Loadout buttons — 1 = live RAM, 2 & 3 = localStorage slots
+  screen.querySelectorAll<HTMLElement>(".vs-eq-loadout-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.loadout ?? "1", 10) - 1; // 0-based
+      _activeLoadout = idx;
+      screen.querySelectorAll(".vs-eq-loadout-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      // For saved loadouts (idx 1 & 2), render slot names from localStorage
+      if (idx >= 1) {
+        const saved = _savedLoadouts[idx - 1];
+        const slotLabels: Record<string, string> = {
+          weapon: "Weapon", shield: "Shield", armRight: "R.Arm", armLeft: "L.Arm",
+          helm: "Helm", breastplate: "Chest", leggings: "Legs", accessory: "Acc.",
+        };
+        Object.entries(slotLabels).forEach(([slot, label]) => {
+          const el = screen.querySelector<HTMLElement>(`[data-slot-name="${slot}"]`);
+          if (!el) return;
+          const entry = saved[slot];
+          if (entry) {
+            const mat = entry.materialName !== "—" ? entry.materialName : "";
+            el.textContent = mat ? `${mat} ${label}` : label;
+          } else {
+            el.textContent = "—";
+          }
+        });
+      }
+    });
+  });
+
+  // Slot rows
+  screen.querySelectorAll<HTMLElement>(".vs-eq-slot-row").forEach(row => {
+    row.addEventListener("click", () => {
+      screen.querySelectorAll(".vs-eq-slot-row").forEach(r => r.classList.remove("active"));
+      row.classList.add("active");
+      const slotKey = row.dataset.slot ?? "weapon";
+      _eqUpdateDetail(screen, slotKey);
+      _eqUpdateInfoBar(screen, slotKey);
+    });
+  });
+
+  // Sub-tabs
+  screen.querySelectorAll<HTMLElement>(".vs-eq-sub-tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.subtab;
+      if (!target) return;
+      screen.querySelectorAll(".vs-eq-sub-tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      screen.querySelectorAll<HTMLElement>(".vs-eq-sub-panel").forEach(p => {
+        if (p.dataset.subtabPanel === target) {
+          p.classList.add("active");
+        } else {
+          p.classList.remove("active");
+        }
+      });
+    });
+  });
+}
+
+async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
+  const screen = root.querySelector<HTMLElement>('.vs-screen[data-screen="equipment"]');
+  if (!screen) return;
+
+  const ram = getRam();
+  if (!ram) return;
+
+  try {
+    const [
+      weaponName,
+      blade,
+      grip,
+      shield,
+      armRight,
+      armLeft,
+      helm,
+      breastplate,
+      leggings,
+      accessory,
+      strEquipped,
+      intEquipped,
+      aglEquipped,
+    ] = await Promise.all([
+      ram.ashley.equip.weaponName(),
+      ram.ashley.equip.weaponBlade(),
+      ram.ashley.equip.weaponGrip(),
+      ram.ashley.equip.shield(),
+      ram.ashley.equip.armRight(),
+      ram.ashley.equip.armLeft(),
+      ram.ashley.equip.helm(),
+      ram.ashley.equip.breastplate(),
+      ram.ashley.equip.leggings(),
+      ram.ashley.equip.accessory(),
+      ram.ashley.strEquipped(),
+      ram.ashley.intEquipped(),
+      ram.ashley.aglEquipped(),
+    ]);
+
+    _eqWeaponName = weaponName;
+    _eqStrEqp = strEquipped;
+    _eqIntEqp = intEquipped;
+    _eqAglEqp = aglEquipped;
+    _eqSlotData.set("weapon",      blade);
+    _eqSlotData.set("weaponGrip",  grip);
+    _eqSlotData.set("shield",      shield);
+    _eqSlotData.set("armRight",    armRight);
+    _eqSlotData.set("armLeft",     armLeft);
+    _eqSlotData.set("helm",        helm);
+    _eqSlotData.set("breastplate", breastplate);
+    _eqSlotData.set("leggings",    leggings);
+    _eqSlotData.set("accessory",   accessory);
+
+    // Update slot name elements using display name helper (only when viewing live RAM loadout)
+    if (_activeLoadout === 0) {
+      const slotLabels: Record<string, string> = {
+        weapon: "Weapon", shield: "Shield", armRight: "R.Arm", armLeft: "L.Arm",
+        helm: "Helm", breastplate: "Chest", leggings: "Legs", accessory: "Acc.",
+      };
+      Object.entries(slotLabels).forEach(([slot, label]) => {
+        const el = screen.querySelector<HTMLElement>(`[data-slot-name="${slot}"]`);
+        if (el) el.textContent = _eqItemDisplayName(slot, _eqSlotData.get(slot), label);
+      });
+    }
+
+    const activeSlot = _eqGetActiveSlot(screen);
+    _eqUpdateDetail(screen, activeSlot);
+    _eqUpdateInfoBar(screen, activeSlot);
+  } catch {
+    // worker not active — leave current values
+  }
+}
+
 type PcsxGlobals = {
   __riskbreakerPcsxPause?: () => void;
   __riskbreakerPcsxResume?: () => void;
@@ -1002,6 +1780,24 @@ function pcsxResume(): void {
   (globalThis as PcsxGlobals).__riskbreakerPcsxResume?.();
 }
 
+// ── Tab switching ─────────────────────────────────────────────────────────────
+
+function initTabs(root: HTMLElement): void {
+  root.querySelectorAll<HTMLElement>(".vs-tab-nav").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.tab;
+      if (!target) return;
+
+      root.querySelectorAll(".vs-tab-nav").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      root.querySelectorAll<HTMLElement>(".vs-screen").forEach(s => s.classList.remove("active"));
+      const screen = root.querySelector<HTMLElement>(`.vs-screen[data-screen="${target}"]`);
+      screen?.classList.add("active");
+    });
+  });
+}
+
 // ── Open / close ─────────────────────────────────────────────────────────────
 
 function openMenu(root: HTMLElement): void {
@@ -1012,6 +1808,7 @@ function openMenu(root: HTMLElement): void {
   void refreshStats(root);
   void refreshEquipment(root);
   void refreshAbilities(root);
+  void refreshEquipmentScreen(root);
 }
 
 function closeMenu(root: HTMLElement): void {
@@ -1031,6 +1828,8 @@ function install(): void {
 
   const root = buildMenu();
   document.body.appendChild(root);
+  initTabs(root);
+  initEquipmentScreen(root);
 
   let open = false;
 

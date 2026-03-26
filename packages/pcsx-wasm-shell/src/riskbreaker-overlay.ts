@@ -245,7 +245,7 @@ export function installRiskbreakerOverlay(): void {
     saveBtn.textContent = "…";
     void saveWorkerState()
       .then((bytes) => {
-        const blob = new Blob([bytes], { type: "application/octet-stream" });
+        const blob = new Blob([new Uint8Array(bytes)], { type: "application/octet-stream" });
         const url = URL.createObjectURL(blob);
         const ts = new Date()
           .toISOString()

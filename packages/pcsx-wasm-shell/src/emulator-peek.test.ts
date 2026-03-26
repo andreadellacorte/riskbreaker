@@ -82,7 +82,7 @@ describe("peekWorkerMemory", () => {
     expect(call.address).toBe(0x8000);
     expect(call.length).toBe(16);
     // resolve to avoid unhandled rejection
-    const { reqId } = call as { reqId: number };
+    const { reqId } = call as unknown as { reqId: number };
     worker.emit({ cmd: "peek_result", reqId, data: new Uint8Array(16) });
     await p;
   });

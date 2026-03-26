@@ -6,5 +6,5 @@
     "noEmit": true,
     "resolveJsonModule": true
   },
-  "include": ["src/emulator-overlay-panel.ts"]
+  "include": ["src/emulator-overlay-panel.ts", "src/vs-fullscreen-menu.ts"]
 }

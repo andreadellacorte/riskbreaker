@@ -118,9 +118,9 @@ export const ADDR_EQUIP_SHIELD_GEM3   = 0x8011fcbc;
 /** equip_data for the equipped accessory ($30 bytes). */
 export const ADDR_EQUIP_ACCESSORY     = 0x8011fd78;
 /** equip_data for right arm armour ($30 bytes). */
-export const ADDR_EQUIP_ARM_RIGHT     = 0x8011fdf8;
+export const ADDR_EQUIP_ARM_RIGHT     = 0x8011fed4;
 /** equip_data for left arm armour ($30 bytes). */
-export const ADDR_EQUIP_ARM_LEFT      = 0x8011fed4;
+export const ADDR_EQUIP_ARM_LEFT      = 0x8011fdf8;
 /** equip_data for helm ($30 bytes). */
 export const ADDR_EQUIP_HELM          = 0x8011ffb0;
 /** equip_data for breastplate ($30 bytes). */

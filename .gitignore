@@ -2,6 +2,10 @@ scratch
 .DS_Store
 bins/
 
+# Local environment — contains machine-specific paths (see .env.example)
+.env
+.env.local
+
 node_modules
 dist
 coverage

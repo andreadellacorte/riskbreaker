@@ -32,9 +32,10 @@ function makeSkillBuf(overrides: Partial<Record<number, number>> = {}): Uint8Arr
 describe("MATERIAL_NAMES", () => {
   it("has an entry for each known material index", () => {
     expect(MATERIAL_NAMES[0x00]).toBe("—");
-    expect(MATERIAL_NAMES[0x01]).toBe("Leather");
-    expect(MATERIAL_NAMES[0x09]).toBe("Damascus");
-    expect(MATERIAL_NAMES[0x0b]).toBe("Heavy");
+    expect(MATERIAL_NAMES[0x01]).toBe("Wood");
+    expect(MATERIAL_NAMES[0x02]).toBe("Leather");
+    expect(MATERIAL_NAMES[0x07]).toBe("Damascus");
+    expect(MATERIAL_NAMES[0x08]).toBeUndefined();
   });
 });
 
@@ -104,10 +105,28 @@ describe("readEquipData", () => {
     expect(d.raw.length).toBe(EQUIP_DATA_SIZE);
   });
 
-  it("reads 6 class affinities and 7 type affinities", () => {
+  it("reads 6 class affinities, 7 elemental affinities, 3 type affinities", () => {
     const d = readEquipData(makeEquipBuf());
     expect(d.classes).toHaveLength(6);
-    expect(d.types).toHaveLength(7);
+    expect(d.affinities).toHaveLength(7);
+    expect(d.types).toHaveLength(3);
+  });
+
+  it("reads elemental affinities from correct offsets", () => {
+    // Physical(0x28)=1, Air(0x29)=2, Fire(0x2a)=3, Earth(0x2b)=4, Water(0x2c)=5
+    // Light(0x2d)=6, Dark(0x2e)=7
+    const d = readEquipData(makeEquipBuf({
+      0x28: 1, 0x29: 2, 0x2a: 3, 0x2b: 4, 0x2c: 5,
+      0x2d: 6, 0x2e: 7,
+    }));
+    expect(d.affinities).toEqual([1, 2, 3, 4, 5, 6, 7]);
+  });
+
+  it("reads type affinities (Blunt/Edged/Piercing) from 0x1d–0x1f", () => {
+    const d = readEquipData(makeEquipBuf({ 0x1d: 0xfc, 0x1e: 4, 0x1f: 1 })); // -4, 4, 1
+    expect(d.types[0]).toBe(-4); // Blunt
+    expect(d.types[1]).toBe(4);  // Edged
+    expect(d.types[2]).toBe(1);  // Piercing
   });
 });
 

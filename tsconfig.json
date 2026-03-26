@@ -24,7 +24,8 @@
   },
   "exclude": [
     "packages/pcsx-wasm-shell/**",
-    "plugins/vagrant-story/src/emulator-overlay-panel.ts"
+    "plugins/vagrant-story/src/emulator-overlay-panel.ts",
+    "plugins/vagrant-story/src/vs-fullscreen-menu.ts"
   ],
   "include": [
     "packages/*/src/**/*.ts",

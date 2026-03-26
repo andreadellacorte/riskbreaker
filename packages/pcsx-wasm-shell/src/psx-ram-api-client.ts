@@ -26,12 +26,13 @@ type PcsxGlobals  = typeof globalThis & {
 };
 
 type SseEvent =
-  | { type: "peek";      reqId: string }
-  | { type: "poke";      reqId: string; address: number; data: number[] }
-  | { type: "vram-peek"; reqId: string }
-  | { type: "vram-poke"; reqId: string; x: number; y: number; width: number; height: number; data: number[] }
-  | { type: "exec-flow"; reqId: string; action: "pause" | "resume" | "reset"; resetType?: string }
-  | { type: "cd-file";   reqId: string; filename: string };
+  | { type: "peek";       reqId: string }
+  | { type: "peek-range"; reqId: string; offset: number; size: number }
+  | { type: "poke";       reqId: string; address: number; data: number[] }
+  | { type: "vram-peek";  reqId: string }
+  | { type: "vram-poke";  reqId: string; x: number; y: number; width: number; height: number; data: number[] }
+  | { type: "exec-flow";  reqId: string; action: "pause" | "resume" | "reset"; resetType?: string }
+  | { type: "cd-file";    reqId: string; filename: string };
 
 function getHost(): EmulatorHost | undefined {
   return (globalThis as PcsxGlobals).__riskbreakerEmulatorHost;
@@ -40,7 +41,7 @@ function getHost(): EmulatorHost | undefined {
 async function postBinary(reqId: string, bytes: Uint8Array): Promise<void> {
   await fetch(`${UPLOAD_PATH}?reqId=${encodeURIComponent(reqId)}`, {
     method: "POST",
-    body: bytes,
+    body: new Uint8Array(bytes),
     headers: { "Content-Type": "application/octet-stream" },
   });
 }
@@ -66,6 +67,22 @@ async function handlePeek(reqId: string): Promise<void> {
     await postBinary(reqId, bytes);
   } catch (err) {
     console.error("[psxram-api] peek failed:", err);
+  }
+}
+
+// ── Handler: peek-range (partial RAM read) ───────────────────────────────────
+
+async function handlePeekRange(reqId: string, offset: number, size: number): Promise<void> {
+  const host = getHost();
+  if (!host?.peek) {
+    console.warn("[psxram-api] emulator host not ready");
+    return;
+  }
+  try {
+    const bytes = await host.peek(offset, size);
+    await postBinary(reqId, bytes);
+  } catch (err) {
+    console.error("[psxram-api] peek-range failed:", err);
   }
 }
 
@@ -153,6 +170,9 @@ function handleSseEvent(raw: string): void {
   switch (ev.type) {
     case "peek":
       void handlePeek(ev.reqId);
+      break;
+    case "peek-range":
+      void handlePeekRange(ev.reqId, ev.offset, ev.size);
       break;
     case "poke":
       void handlePoke(ev.reqId, ev.address, ev.data);

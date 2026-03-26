@@ -32,17 +32,13 @@ function i8arr(b: Uint8Array, off: number, len: number): number[] {
 
 export const MATERIAL_NAMES: Readonly<Record<number, string>> = {
   0x00: "—",
-  0x01: "Leather",
-  0x02: "Fur",
+  0x01: "Wood",
+  0x02: "Leather",
   0x03: "Bronze",
   0x04: "Iron",
-  0x05: "Silver",
-  0x06: "Gold",
-  0x07: "Mythril",
-  0x08: "Hagane",
-  0x09: "Damascus",
-  0x0a: "Wood",
-  0x0b: "Heavy",
+  0x05: "Hagane",
+  0x06: "Silver",
+  0x07: "Damascus",
 };
 
 // ── equip_data ($30 bytes) ────────────────────────────────────────────────────
@@ -97,9 +93,14 @@ export interface EquipData {
   gemEffects: number;
   /** Index in Ashley's equipment list (RAM only). */
   equipListIndex: number;
-  /** Class affinities (6 × i8): Human, Undead, Beast, Evil, Phantom, Dragon. */
+  /** Class affinities (6 × i8): Human(0), Beast(1), Undead(2), Dragon(3), Phantom(4), Evil(5). */
   classes: number[];
-  /** Type affinities (7 × i8): Blunt, Edged, Piercing, Projectile, Fire, Air, Earth. */
+  /**
+   * Elemental affinities (7 × i8, indices 0–6):
+   * Physical(0x28), Air(0x29), Fire(0x2a), Earth(0x2b), Water(0x2c), Light(0x2d), Dark(0x2e).
+   */
+  affinities: number[];
+  /** Damage-type affinities (3 × i8): Blunt(0x1d), Edged(0x1e), Piercing(0x1f). */
   types: number[];
   /** Raw bytes (full $30-byte block). */
   raw: Uint8Array;
@@ -134,7 +135,8 @@ export function readEquipData(b: Uint8Array): EquipData {
     gemEffects:    u8(b, 0x16),
     equipListIndex:u8(b, 0x17),
     classes:       i8arr(b, 0x20, 6),
-    types:         i8arr(b, 0x1d, 3).concat(i8arr(b, 0x28, 4)),
+    affinities:    i8arr(b, 0x28, 7),
+    types:         i8arr(b, 0x1d, 3),
     raw:           b.slice(0, 0x30),
     equipped:      b.subarray(0, 0x30).some(v => v !== 0),
   };

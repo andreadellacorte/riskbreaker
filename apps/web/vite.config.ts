@@ -5,14 +5,17 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 import { workspaceAliases } from "../../vite.workspace.mjs";
-import { psxRamApiPlugin } from "./vite-plugin-psx-ram-api";
-import { overlayReloadPlugin } from "./vite-plugin-overlay-reload";
+import { overlayReloadPlugin } from "./vite-plugin-overlay-reload.js";
+import { preloadPlugin } from "./vite-plugin-preload.js";
+import { psxRamApiPlugin } from "./vite-plugin-psx-ram-api.js";
 
 const appDir = path.dirname(fileURLToPath(import.meta.url));
 const monorepoRoot = path.resolve(appDir, "..", "..");
 
 export default defineConfig({
-  plugins: [react(), psxRamApiPlugin(), overlayReloadPlugin()],
+  // Load .env / .env.local from the monorepo root, not from apps/web/.
+  envDir: monorepoRoot,
+  plugins: [react(), psxRamApiPlugin(), overlayReloadPlugin(), preloadPlugin({ repoRoot: monorepoRoot })],
   resolve: {
     alias: workspaceAliases(monorepoRoot),
   },

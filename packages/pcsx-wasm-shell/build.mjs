@@ -23,7 +23,9 @@ if (!fs.existsSync(entryTs)) {
 
 fs.mkdirSync(path.dirname(outFile), { recursive: true });
 
-await esbuild.build({
+const watch = process.argv.includes("--watch");
+
+const ctx = await esbuild.context({
   absWorkingDir: pkgDir,
   entryPoints: [path.join("src", "pcsx-wasm-shell-boot.ts")],
   outfile: outFile,
@@ -32,7 +34,7 @@ await esbuild.build({
   platform: "browser",
   target: "es2020",
   legalComments: "none",
-  logLevel: "error",
+  logLevel: watch ? "info" : "error",
   alias: {
     fs: path.join(shimDir, "node-empty.cjs"),
     path: path.join(shimDir, "node-empty.cjs"),
@@ -40,4 +42,10 @@ await esbuild.build({
   },
 });
 
-console.log(`pcsx-wasm-shell: → ${path.relative(root, outFile)}`);
+if (watch) {
+  await ctx.watch();
+} else {
+  await ctx.rebuild();
+  await ctx.dispose();
+  console.log(`pcsx-wasm-shell: → ${path.relative(root, outFile)}`);
+}
