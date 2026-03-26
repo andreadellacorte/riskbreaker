@@ -2,7 +2,8 @@
 # https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
-  command = "pnpm install --frozen-lockfile && pnpm --filter @riskbreaker/web build"
+  # nix-portable supplies nix-shell for ensure:pcsx-wasm (no system Nix on Netlify images).
+  command = "bash scripts/netlify-build.sh"
   publish = "apps/web/dist"
 
 [build.environment]

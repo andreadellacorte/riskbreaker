@@ -6,9 +6,10 @@
  * - Build PCSX-wasm WASM/JS only when missing.
  * - Always (re)build the small Riskbreaker overlay IIFE if boot bundle is missing.
  *
- * Netlify has no Nix: the PCSX **core** runtime files under `apps/web/public/pcsx-wasm/`
- * (worker + wasm + pcsx_ui + css + worker_funcs) are **tracked in git** so `vite build` succeeds.
- * Regenerate them after changing `packages/pcsx-wasm-core`: `pnpm -w run ensure:pcsx-wasm`.
+ * Netlify / CI without system Nix: set `NIX_PORTABLE` to the nix-portable binary; see
+ * `scripts/netlify-build.sh` ([nix-portable](https://github.com/DavHau/nix-portable),
+ * [nix-netlify-poc](https://github.com/justinas/nix-netlify-poc/blob/master/build.sh)).
+ * Else use `nix develop`, `nix-shell`, or `emcc`+`make` on PATH.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -60,7 +61,25 @@ function haveEmcc() {
   return res.status === 0;
 }
 
+function nixPortablePath() {
+  const p = process.env.NIX_PORTABLE;
+  return p && exists(p) ? p : null;
+}
+
 function buildPcsxWasm() {
+  const np = nixPortablePath();
+  if (np) {
+    run(np, [
+      "nix-shell",
+      "-p",
+      "emscripten",
+      "gnumake",
+      "--run",
+      `cd "${pcsxWasmSrc}" && make clean && make`,
+    ]);
+    return;
+  }
+
   const haveNixShell =
     spawnSync("sh", ["-lc", "command -v nix-shell >/dev/null 2>&1"], { stdio: "ignore" }).status ===
     0;
@@ -76,15 +95,14 @@ function buildPcsxWasm() {
     return;
   }
 
-  // Netlify / dev machines with emcc but no Nix
   if (haveEmcc()) {
     run("sh", ["-lc", `cd "${pcsxWasmSrc}" && make clean && make`]);
     return;
   }
 
   throw new Error(
-    "Cannot build pcsx-wasm: need `nix-shell` with emscripten+gnumake, or emcc+make on PATH. " +
-      "For deploys, commit current files under apps/web/public/pcsx-wasm/ (see ensure-pcsx-wasm.mjs header).",
+    "Cannot build pcsx-wasm: set NIX_PORTABLE to nix-portable, or install nix-shell (emscripten+gnumake), " +
+      "or emcc+make on PATH. See scripts/netlify-build.sh.",
   );
 }
 
