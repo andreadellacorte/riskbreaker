@@ -24,6 +24,10 @@ if (!fs.existsSync(entryTs)) {
 fs.mkdirSync(path.dirname(outFile), { recursive: true });
 
 const watch = process.argv.includes("--watch");
+const rootPkgJson = JSON.parse(
+  fs.readFileSync(path.join(root, "package.json"), "utf8"),
+);
+const buildStamp = `${rootPkgJson.version ?? "0.0.0"}+${new Date().toISOString()}`;
 
 const ctx = await esbuild.context({
   absWorkingDir: pkgDir,
@@ -39,6 +43,9 @@ const ctx = await esbuild.context({
     fs: path.join(shimDir, "node-empty.cjs"),
     path: path.join(shimDir, "node-empty.cjs"),
     crypto: path.join(shimDir, "crypto-stub.cjs"),
+  },
+  define: {
+    __RB_OVERLAY_BUILD__: JSON.stringify(buildStamp),
   },
 });
 

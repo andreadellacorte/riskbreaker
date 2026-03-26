@@ -5,7 +5,8 @@
     "outDir": "dist",
     "rootDir": "src",
     "resolveJsonModule": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"],
   "exclude": ["src/emulator-overlay-panel.ts", "src/vs-fullscreen-menu.ts"]

@@ -4,6 +4,7 @@
  * Loaded by the emulator page separately from the main pcsx-wasm-shell boot bundle.
  */
 import path from "node:path";
+import fs from "node:fs";
 import { fileURLToPath } from "node:url";
 import * as esbuild from "esbuild";
 
@@ -20,6 +21,10 @@ const menuOutFile = path.join(
 );
 
 const watch = process.argv.includes("--watch");
+const rootPkgJson = JSON.parse(
+  fs.readFileSync(path.join(root, "package.json"), "utf8"),
+);
+const buildStamp = `${rootPkgJson.version ?? "0.0.0"}+${new Date().toISOString()}`;
 
 /** @type {import("esbuild").BuildOptions[]} */
 const configs = [
@@ -46,6 +51,9 @@ const configs = [
     legalComments: "none",
     logLevel: "info",
     loader: { ".png": "dataurl", ".gif": "dataurl" },
+    define: {
+      __RB_VS_MENU_BUILD__: JSON.stringify(buildStamp),
+    },
   },
 ];
 

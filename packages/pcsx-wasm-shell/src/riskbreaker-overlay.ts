@@ -16,6 +16,10 @@ import {
   writeStorageFlag,
 } from "./riskbreaker-query.js";
 
+declare const __RB_OVERLAY_BUILD__: string;
+const OVERLAY_BUILD =
+  typeof __RB_OVERLAY_BUILD__ !== "undefined" ? __RB_OVERLAY_BUILD__ : "dev";
+
 let riskbreakerOverlayInstalled = false;
 
 function currentSearch(): string {
@@ -139,6 +143,59 @@ export function installRiskbreakerOverlay(): void {
   title.textContent = "Riskbreaker";
   title.style.cssText =
     "font-size:15px;font-weight:600;letter-spacing:0.02em;margin:0 0 6px 0;color:#e8e8ef";
+
+  const buildBadge = document.createElement("div");
+  buildBadge.id = "rb-build-badge";
+  buildBadge.style.cssText = [
+    "display:flex",
+    "align-items:center",
+    "justify-content:space-between",
+    "gap:8px",
+    "margin:0 0 8px 0",
+    "padding:4px 6px",
+    "border-radius:4px",
+    "border:1px solid rgba(125,240,165,0.35)",
+    "background:rgba(0,0,0,0.3)",
+    "color:#7df0a5",
+    "font:600 11px/1.2 ui-monospace,Menlo,Consolas,monospace",
+    "text-shadow:0 0 4px rgba(125,240,165,0.2)",
+  ].join(";");
+  const buildText = document.createElement("span");
+  buildText.textContent = `riskbreaker ${OVERLAY_BUILD}`;
+  const copyBtn = document.createElement("button");
+  copyBtn.type = "button";
+  copyBtn.textContent = "📋";
+  copyBtn.title = "Copy build id";
+  copyBtn.setAttribute("aria-label", "Copy build id");
+  copyBtn.style.cssText = [
+    "cursor:pointer",
+    "padding:0 2px",
+    "border:none",
+    "background:transparent",
+    "color:#7df0a5",
+    "font-size:12px",
+    "line-height:1",
+  ].join(";");
+  copyBtn.addEventListener("click", () => {
+    const text = `riskbreaker ${OVERLAY_BUILD}`;
+    void (async () => {
+      try {
+        await globalThis.navigator?.clipboard?.writeText(text);
+      } catch {
+        // Fallback for contexts without clipboard permission/API.
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.cssText = "position:fixed;left:-9999px;top:-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+    })();
+  });
+  buildBadge.appendChild(buildText);
+  buildBadge.appendChild(copyBtn);
 
   const hint = document.createElement("p");
   hint.textContent = "Runtime menu. Press ` to hide.";
@@ -307,6 +364,7 @@ export function installRiskbreakerOverlay(): void {
   meta.style.cssText = "margin:12px 0 0 0;font-size:11px;color:#6b7388;word-break:break-all";
 
   root.appendChild(title);
+  root.appendChild(buildBadge);
   root.appendChild(hint);
   root.appendChild(menuHeading);
   root.appendChild(hudRow);

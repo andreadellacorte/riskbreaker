@@ -187,4 +187,43 @@ test.describe("VS equipment — preload", () => {
     await expect(infoBar).toContainText("Armor");
     await expect(infoBar).not.toContainText("R.Arm");
   });
+
+  test("Model sub-tab is weapon-only and renders viewer canvas", async ({ page }) => {
+    test.setTimeout(240_000);
+
+    const discRes = await page.request.get("/api/v1/preload/disc");
+    test.skip(
+      discRes.status() === 404,
+      "PRELOAD_PS1_DISC_BIN not configured — set it in .env",
+    );
+
+    const booted = await bootPreload(page);
+    test.skip(!booted, "PRELOAD_PS1_DISC_BIN not configured — set it in .env");
+
+    await page.locator("canvas#canvas").click();
+    await page.keyboard.press("f");
+
+    const menu = page.locator("#vs-menu-root");
+    await expect(menu).toHaveClass(/vs-open/, { timeout: 5_000 });
+    await menu.locator("[data-tab='equipment']").click();
+
+    const screen = menu.locator(".vs-screen[data-screen='equipment']");
+    await expect(screen).toHaveClass(/active/, { timeout: 5_000 });
+    await expect(screen.locator("[data-slot-name='weapon']"))
+      .not.toHaveText("—", { timeout: 10_000 });
+
+    const modelTab = screen.locator(".vs-eq-sub-tab[data-subtab='model']");
+    const modelPanel = screen.locator("#vs-eq-model-panel");
+
+    // Weapon row is active by default: model tab should be shown and render.
+    await expect(modelTab).toBeVisible();
+    await modelTab.click();
+    await expect(modelPanel).toHaveClass(/active/);
+    await expect(modelPanel.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
+
+    // Switching to armor slot hides model tab and disposes viewer.
+    await screen.locator(".vs-eq-slot-row[data-slot='armRight']").click();
+    await expect(modelTab).toBeHidden();
+    await expect(modelPanel.locator("canvas")).toHaveCount(0);
+  });
 });

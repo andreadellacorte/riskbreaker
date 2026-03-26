@@ -6,6 +6,7 @@ import locationEntranceUrl from "./assets/location-entrance-to-darkness.png";
 import locationEntranceGifUrl from "./assets/location-entrance-to-darkness.gif";
 // @ts-ignore — bundled as data URL by esbuild
 import workshopBgUrl from "./assets/workshop-bg.png";
+import { mountWEPViewer, unmountWEPViewer } from "./wep-viewer.js";
 
 /**
  * RSK-uxvs: Vagrant Story fullscreen menu overlay.
@@ -17,7 +18,14 @@ import workshopBgUrl from "./assets/workshop-bg.png";
 
 import { VagrantStoryRam, readItemName, type PeekFn } from "./ram/index.js";
 
+declare const __RB_VS_MENU_BUILD__: string;
+
 type Host = { peek?: PeekFn };
+type VsMenuGlobals = {
+  __riskbreakerVsMenuInstalled?: boolean;
+  __riskbreakerVsMenuDebug?: boolean;
+  __riskbreakerVsMenuKeyHandler?: (e: KeyboardEvent) => void;
+};
 
 function getHost(): Host | undefined {
   return (globalThis as { __riskbreakerEmulatorHost?: Host }).__riskbreakerEmulatorHost;
@@ -1243,6 +1251,8 @@ function buildMenu(): HTMLElement {
             <span class="vs-eq-sub-tab" data-subtab="affinity">Affinity</span>
             <span class="vs-eq-sub-sep">/</span>
             <span class="vs-eq-sub-tab" data-subtab="type">Type</span>
+            <span class="vs-eq-sub-sep vs-eq-model-sep">/</span>
+            <span class="vs-eq-sub-tab vs-eq-model-tab" data-subtab="model">Model</span>
           </div>
 
           <!-- CLASS sub-panel -->
@@ -1320,6 +1330,13 @@ function buildMenu(): HTMLElement {
               <span class="vs-eq-affinity-val zero" data-type-idx="2">—</span>
             </div>
           </div>
+
+          <div
+            class="vs-eq-sub-panel"
+            data-subtab-panel="model"
+            id="vs-eq-model-panel"
+            style="position:fixed;left:50%;top:52%;transform:translate(-50%,-50%);width:460px;height:300px;background:rgba(10,10,26,0.8);border:1px solid #2a2a4a;border-radius:6px;overflow:hidden;z-index:9050;pointer-events:none"
+          ></div>
 
           <!-- Stats block — diamonds show equipped total, diff shows this item's contribution -->
           <div class="vs-eq-diamond-block">
@@ -1500,6 +1517,7 @@ let _eqWeaponName = "—";
 let _eqStrEqp = 0, _eqIntEqp = 0, _eqAglEqp = 0;
 let _eqWeaponCatId = 0;
 let _eqRange = 0;
+let _eqModelAutoShown = false;
 
 // Loadout persistence — loadout 0 = RAM (live), 1 & 2 = localStorage
 let _activeLoadout = 0;
@@ -1692,6 +1710,44 @@ function _eqUpdateDetail(
   if (strDiff) _eqSetDiff(strDiff, data?.equipped ? data.str : 0);
   if (intDiff) _eqSetDiff(intDiff, data?.equipped ? data.int : 0);
   if (aglDiff) _eqSetDiff(aglDiff, data?.equipped ? data.agi : 0);
+
+  // MODEL sub-panel — weapon only
+  const modelPanel = screen.querySelector<HTMLElement>("#vs-eq-model-panel");
+  const modelTab = screen.querySelector<HTMLElement>(".vs-eq-model-tab");
+  const modelSep = screen.querySelector<HTMLElement>(".vs-eq-model-sep");
+  const isWeapon = slotKey === "weapon";
+  if (modelTab) modelTab.style.display = isWeapon ? "" : "none";
+  if (modelSep) modelSep.style.display = isWeapon ? "" : "none";
+
+  if (!modelPanel) return;
+  if (!isWeapon) {
+    _eqModelAutoShown = false;
+    unmountWEPViewer(modelPanel);
+    return;
+  }
+  const wepFile = data?.equipped ? data.wepFile : undefined;
+  if (typeof wepFile !== "number" || wepFile <= 0) {
+    unmountWEPViewer(modelPanel);
+    return;
+  }
+
+  // Auto-show model once per open cycle so it's discoverable.
+  if (!_eqModelAutoShown && !modelPanel.classList.contains("active")) {
+    screen.querySelectorAll(".vs-eq-sub-tab").forEach(t => t.classList.remove("active"));
+    modelTab?.classList.add("active");
+    screen.querySelectorAll<HTMLElement>(".vs-eq-sub-panel").forEach(p => {
+      if (p.dataset.subtabPanel === "model") p.classList.add("active");
+      else p.classList.remove("active");
+    });
+    _eqModelAutoShown = true;
+  }
+
+  if (!modelPanel.classList.contains("active")) {
+    unmountWEPViewer(modelPanel);
+    return;
+  }
+
+  void mountWEPViewer(modelPanel, wepFile);
 }
 
 
@@ -1791,6 +1847,7 @@ function initEquipmentScreen(root: HTMLElement): void {
           p.classList.remove("active");
         }
       });
+      _eqUpdateDetail(screen, _eqGetActiveSlot(screen));
     });
   });
 }
@@ -1912,8 +1969,22 @@ function initTabs(root: HTMLElement): void {
       root.querySelectorAll<HTMLElement>(".vs-screen").forEach(s => s.classList.remove("active"));
       const screen = root.querySelector<HTMLElement>(`.vs-screen[data-screen="${target}"]`);
       screen?.classList.add("active");
+
+      if (target !== "equipment") {
+        const modelPanel = root.querySelector<HTMLElement>("#vs-eq-model-panel");
+        if (modelPanel) _safeUnmountWepViewer(modelPanel);
+      }
     });
   });
+}
+
+function _safeUnmountWepViewer(panel: HTMLElement): void {
+  try {
+    unmountWEPViewer(panel);
+  } catch (err) {
+    // Never let viewer disposal break menu input/pause lifecycle.
+    console.warn("[vs-menu] Failed to unmount WEP viewer:", err);
+  }
 }
 
 // ── Open / close ─────────────────────────────────────────────────────────────
@@ -1930,48 +2001,85 @@ function openMenu(root: HTMLElement): void {
 }
 
 function closeMenu(root: HTMLElement): void {
-  root.style.opacity = "0";
-  pcsxResume();
-  root.addEventListener("transitionend", () => {
+  _eqModelAutoShown = false;
+  const modelPanel = root.querySelector<HTMLElement>("#vs-eq-model-panel");
+  if (modelPanel) _safeUnmountWepViewer(modelPanel);
+  try {
+    root.style.opacity = "0";
+    pcsxResume();
+    const finalizeClose = () => root.classList.remove("vs-open");
+    root.addEventListener("transitionend", () => {
+      finalizeClose();
+    }, { once: true });
+    // Fallback: if transition event does not fire, do not trap the UI.
+    setTimeout(finalizeClose, 250);
+  } catch {
+    // Fail safe: never trap user in menu if transition lifecycle fails.
     root.classList.remove("vs-open");
-  }, { once: true });
+    pcsxResume();
+  }
 }
 
 // ── Install ───────────────────────────────────────────────────────────────────
 
 function install(): void {
+  const g = globalThis as VsMenuGlobals;
+  // Hard singleton: replace any prior key handler to avoid split open-state listeners.
+  if (g.__riskbreakerVsMenuKeyHandler) {
+    document.removeEventListener("keydown", g.__riskbreakerVsMenuKeyHandler, true);
+  }
+
   const style = document.createElement("style");
   style.textContent = CSS;
   document.head.appendChild(style);
 
+  // Remove a stale root from any previous install before creating a new one.
+  const staleRoot = document.getElementById("vs-menu-root");
+  if (staleRoot) staleRoot.remove();
   const root = buildMenu();
   document.body.appendChild(root);
   initTabs(root);
   initEquipmentScreen(root);
 
+  console.info(`[vs-menu] build ${__RB_VS_MENU_BUILD__}`);
+
   let open = false;
+  const debug = () => (globalThis as VsMenuGlobals).__riskbreakerVsMenuDebug === true;
+  const isToggleMenuKey = (e: KeyboardEvent): boolean => {
+    // Prefer physical key code so CapsLock/keyboard layout/case do not break toggle.
+    if (e.code === "KeyF") return true;
+    return e.key.toLowerCase() === "f";
+  };
 
   // Capture ALL keys while menu is open so nothing leaks to the game.
-  document.addEventListener("keydown", (e) => {
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (debug() && (isToggleMenuKey(e) || e.key === "Escape")) {
+      console.debug("[vs-menu] keydown", { key: e.key, code: e.code, repeat: e.repeat, open });
+    }
     if (open) {
       e.preventDefault();
       e.stopImmediatePropagation();
-      if ((e.key === "f" && !e.repeat) || e.key === "Escape") {
+      if ((isToggleMenuKey(e) && !e.repeat) || e.key === "Escape") {
         open = false;
+        if (debug()) console.debug("[vs-menu] closing");
         closeMenu(root);
       }
       return;
     }
 
     // Menu closed — only intercept D to open
-    if (e.key === "f" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat) {
+    if (isToggleMenuKey(e) && !e.ctrlKey && !e.metaKey && !e.altKey && !e.repeat) {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
       e.preventDefault();
       open = true;
+      if (debug()) console.debug("[vs-menu] opening");
       openMenu(root);
     }
-  }, true); // capture phase so we intercept before the game's listeners
+  };
+  g.__riskbreakerVsMenuKeyHandler = onKeyDown;
+  g.__riskbreakerVsMenuInstalled = true;
+  document.addEventListener("keydown", onKeyDown, true); // capture phase so we intercept before the game's listeners
 }
 
 install();

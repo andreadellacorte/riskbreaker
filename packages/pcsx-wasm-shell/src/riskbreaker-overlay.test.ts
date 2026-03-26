@@ -68,7 +68,10 @@ describe("installRiskbreakerOverlay", () => {
     const { installRiskbreakerOverlay: install } = await import("./riskbreaker-overlay.js");
     install();
     const el = document.getElementById("rb-riskbreaker-overlay");
+    const badge = document.getElementById("rb-build-badge");
     expect(el).not.toBeNull();
+    expect(badge).not.toBeNull();
+    expect(badge?.textContent).toContain("riskbreaker");
     expect(el?.getAttribute("role")).toBe("region");
     expect(el?.textContent).toContain("Runtime menu. Press ` to hide.");
     expect(el?.textContent).toContain("Perf HUD");

@@ -14,6 +14,7 @@ Usage:
 import struct
 import os
 import argparse
+import shutil
 
 BIN = os.path.join(
     os.path.dirname(__file__),
@@ -117,6 +118,16 @@ def extract(out_dir: str):
             if is_dir and name.upper() == "OBJ":
                 print(f"\nOBJ/ directory: LBA={lba}, size={size}")
                 extract_dir(lba, size, os.path.join(out_dir, "OBJ"), "OBJ")
+                # Copy WEP files to apps/web/public/wep/ for the 3D weapon viewer
+                wep_src = os.path.join(out_dir, "OBJ")
+                wep_dst = os.path.join(os.path.dirname(__file__), "..", "apps", "web", "public", "wep")
+                os.makedirs(wep_dst, exist_ok=True)
+                copied = 0
+                for fname in os.listdir(wep_src):
+                    if fname.upper().endswith(".WEP"):
+                        shutil.copy2(os.path.join(wep_src, fname), os.path.join(wep_dst, fname))
+                        copied += 1
+                print(f"  → {copied} .WEP files copied to {wep_dst}")
 
         # ── Find MAP directory ─────────────────────────────────────────────
         map_lba, map_size = find_entry(f, root_lba, root_size, "MAP")
