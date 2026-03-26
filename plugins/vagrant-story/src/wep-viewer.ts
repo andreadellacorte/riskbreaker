@@ -394,8 +394,21 @@ interface ViewerState {
 const _viewers = new WeakMap<HTMLElement, ViewerState>();
 const _mountToken = new WeakMap<HTMLElement, symbol>();
 
-export async function mountWEPViewer(container: HTMLElement, wepFileIndex: number): Promise<void> {
-  if (_viewers.get(container)?.wepFileIndex === wepFileIndex) return;
+type BuiltWEP = {
+  wep: WEPData;
+  mesh: THREE.SkinnedMesh;
+  scene: THREE.Scene;
+  camera: THREE.PerspectiveCamera;
+  renderer: THREE.WebGLRenderer;
+};
+
+async function loadAndBuildWEP(
+  container: HTMLElement,
+  wepFileIndex: number,
+): Promise<BuiltWEP | null> {
+  if (_viewers.get(container)?.wepFileIndex === wepFileIndex) {
+    return null;
+  }
 
   unmountWEPViewer(container);
   const token = Symbol("wep-mount");
@@ -410,18 +423,20 @@ export async function mountWEPViewer(container: HTMLElement, wepFileIndex: numbe
     buffer = await res.arrayBuffer();
   } catch (err) {
     console.warn(`[wep-viewer] Failed to load /wep/${hex}.WEP:`, err);
-    return;
+    return null;
   }
 
   // If another mount came in while this one was fetching, bail.
-  if (_mountToken.get(container) !== token) return;
+  if (_mountToken.get(container) !== token) {
+    return null;
+  }
 
   let wep: WEPData;
   try {
     wep = parseWEP(buffer);
   } catch (err) {
     console.warn(`[wep-viewer] Failed to parse /wep/${hex}.WEP:`, err);
-    return;
+    return null;
   }
 
   const geo = buildGeometry(wep);
@@ -451,6 +466,16 @@ export async function mountWEPViewer(container: HTMLElement, wepFileIndex: numbe
   renderer.setPixelRatio(window.devicePixelRatio);
   container.appendChild(renderer.domElement);
 
+  return { wep, mesh, scene, camera, renderer };
+}
+
+export async function mountWEPViewer(container: HTMLElement, wepFileIndex: number): Promise<void> {
+  const built = await loadAndBuildWEP(container, wepFileIndex);
+  if (!built) return;
+
+  const { wep, mesh, scene, camera, renderer } = built;
+  void wep;
+
   let rafId = 0;
   function animate() {
     rafId = requestAnimationFrame(animate);
@@ -460,13 +485,34 @@ export async function mountWEPViewer(container: HTMLElement, wepFileIndex: numbe
   animate();
 
   const dispose = () => {
-    geo.dispose();
-    tex.dispose();
-    mat.dispose();
-    skeleton.dispose();
+    renderer.dispose();
   };
 
   _viewers.set(container, { renderer, rafId, dispose, wepFileIndex });
+}
+
+/**
+ * Mount a static, non-animating WEP viewer suitable for thumbnail galleries.
+ * The weapon is shown once with a sideways tilt and then left unchanged.
+ */
+export async function mountWEPStaticViewer(
+  container: HTMLElement,
+  wepFileIndex: number,
+  rotationY: number = -Math.PI / 4,
+): Promise<void> {
+  const built = await loadAndBuildWEP(container, wepFileIndex);
+  if (!built) return;
+
+  const { mesh, scene, camera, renderer } = built;
+  mesh.rotation.y = rotationY;
+
+  renderer.render(scene, camera);
+
+  const dispose = () => {
+    renderer.dispose();
+  };
+
+  _viewers.set(container, { renderer, rafId: 0, dispose, wepFileIndex });
 }
 
 export function unmountWEPViewer(container: HTMLElement): void {
@@ -476,7 +522,6 @@ export function unmountWEPViewer(container: HTMLElement): void {
     try {
       cancelAnimationFrame(state.rafId);
       state.dispose();
-      state.renderer.dispose();
     } finally {
       _viewers.delete(container);
     }

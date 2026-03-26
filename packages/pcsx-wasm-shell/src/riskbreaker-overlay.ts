@@ -151,14 +151,15 @@ export function installRiskbreakerOverlay(): void {
     "align-items:center",
     "justify-content:space-between",
     "gap:8px",
-    "margin:0 0 8px 0",
-    "padding:4px 6px",
-    "border-radius:4px",
-    "border:1px solid rgba(125,240,165,0.35)",
-    "background:rgba(0,0,0,0.3)",
-    "color:#7df0a5",
+    "margin:2px 0 10px 0",
+    "padding:3px 6px",
+    "border-radius:999px",
+    "border:1px solid rgba(234,179,8,0.6)",
+    "background:radial-gradient(circle at 0% 0%,rgba(250,204,21,0.18),rgba(15,23,42,0.95))",
+    "color:#facc15",
     "font:600 11px/1.2 ui-monospace,Menlo,Consolas,monospace",
-    "text-shadow:0 0 4px rgba(125,240,165,0.2)",
+    "letter-spacing:0.08em",
+    "text-transform:uppercase",
   ].join(";");
   const buildText = document.createElement("span");
   buildText.textContent = `riskbreaker ${OVERLAY_BUILD}`;

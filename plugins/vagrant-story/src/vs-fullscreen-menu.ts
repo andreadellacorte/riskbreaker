@@ -6,7 +6,7 @@ import locationEntranceUrl from "./assets/location-entrance-to-darkness.png";
 import locationEntranceGifUrl from "./assets/location-entrance-to-darkness.gif";
 // @ts-ignore — bundled as data URL by esbuild
 import workshopBgUrl from "./assets/workshop-bg.png";
-import { mountWEPViewer, unmountWEPViewer } from "./wep-viewer.js";
+import { mountWEPStaticViewer, unmountWEPViewer } from "./wep-viewer.js";
 
 /**
  * RSK-uxvs: Vagrant Story fullscreen menu overlay.
@@ -16,7 +16,7 @@ import { mountWEPViewer, unmountWEPViewer } from "./wep-viewer.js";
  * Vanilla TS + inline CSS — no framework, IIFE bundle.
  */
 
-import { VagrantStoryRam, readItemName, type PeekFn } from "./ram/index.js";
+import { readEquipData, VagrantStoryRam, type EquipData, type PeekFn } from "./ram/index.js";
 
 declare const __RB_VS_MENU_BUILD__: string;
 
@@ -660,7 +660,7 @@ const CSS = `
   font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.12em;
-  color: rgba(255,255,255,0.28);
+  color: rgba(255,255,255,0.55);
   text-transform: uppercase;
   flex-shrink: 0;
   width: 52px;
@@ -733,47 +733,22 @@ const CSS = `
   display: none;
 }
 
-.vs-eq-sub-tabs {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  padding: 7px 14px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-  flex-shrink: 0;
+.vs-eq-sub-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 14px;
+  padding: 6px 14px 10px;
+  flex: 1;
+  overflow-y: auto;
 }
 
-.vs-eq-sub-tab {
+.vs-eq-sub-col-title {
   font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.4);
-  cursor: pointer;
-  padding: 0 1px;
-  transition: color 0.1s;
-}
-
-.vs-eq-sub-tab.active {
-  color: #ffffff;
-}
-
-.vs-eq-sub-sep {
-  font-size: 8px;
-  color: rgba(255,255,255,0.2);
-  padding: 0 5px;
-  user-select: none;
-}
-
-.vs-eq-sub-panel {
-  display: none;
-  flex-direction: column;
-  flex: 1;
-  overflow-y: auto;
-  padding: 6px 14px;
-}
-
-.vs-eq-sub-panel.active {
-  display: flex;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 4px;
 }
 
 .vs-eq-affinity-row {
@@ -792,41 +767,176 @@ const CSS = `
   font-family: 'Josefin Sans', sans-serif;
   font-size: 9px;
   letter-spacing: 0.1em;
-  color: rgba(255,255,255,0.28);
+  color: rgba(255,255,255,0.6);
   text-transform: uppercase;
 }
 
 .vs-eq-affinity-val {
   font-family: 'Josefin Sans', sans-serif;
   font-size: 10px;
-  color: #ffffff;
+  color: rgba(255,255,255,0.6);
 }
 
-.vs-eq-affinity-val.pos { color: rgba(100,200,100,0.9); }
-.vs-eq-affinity-val.neg { color: rgba(255,0,0,0.7); }
-.vs-eq-affinity-val.zero { color: rgba(255,255,255,0.28); }
+.vs-eq-affinity-row-best .vs-eq-affinity-label {
+  color: #e6cf7a;
+}
+
+.vs-eq-affinity-row-best .vs-eq-affinity-val {
+  color: #e6cf7a;
+  font-weight: 600;
+}
 
 .vs-eq-diamond-block {
-  padding: 8px 14px 10px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
 
-.vs-eq-diamond-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 0;
+.vs-eq-right .vs-stats-diamonds {
+  margin-top: 0;
 }
 
-.vs-eq-diamond-label {
+.vs-eq-stat-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  min-height: 14px;
+}
+
+.vs-eq-stat-meta .vs-eq-stat-diff {
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  min-width: 0;
+  text-align: left;
+}
+
+/* ── Equipment: combat summary panel ── */
+.vs-eq-combat-panel {
+  padding: 10px 14px 8px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 18px;
+  row-gap: 6px;
+}
+
+.vs-eq-combat-heading {
+  grid-column: 1 / -1;
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.75);
+}
+
+.vs-eq-combat-col-label {
   font-family: 'Josefin Sans', sans-serif;
   font-size: 8px;
-  letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.28);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  width: 40px;
-  flex-shrink: 0;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 2px;
+}
+
+.vs-eq-combat-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vs-eq-combat-stat-label {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+
+.vs-eq-combat-stat-value {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  min-width: 38px;
+  text-align: right;
+}
+
+.vs-eq-combat-stat-value.dim {
+  color: rgba(255,255,255,0.5);
+}
+
+.vs-eq-combat-def-block {
+  min-width: 0;
+  align-self: start;
+}
+
+.vs-eq-def-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 3px;
+  font-family: 'Josefin Sans', sans-serif;
+}
+
+.vs-eq-def-table thead th {
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+  text-align: right;
+  padding: 2px 0 4px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.vs-eq-def-table thead th:first-child {
+  text-align: left;
+  padding-left: 0;
+  width: 38%;
+}
+
+.vs-eq-def-table tbody td {
+  padding: 3px 0 2px;
+  text-align: right;
+  vertical-align: baseline;
+}
+
+.vs-eq-def-table tbody td.vs-eq-def-limb {
+  text-align: left;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.62);
+  padding-right: 6px;
+}
+
+.vs-eq-def-table .vs-eq-def-phys,
+.vs-eq-def-table .vs-eq-def-mag {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+  padding-left: 8px;
+}
+
+.vs-eq-def-table .vs-eq-def-phys.dim,
+.vs-eq-def-table .vs-eq-def-mag.dim {
+  color: rgba(255,255,255,0.45);
+}
+
+.vs-eq-combat-agility {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .vs-eq-stat-diff {
@@ -839,6 +949,7 @@ const CSS = `
 .vs-eq-stat-diff.pos { color: rgba(100,200,100,0.9); }
 .vs-eq-stat-diff.neg { color: rgba(255,80,80,0.8); }
 .vs-eq-stat-diff.zero { color: rgba(255,255,255,0.28); }
+ .vs-eq-stat-diff.zero { color: rgba(255,255,255,0.5); }
 
 /* Info bar */
 .vs-eq-info-bar {
@@ -847,7 +958,7 @@ const CSS = `
   font-family: 'Josefin Sans', sans-serif;
   font-size: 9px;
   letter-spacing: 0.1em;
-  color: rgba(255,255,255,0.4);
+  color: rgba(255,255,255,0.75);
   flex-shrink: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -1187,7 +1298,7 @@ function buildMenu(): HTMLElement {
             <div class="vs-eq-loadout-btn" data-loadout="3">3</div>
           </div>
           <div class="vs-eq-slot-list">
-            <div class="vs-eq-slot-row active" data-slot="weapon">
+            <div class="vs-eq-slot-row" data-slot="weapon">
               <span class="vs-eq-slot-label">Weapon</span>
               <span class="vs-eq-slot-name" data-slot-name="weapon">—</span>
             </div>
@@ -1220,16 +1331,107 @@ function buildMenu(): HTMLElement {
               <span class="vs-eq-slot-name" data-slot-name="accessory">—</span>
             </div>
           </div>
+
+          <!-- Combat summary: current derived stats (base + equipment) -->
+          <div class="vs-eq-combat-panel">
+            <div class="vs-eq-combat-heading">Combat Profile</div>
+
+            <div>
+              <div class="vs-eq-combat-col-label">Attack</div>
+              <div class="vs-eq-combat-row">
+                <span class="vs-eq-combat-stat-label">STR</span>
+                <span id="vs-eq-atk-str" class="vs-eq-combat-stat-value dim">—</span>
+              </div>
+              <div class="vs-eq-combat-row">
+                <span class="vs-eq-combat-stat-label">INT</span>
+                <span id="vs-eq-atk-int" class="vs-eq-combat-stat-value dim">—</span>
+              </div>
+            </div>
+
+            <div class="vs-eq-combat-def-block">
+              <div class="vs-eq-combat-col-label">Defence</div>
+              <table class="vs-eq-def-table" aria-label="Defence by limb">
+                <thead>
+                  <tr>
+                    <th scope="col"></th>
+                    <th scope="col">STR</th>
+                    <th scope="col">INT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr data-def-limb="armRight">
+                    <td class="vs-eq-def-limb">R.ARM</td>
+                    <td class="vs-eq-def-phys dim">—</td>
+                    <td class="vs-eq-def-mag dim">—</td>
+                  </tr>
+                  <tr data-def-limb="armLeft">
+                    <td class="vs-eq-def-limb">L.ARM</td>
+                    <td class="vs-eq-def-phys dim">—</td>
+                    <td class="vs-eq-def-mag dim">—</td>
+                  </tr>
+                  <tr data-def-limb="helm">
+                    <td class="vs-eq-def-limb">HEAD</td>
+                    <td class="vs-eq-def-phys dim">—</td>
+                    <td class="vs-eq-def-mag dim">—</td>
+                  </tr>
+                  <tr data-def-limb="breastplate">
+                    <td class="vs-eq-def-limb">BODY</td>
+                    <td class="vs-eq-def-phys dim">—</td>
+                    <td class="vs-eq-def-mag dim">—</td>
+                  </tr>
+                  <tr data-def-limb="leggings">
+                    <td class="vs-eq-def-limb">LEGS</td>
+                    <td class="vs-eq-def-phys dim">—</td>
+                    <td class="vs-eq-def-mag dim">—</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="vs-eq-combat-agility">
+              <span class="vs-eq-combat-stat-label">Agility</span>
+              <span id="vs-eq-agl" class="vs-eq-combat-stat-value dim">—</span>
+            </div>
+          </div>
         </div>
 
-        <!-- Centre: portrait -->
+        <!-- Centre: equipment canvas (no Ashley portrait on this screen) -->
         <div class="vs-eq-portrait-col vs-portrait-col">
           <div class="vs-portrait-bg"></div>
-          <img class="vs-portrait" src="${ashleyPortraitUrl}" alt="Ashley Riot" />
         </div>
 
         <!-- Right: detail panel -->
         <div class="vs-eq-right">
+          <div class="vs-eq-diamond-block">
+            <div class="vs-stats-diamonds">
+              <div class="vs-stat-diamond">
+                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-str-val">—</div></div>
+                <div class="vs-eq-stat-meta">
+                  <span class="vs-stat-diamond-name">STR</span>
+                  <span class="vs-eq-stat-diff zero" id="vs-eq-str-diff"></span>
+                </div>
+              </div>
+              <div class="vs-stat-dashes"></div>
+              <div class="vs-stat-diamond">
+                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-int-val">—</div></div>
+                <div class="vs-eq-stat-meta">
+                  <span class="vs-stat-diamond-name">INT</span>
+                  <span class="vs-eq-stat-diff zero" id="vs-eq-int-diff"></span>
+                </div>
+              </div>
+              <div class="vs-stat-dashes"></div>
+              <div class="vs-stat-diamond">
+                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-agl-val">—</div></div>
+                <div class="vs-eq-stat-meta">
+                  <span class="vs-stat-diamond-name">AGL</span>
+                  <span class="vs-eq-stat-diff zero" id="vs-eq-agl-diff"></span>
+                </div>
+              </div>
+              <div class="vs-stat-dashes"></div>
+              <span class="vs-stats-label">Statistics</span>
+            </div>
+          </div>
+
           <div class="vs-eq-detail-header">
             <div class="vs-eq-detail-name" id="vs-eq-detail-name">—</div>
             <div class="vs-eq-detail-sub" id="vs-eq-detail-sub"></div>
@@ -1245,124 +1447,84 @@ function buildMenu(): HTMLElement {
             </div>
           </div>
 
-          <div class="vs-eq-sub-tabs">
-            <span class="vs-eq-sub-tab active" data-subtab="class">Class</span>
-            <span class="vs-eq-sub-sep">/</span>
-            <span class="vs-eq-sub-tab" data-subtab="affinity">Affinity</span>
-            <span class="vs-eq-sub-sep">/</span>
-            <span class="vs-eq-sub-tab" data-subtab="type">Type</span>
-            <span class="vs-eq-sub-sep vs-eq-model-sep">/</span>
-            <span class="vs-eq-sub-tab vs-eq-model-tab" data-subtab="model">Model</span>
-          </div>
-
-          <!-- CLASS sub-panel -->
-          <div class="vs-eq-sub-panel active" data-subtab-panel="class">
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Human</span>
-              <span class="vs-eq-affinity-val zero" data-class-idx="0">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Beast</span>
-              <span class="vs-eq-affinity-val zero" data-class-idx="1">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Undead</span>
-              <span class="vs-eq-affinity-val zero" data-class-idx="2">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Phantom</span>
-              <span class="vs-eq-affinity-val zero" data-class-idx="4">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Dragon</span>
-              <span class="vs-eq-affinity-val zero" data-class-idx="3">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Evil</span>
-              <span class="vs-eq-affinity-val zero" data-class-idx="5">—</span>
-            </div>
-          </div>
-
-          <!-- AFFINITY sub-panel (indices: Physical=0,Air=1,Fire=2,Earth=3,Water=4,Light=5,Dark=6) -->
-          <div class="vs-eq-sub-panel" data-subtab-panel="affinity">
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Physical</span>
-              <span class="vs-eq-affinity-val zero" data-affinity-idx="0">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Air</span>
-              <span class="vs-eq-affinity-val zero" data-affinity-idx="1">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Fire</span>
-              <span class="vs-eq-affinity-val zero" data-affinity-idx="2">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Earth</span>
-              <span class="vs-eq-affinity-val zero" data-affinity-idx="3">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Water</span>
-              <span class="vs-eq-affinity-val zero" data-affinity-idx="4">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Light</span>
-              <span class="vs-eq-affinity-val zero" data-affinity-idx="5">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Dark</span>
-              <span class="vs-eq-affinity-val zero" data-affinity-idx="6">—</span>
-            </div>
-          </div>
-
-          <!-- TYPE sub-panel -->
-          <div class="vs-eq-sub-panel" data-subtab-panel="type">
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Blunt</span>
-              <span class="vs-eq-affinity-val zero" data-type-idx="0">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Edged</span>
-              <span class="vs-eq-affinity-val zero" data-type-idx="1">—</span>
-            </div>
-            <div class="vs-eq-affinity-row">
-              <span class="vs-eq-affinity-label">Piercing</span>
-              <span class="vs-eq-affinity-val zero" data-type-idx="2">—</span>
-            </div>
-          </div>
-
-          <div
-            class="vs-eq-sub-panel"
-            data-subtab-panel="model"
-            id="vs-eq-model-panel"
-            style="position:fixed;left:50%;top:52%;transform:translate(-50%,-50%);width:460px;height:300px;background:rgba(10,10,26,0.8);border:1px solid #2a2a4a;border-radius:6px;overflow:hidden;z-index:9050;pointer-events:none"
-          ></div>
-
-          <!-- Stats block — diamonds show equipped total, diff shows this item's contribution -->
-          <div class="vs-eq-diamond-block">
-            <div class="vs-eq-diamond-row">
-              <span class="vs-eq-diamond-label">STR</span>
-              <div class="vs-stat-diamond">
-                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-str-val">—</div></div>
+          <div class="vs-eq-sub-grid">
+            <!-- CLASS column -->
+            <div>
+              <div class="vs-eq-sub-col-title">Class</div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Human</span>
+                <span class="vs-eq-affinity-val zero" data-class-idx="0">—</span>
               </div>
-              <div class="vs-stat-dashes"></div>
-              <span class="vs-eq-stat-diff zero" id="vs-eq-str-diff"></span>
-            </div>
-            <div class="vs-eq-diamond-row">
-              <span class="vs-eq-diamond-label">INT</span>
-              <div class="vs-stat-diamond">
-                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-int-val">—</div></div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Beast</span>
+                <span class="vs-eq-affinity-val zero" data-class-idx="1">—</span>
               </div>
-              <div class="vs-stat-dashes"></div>
-              <span class="vs-eq-stat-diff zero" id="vs-eq-int-diff"></span>
-            </div>
-            <div class="vs-eq-diamond-row">
-              <span class="vs-eq-diamond-label">AGL</span>
-              <div class="vs-stat-diamond">
-                <div class="vs-stat-diamond-badge"><div class="vs-stat-diamond-badge-inner" id="vs-eq-agl-val">—</div></div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Undead</span>
+                <span class="vs-eq-affinity-val zero" data-class-idx="2">—</span>
               </div>
-              <div class="vs-stat-dashes"></div>
-              <span class="vs-eq-stat-diff zero" id="vs-eq-agl-diff"></span>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Phantom</span>
+                <span class="vs-eq-affinity-val zero" data-class-idx="4">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Dragon</span>
+                <span class="vs-eq-affinity-val zero" data-class-idx="3">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Evil</span>
+                <span class="vs-eq-affinity-val zero" data-class-idx="5">—</span>
+              </div>
+            </div>
+
+            <!-- AFFINITY column (indices: Physical=0,Air=1,Fire=2,Earth=3,Water=4,Light=5,Dark=6) -->
+            <div>
+              <div class="vs-eq-sub-col-title">Affinity</div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Physical</span>
+                <span class="vs-eq-affinity-val zero" data-affinity-idx="0">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Air</span>
+                <span class="vs-eq-affinity-val zero" data-affinity-idx="1">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Fire</span>
+                <span class="vs-eq-affinity-val zero" data-affinity-idx="2">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Earth</span>
+                <span class="vs-eq-affinity-val zero" data-affinity-idx="3">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Water</span>
+                <span class="vs-eq-affinity-val zero" data-affinity-idx="4">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Light</span>
+                <span class="vs-eq-affinity-val zero" data-affinity-idx="5">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Dark</span>
+                <span class="vs-eq-affinity-val zero" data-affinity-idx="6">—</span>
+              </div>
+            </div>
+
+            <!-- TYPE column -->
+            <div>
+              <div class="vs-eq-sub-col-title">Type</div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Blunt</span>
+                <span class="vs-eq-affinity-val zero" data-type-idx="0">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Edged</span>
+                <span class="vs-eq-affinity-val zero" data-type-idx="1">—</span>
+              </div>
+              <div class="vs-eq-affinity-row">
+                <span class="vs-eq-affinity-label">Piercing</span>
+                <span class="vs-eq-affinity-val zero" data-type-idx="2">—</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1509,16 +1671,24 @@ const EQ_SLOTS: Array<{ key: string; label: string; isWeaponOrShield: boolean }>
   { key: "accessory",   label: "Accessory", isWeaponOrShield: false },
 ];
 
+/** Defence by limb: STR/INT = base + that slot + shield (and shield gems). No separate shield row. */
+const EQ_DEF_LIMB_ROWS: readonly { slot: string; label: string }[] = [
+  { slot: "armRight",    label: "R.ARM" },
+  { slot: "armLeft",     label: "L.ARM" },
+  { slot: "helm",        label: "HEAD" },
+  { slot: "breastplate", label: "BODY" },
+  { slot: "leggings",    label: "LEGS" },
+];
+
 // Map slot key → EquipData stored on last refresh
 const _eqSlotData = new Map<string, import("./ram/index.js").EquipData>();
 // Map slot key → item name read from RAM (when the in-game menu has loaded the table)
 const _eqRamItemName = new Map<string, string>();
 let _eqWeaponName = "—";
-let _eqStrEqp = 0, _eqIntEqp = 0, _eqAglEqp = 0;
+let _eqAglEqp = 0;
+let _eqStrBase = 0, _eqIntBase = 0, _eqAglBase = 0;
 let _eqWeaponCatId = 0;
 let _eqRange = 0;
-let _eqModelAutoShown = false;
-
 // Loadout persistence — loadout 0 = RAM (live), 1 & 2 = localStorage
 let _activeLoadout = 0;
 type SavedLoadout = Record<string, { materialName: string; label: string } | null>;
@@ -1587,6 +1757,56 @@ const WEAPON_CAT: Record<number, { type: string; hand: string }> = {
   13: { type: "Piercing", hand: "One-Handed" }, // Missile
 };
 
+type WeaponTypeHand = { type: string; hand: string };
+
+/** equip_data $10 damage-type byte (blades) → Blunt/Edged/Piercing (US). */
+const BLADE_DAMAGE_TYPE: Record<number, WeaponTypeHand["type"]> = {
+  0: "Blunt",
+  1: "Edged",
+  2: "Piercing",
+};
+
+/**
+ * Display type: blade damage byte, else dominant grip affinity, else WEAPON_CAT default.
+ * Hand: WEAPON_CAT[blade.category]; Long Sword (3) + low range often tags short swords (e.g. Fandango).
+ * Ashley weapon class id can refine hand when it differs from blade category.
+ */
+function deriveWeaponTypeHand(
+  bladeCategoryId: number,
+  bladeDamageTypeByte: number,
+  gripTypes: readonly number[] | undefined,
+  ashleyWeaponCategoryId: number | undefined,
+  rangeStat: number,
+): WeaponTypeHand | undefined {
+  const typeDefault = WEAPON_CAT[bladeCategoryId];
+  if (!typeDefault) return undefined;
+
+  let dominantType: WeaponTypeHand["type"] | undefined;
+  if (gripTypes && gripTypes.length >= 3) {
+    const [blunt, edged, piercing] = gripTypes;
+    const max = Math.max(blunt, edged, piercing);
+    if (max > 0) {
+      if (max === blunt) dominantType = "Blunt";
+      else if (max === edged) dominantType = "Edged";
+      else if (max === piercing) dominantType = "Piercing";
+    }
+  }
+
+  const fromBladeByte = BLADE_DAMAGE_TYPE[bladeDamageTypeByte];
+  const displayType = fromBladeByte ?? dominantType ?? typeDefault.type;
+
+  // Handedness from blade `category` only. Do not use ADDR_ASHLEY_WEAPON_CAT for hand:
+  // it can read "Long Sword" while the blade struct is still Short Sword (e.g. Fandango).
+  let hand = typeDefault.hand;
+  // Two-handed class in RAM but reach ≤ 10 → treat as one-handed (starter swords, short axes, etc.).
+  // Skip ranged classes (9–11) by only applying to blade categories used for melee in WEAPON_CAT.
+  if (typeDefault.hand === "Two-Handed" && rangeStat <= 10 && bladeCategoryId <= 8) {
+    hand = "One-Handed";
+  }
+
+  return { type: displayType, hand };
+}
+
 // Material colors (CSS hex) for VS aesthetic
 const MATERIAL_COLORS: Record<number, string> = {
   0: "",
@@ -1612,7 +1832,13 @@ function _eqItemName(slotKey: string, data: import("./ram/index.js").EquipData |
 
 function _eqSetAffinityVal(el: HTMLElement, val: number): void {
   el.textContent = val === 0 ? "0" : (val > 0 ? `+${val}` : `${val}`);
-  el.className = "vs-eq-affinity-val" + (val > 0 ? " pos" : val < 0 ? " neg" : " zero");
+  // Class rows: keep neutral styling that matches the label; no positive/negative colors.
+  if (el.dataset.classIdx !== undefined) {
+    el.className = "vs-eq-affinity-val";
+    return;
+  }
+  // Affinity and type rows: base style is white; best row coloring is handled at the row level.
+  el.className = "vs-eq-affinity-val";
 }
 
 function _eqSetDiff(el: HTMLElement, val: number): void {
@@ -1620,18 +1846,194 @@ function _eqSetDiff(el: HTMLElement, val: number): void {
   el.className = "vs-eq-stat-diff" + (val > 0 ? " pos" : val < 0 ? " neg" : " zero");
 }
 
+function _eqClearEquipmentDetail(screen: HTMLElement): void {
+  const nameEl = screen.querySelector<HTMLElement>("#vs-eq-detail-name");
+  if (nameEl) {
+    nameEl.textContent = "—";
+    nameEl.style.color = "";
+  }
+  const subEl = screen.querySelector<HTMLElement>("#vs-eq-detail-sub");
+  if (subEl) subEl.textContent = "";
+  const dpPpRow = screen.querySelector<HTMLElement>("#vs-eq-dp-pp-row");
+  if (dpPpRow) {
+    dpPpRow.classList.add("hidden");
+    const dpBar = screen.querySelector<HTMLElement>("#vs-eq-dp-bar");
+    const ppBar = screen.querySelector<HTMLElement>("#vs-eq-pp-bar");
+    if (dpBar) dpBar.style.width = "0%";
+    if (ppBar) ppBar.style.width = "0%";
+  }
+  screen.querySelectorAll<HTMLElement>(".vs-eq-affinity-row-best").forEach(row => {
+    row.classList.remove("vs-eq-affinity-row-best");
+  });
+  screen.querySelectorAll<HTMLElement>("[data-class-idx]").forEach(el => {
+    el.textContent = "—";
+    el.className = "vs-eq-affinity-val";
+  });
+  screen.querySelectorAll<HTMLElement>("[data-affinity-idx]").forEach(el => {
+    el.textContent = "—";
+    el.className = "vs-eq-affinity-val";
+  });
+  screen.querySelectorAll<HTMLElement>("[data-type-idx]").forEach(el => {
+    el.textContent = "—";
+    el.className = "vs-eq-affinity-val";
+  });
+  const strDiff = screen.querySelector<HTMLElement>("#vs-eq-str-diff");
+  const intDiff = screen.querySelector<HTMLElement>("#vs-eq-int-diff");
+  const aglDiff = screen.querySelector<HTMLElement>("#vs-eq-agl-diff");
+  if (strDiff) _eqSetDiff(strDiff, 0);
+  if (intDiff) _eqSetDiff(intDiff, 0);
+  if (aglDiff) _eqSetDiff(aglDiff, 0);
+  const bar = screen.querySelector<HTMLElement>("#vs-eq-info-bar");
+  if (bar) bar.textContent = "Select a slot to view equipment stats.";
+}
+
+type EqDetailPreview = { data: EquipData; displayName?: string };
+
+/** Sum STR/INT/AGL from equip_data blocks that are equipped (blade + grip + gems, etc.). */
+function _eqSumStrIntAgi(...pieces: (EquipData | undefined)[]): { str: number; int: number; agi: number } {
+  let str = 0, int = 0, agi = 0;
+  for (const d of pieces) {
+    if (d?.equipped) {
+      str += d.str;
+      int += d.int;
+      agi += d.agi;
+    }
+  }
+  return { str, int, agi };
+}
+
+function _eqRefreshCombatSummary(screen: HTMLElement): void {
+  const atkStr = screen.querySelector<HTMLElement>("#vs-eq-atk-str");
+  const atkInt = screen.querySelector<HTMLElement>("#vs-eq-atk-int");
+  const agl = screen.querySelector<HTMLElement>("#vs-eq-agl");
+
+  const setCombatVal = (el: HTMLElement | null, value: number) => {
+    if (!el) return;
+    if (value <= 0) {
+      el.textContent = "—";
+      el.classList.add("dim");
+    } else {
+      el.textContent = String(value);
+      el.classList.remove("dim");
+    }
+  };
+
+  const setDefCell = (el: HTMLElement | null, value: number, title: string) => {
+    if (!el) return;
+    if (value <= 0) {
+      el.textContent = "—";
+      el.classList.add("dim");
+      el.removeAttribute("title");
+    } else {
+      el.textContent = String(value);
+      el.classList.remove("dim");
+      el.title = title;
+    }
+  };
+
+  const eqPiece = (d: import("./ram/index.js").EquipData | undefined): { str: number; int: number } =>
+    !d?.equipped ? { str: 0, int: 0 } : { str: d.str ?? 0, int: d.int ?? 0 };
+
+  const weaponBlade = _eqSlotData.get("weapon");
+  const weaponGrip = _eqSlotData.get("weaponGrip");
+  const weaponGems = [
+    _eqSlotData.get("weaponGem1"),
+    _eqSlotData.get("weaponGem2"),
+    _eqSlotData.get("weaponGem3"),
+  ];
+  const shieldData = _eqSlotData.get("shield");
+  const shieldGems = [
+    _eqSlotData.get("shieldGem1"),
+    _eqSlotData.get("shieldGem2"),
+    _eqSlotData.get("shieldGem3"),
+  ];
+  const accessoryData = _eqSlotData.get("accessory");
+
+  const accStr = accessoryData?.equipped ? (accessoryData.str ?? 0) : 0;
+  const accInt = accessoryData?.equipped ? (accessoryData.int ?? 0) : 0;
+
+  // Attack/STR and Attack/INT: base + blade + grip + weapon gems (composite weapons) + accessory — not armour.
+  const weaponComboAtk = _eqSumStrIntAgi(weaponBlade, weaponGrip, ...weaponGems);
+  const weaponStrAtk = weaponComboAtk.str;
+  const weaponIntAtk = weaponComboAtk.int;
+  const atkStrTotal = _eqStrBase + weaponStrAtk + accStr;
+  const atkIntTotal = _eqIntBase + weaponIntAtk + accInt;
+
+  const bladeStr = weaponBlade?.equipped ? weaponBlade.str : 0;
+  const gripStr = weaponGrip?.equipped ? weaponGrip.str : 0;
+  const gemStrWeapon = weaponGems.reduce((s, d) => s + (d?.equipped ? d.str : 0), 0);
+  const bladeInt = weaponBlade?.equipped ? weaponBlade.int : 0;
+  const gripInt = weaponGrip?.equipped ? weaponGrip.int : 0;
+  const gemIntWeapon = weaponGems.reduce((s, d) => s + (d?.equipped ? d.int : 0), 0);
+
+  setCombatVal(atkStr, atkStrTotal);
+  setCombatVal(atkInt, atkIntTotal);
+  setCombatVal(agl, _eqAglEqp);
+
+  const setEqDiamondInner = (id: string, value: number) => {
+    const el = screen.querySelector<HTMLElement>(`#${id}`);
+    if (!el) return;
+    if (value <= 0) {
+      el.textContent = "—";
+    } else {
+      el.textContent = String(value);
+    }
+  };
+  setEqDiamondInner("vs-eq-str-val", atkStrTotal);
+  setEqDiamondInner("vs-eq-int-val", atkIntTotal);
+  setEqDiamondInner("vs-eq-agl-val", _eqAglEqp);
+
+  const shieldComboDef = _eqSumStrIntAgi(shieldData, ...shieldGems);
+  const shieldPiece = { str: shieldComboDef.str, int: shieldComboDef.int };
+
+  for (const { slot, label } of EQ_DEF_LIMB_ROWS) {
+    const row = screen.querySelector<HTMLElement>(`tr[data-def-limb="${slot}"]`);
+    if (!row) continue;
+    const cStr = row.querySelector<HTMLElement>(".vs-eq-def-phys");
+    const cInt = row.querySelector<HTMLElement>(".vs-eq-def-mag");
+    const piece = eqPiece(_eqSlotData.get(slot));
+    const totStr = _eqStrBase + piece.str + shieldPiece.str;
+    const totInt = _eqIntBase + piece.int + shieldPiece.int;
+
+    const tStr = `${totStr} = ${_eqStrBase} (base STR) + ${piece.str} (${label} STR) + ${shieldPiece.str} (shield + gems STR)`;
+    const tInt = `${totInt} = ${_eqIntBase} (base INT) + ${piece.int} (${label} INT) + ${shieldPiece.int} (shield + gems INT)`;
+
+    setDefCell(cStr, totStr, tStr);
+    setDefCell(cInt, totInt, tInt);
+  }
+
+  if (atkStr) {
+    atkStr.title =
+      `${atkStrTotal} = ${_eqStrBase} (base STR) + ${bladeStr} (blade) + ${gripStr} (grip) + ${gemStrWeapon} (weapon gems) + ${accStr} (accessory)`;
+  }
+  if (atkInt) {
+    atkInt.title =
+      `${atkIntTotal} = ${_eqIntBase} (base INT) + ${bladeInt} (blade) + ${gripInt} (grip) + ${gemIntWeapon} (weapon gems) + ${accInt} (accessory)`;
+  }
+
+  if (agl) {
+    const aglEquip = Math.max(0, _eqAglEqp - _eqAglBase);
+    agl.title = `${_eqAglEqp} = ${_eqAglBase} (base AGL) + ${aglEquip} (equipment)`;
+  }
+}
+
 function _eqUpdateDetail(
   screen: HTMLElement,
   slotKey: string,
+  preview?: EqDetailPreview,
 ): void {
-  const data = _eqSlotData.get(slotKey);
+  const data = preview?.data ?? _eqSlotData.get(slotKey);
   const slot = EQ_SLOTS.find(s => s.key === slotKey);
   const isWeaponOrShield = slot?.isWeaponOrShield ?? false;
 
   // Header name — use real item name; tint by material
   const nameEl = screen.querySelector<HTMLElement>("#vs-eq-detail-name");
   if (nameEl) {
-    nameEl.textContent = _eqItemName(slotKey, data, slot?.label ?? slotKey);
+    if (preview?.displayName) {
+      nameEl.textContent = preview.displayName;
+    } else {
+      nameEl.textContent = _eqItemName(slotKey, data, slot?.label ?? slotKey);
+    }
     nameEl.style.color = data?.equipped ? (_eqMaterialColor(data.materialIndex) || "") : "";
   }
 
@@ -1642,8 +2044,14 @@ function _eqUpdateDetail(
       const parts: string[] = [];
       if (data.materialName !== "—") parts.push(data.materialName);
       if (slotKey === "weapon") {
-        const cat = WEAPON_CAT[_eqWeaponCatId];
-        if (cat) parts.push(`${cat.type}/${cat.hand}`);
+        const gripData = preview ? undefined : _eqSlotData.get("weaponGrip");
+        const typeHand = deriveWeaponTypeHand(
+          data.category,
+          data.damageType,
+          gripData?.types,
+          _eqRange,
+        );
+        if (typeHand) parts.push(`${typeHand.type}/${typeHand.hand}`);
         parts.push(`Range ${_eqRange}`);
         if (data.costValue > 0) parts.push(`${data.statsCost} ${data.costValue}`);
       } else if (isWeaponOrShield) {
@@ -1675,85 +2083,127 @@ function _eqUpdateDetail(
     }
   }
 
-  // CLASS sub-panel
+  // Clear any previous "best" highlights across all affinity rows
+  screen.querySelectorAll<HTMLElement>(".vs-eq-affinity-row-best").forEach(row => {
+    row.classList.remove("vs-eq-affinity-row-best");
+  });
+
+  // CLASS sub-panel — populate values only; VS shows these evenly, without a "best" highlight
   screen.querySelectorAll<HTMLElement>("[data-class-idx]").forEach(el => {
     const idx = parseInt(el.dataset.classIdx ?? "0", 10);
     const val = data?.equipped ? (data.classes[idx] ?? 0) : 0;
     _eqSetAffinityVal(el, val);
-    if (!data?.equipped) el.textContent = "—";
+    if (!data?.equipped) {
+      el.textContent = "—";
+    }
   });
 
-  // AFFINITY sub-panel
+  // AFFINITY sub-panel — elemental alignment
+  let maxAffinityVal = Number.NEGATIVE_INFINITY;
+  const bestAffinityRows: HTMLElement[] = [];
   screen.querySelectorAll<HTMLElement>("[data-affinity-idx]").forEach(el => {
     const idx = parseInt(el.dataset.affinityIdx ?? "0", 10);
     const val = data?.equipped ? (data.affinities[idx] ?? 0) : 0;
     _eqSetAffinityVal(el, val);
-    if (!data?.equipped) el.textContent = "—";
+    if (!data?.equipped) {
+      el.textContent = "—";
+      return;
+    }
+    if (val === 0) return;
+    if (val > maxAffinityVal) {
+      maxAffinityVal = val;
+      bestAffinityRows.length = 0;
+      const row = el.closest<HTMLElement>(".vs-eq-affinity-row");
+      if (row) bestAffinityRows.push(row);
+    } else if (val === maxAffinityVal) {
+      const row = el.closest<HTMLElement>(".vs-eq-affinity-row");
+      if (row) bestAffinityRows.push(row);
+    }
   });
+  if (Number.isFinite(maxAffinityVal) && maxAffinityVal !== 0) {
+    bestAffinityRows.forEach(row => row.classList.add("vs-eq-affinity-row-best"));
+  }
 
-  // TYPE sub-panel — weapon type (Blunt/Edged/Piercing) lives in the grip, not the blade
-  const typeData = slotKey === "weapon" ? _eqSlotData.get("weaponGrip") : data;
+  // TYPE sub-panel — weapon: grip when viewing live equipped; preview stub uses blade-only data
+  const typeData =
+    slotKey === "weapon"
+      ? preview
+        ? preview.data
+        : _eqSlotData.get("weaponGrip")
+      : data;
+  let maxTypeVal = Number.NEGATIVE_INFINITY;
+  const bestTypeRows: HTMLElement[] = [];
   screen.querySelectorAll<HTMLElement>("[data-type-idx]").forEach(el => {
     const idx = parseInt(el.dataset.typeIdx ?? "0", 10);
     const val = typeData?.equipped ? (typeData.types[idx] ?? 0) : 0;
     _eqSetAffinityVal(el, val);
-    if (!typeData?.equipped) el.textContent = "—";
+    if (!typeData?.equipped) {
+      el.textContent = "—";
+      return;
+    }
+    if (val === 0) return;
+    if (val > maxTypeVal) {
+      maxTypeVal = val;
+      bestTypeRows.length = 0;
+      const row = el.closest<HTMLElement>(".vs-eq-affinity-row");
+      if (row) bestTypeRows.push(row);
+    } else if (val === maxTypeVal) {
+      const row = el.closest<HTMLElement>(".vs-eq-affinity-row");
+      if (row) bestTypeRows.push(row);
+    }
   });
+  if (Number.isFinite(maxTypeVal) && maxTypeVal !== 0) {
+    bestTypeRows.forEach(row => row.classList.add("vs-eq-affinity-row-best"));
+  }
 
-  // Diamond stat block — badge = total equipped, diff = this item's contribution
+  // Per-slot contribution under each label; badge totals are updated in _eqRefreshCombatSummary.
   const getEl = (id: string) => screen.querySelector<HTMLElement>(`#${id}`);
-  const strVal = getEl("vs-eq-str-val"), intVal = getEl("vs-eq-int-val"), aglVal = getEl("vs-eq-agl-val");
   const strDiff = getEl("vs-eq-str-diff"), intDiff = getEl("vs-eq-int-diff"), aglDiff = getEl("vs-eq-agl-diff");
-  if (strVal) strVal.textContent = `${_eqStrEqp}`;
-  if (intVal) intVal.textContent = `${_eqIntEqp}`;
-  if (aglVal) aglVal.textContent = `${_eqAglEqp}`;
-  if (strDiff) _eqSetDiff(strDiff, data?.equipped ? data.str : 0);
-  if (intDiff) _eqSetDiff(intDiff, data?.equipped ? data.int : 0);
-  if (aglDiff) _eqSetDiff(aglDiff, data?.equipped ? data.agi : 0);
 
-  // MODEL sub-panel — weapon only
-  const modelPanel = screen.querySelector<HTMLElement>("#vs-eq-model-panel");
-  const modelTab = screen.querySelector<HTMLElement>(".vs-eq-model-tab");
-  const modelSep = screen.querySelector<HTMLElement>(".vs-eq-model-sep");
-  const isWeapon = slotKey === "weapon";
-  if (modelTab) modelTab.style.display = isWeapon ? "" : "none";
-  if (modelSep) modelSep.style.display = isWeapon ? "" : "none";
-
-  if (!modelPanel) return;
-  if (!isWeapon) {
-    _eqModelAutoShown = false;
-    unmountWEPViewer(modelPanel);
-    return;
+  let strDiffVal = 0;
+  let intDiffVal = 0;
+  let aglDiffVal = 0;
+  if (data?.equipped) {
+    if (preview) {
+      strDiffVal = data.str;
+      intDiffVal = data.int;
+      aglDiffVal = data.agi;
+    } else if (slotKey === "weapon") {
+      const s = _eqSumStrIntAgi(
+        data,
+        _eqSlotData.get("weaponGrip"),
+        _eqSlotData.get("weaponGem1"),
+        _eqSlotData.get("weaponGem2"),
+        _eqSlotData.get("weaponGem3"),
+      );
+      strDiffVal = s.str;
+      intDiffVal = s.int;
+      aglDiffVal = s.agi;
+    } else if (slotKey === "shield") {
+      const s = _eqSumStrIntAgi(
+        data,
+        _eqSlotData.get("shieldGem1"),
+        _eqSlotData.get("shieldGem2"),
+        _eqSlotData.get("shieldGem3"),
+      );
+      strDiffVal = s.str;
+      intDiffVal = s.int;
+      aglDiffVal = s.agi;
+    } else {
+      strDiffVal = data.str;
+      intDiffVal = data.int;
+      aglDiffVal = data.agi;
+    }
   }
-  const wepFile = data?.equipped ? data.wepFile : undefined;
-  if (typeof wepFile !== "number" || wepFile <= 0) {
-    unmountWEPViewer(modelPanel);
-    return;
-  }
-
-  // Auto-show model once per open cycle so it's discoverable.
-  if (!_eqModelAutoShown && !modelPanel.classList.contains("active")) {
-    screen.querySelectorAll(".vs-eq-sub-tab").forEach(t => t.classList.remove("active"));
-    modelTab?.classList.add("active");
-    screen.querySelectorAll<HTMLElement>(".vs-eq-sub-panel").forEach(p => {
-      if (p.dataset.subtabPanel === "model") p.classList.add("active");
-      else p.classList.remove("active");
-    });
-    _eqModelAutoShown = true;
-  }
-
-  if (!modelPanel.classList.contains("active")) {
-    unmountWEPViewer(modelPanel);
-    return;
-  }
-
-  void mountWEPViewer(modelPanel, wepFile);
+  if (strDiff) _eqSetDiff(strDiff, strDiffVal);
+  if (intDiff) _eqSetDiff(intDiff, intDiffVal);
+  if (aglDiff) _eqSetDiff(aglDiff, aglDiffVal);
 }
 
 
 function _eqGetActiveSlot(screen: HTMLElement): string {
   const row = screen.querySelector<HTMLElement>(".vs-eq-slot-row.active");
-  return row?.dataset.slot ?? "weapon";
+  return row?.dataset.slot ?? "";
 }
 
 const SLOT_CLASS_NAMES: Record<string, string> = {
@@ -1767,10 +2217,10 @@ const SLOT_CLASS_NAMES: Record<string, string> = {
   accessory:   "Accessory",
 };
 
-function _eqUpdateInfoBar(screen: HTMLElement, slotKey: string): void {
+function _eqUpdateInfoBar(screen: HTMLElement, slotKey: string, dataOverride?: EquipData): void {
   const bar = screen.querySelector<HTMLElement>("#vs-eq-info-bar");
   if (!bar) return;
-  const data = _eqSlotData.get(slotKey);
+  const data = dataOverride ?? _eqSlotData.get(slotKey);
   const slot = EQ_SLOTS.find(s => s.key === slotKey);
   if (!data?.equipped) {
     bar.textContent = slot ? `Slot: ${slot.label}` : "—";
@@ -1778,14 +2228,232 @@ function _eqUpdateInfoBar(screen: HTMLElement, slotKey: string): void {
   }
   const className = SLOT_CLASS_NAMES[slotKey] ?? slot?.label ?? slotKey;
   if (slotKey === "weapon") {
-    const cat = WEAPON_CAT[_eqWeaponCatId];
-    const typeStr = cat ? ` · ${cat.type}/${cat.hand}` : "";
+    const gripData = _eqSlotData.get("weaponGrip");
+    const typeHand = deriveWeaponTypeHand(
+      data.category,
+      data.damageType,
+      gripData?.types,
+      _eqRange,
+    );
+    const typeStr = typeHand ? ` · ${typeHand.type}/${typeHand.hand}` : "";
     bar.textContent = `Class: ${className}  ·  ${data.materialName}${typeStr}`;
   } else if (slot?.isWeaponOrShield) {
     bar.textContent = `Class: ${className}  ·  ${data.materialName}`;
   } else {
     bar.textContent = `Class: ${className}  ·  ${data.materialName}`;
   }
+}
+
+function _eqClearCategoryGallery(screen: HTMLElement): void {
+  const gallery = screen.querySelector<HTMLElement>("#vs-eq-category-gallery");
+  if (!gallery) return;
+  gallery.querySelectorAll<HTMLElement>(".vs-eq-model-thumb").forEach((thumb) => {
+    unmountWEPViewer(thumb);
+  });
+  gallery.remove();
+}
+
+/**
+ * Centre column: all items in the same category as the active slot (equipped + stub inventory).
+ * Clicking a tile updates the right-hand detail panel.
+ */
+async function _eqRenderCategoryGallery(screen: HTMLElement, slotKey: string): Promise<void> {
+  const portraitCol = screen.querySelector<HTMLElement>(".vs-eq-portrait-col");
+  if (!portraitCol) return;
+
+  _eqClearCategoryGallery(screen);
+
+  const gallery = document.createElement("div");
+  gallery.id = "vs-eq-category-gallery";
+  gallery.style.cssText = [
+    "position:absolute",
+    "inset:24px 32px 32px 32px",
+    "display:flex",
+    "flex-wrap:wrap",
+    "align-content:flex-start",
+    "justify-content:center",
+    "gap:12px",
+    "pointer-events:auto",
+  ].join(";");
+
+  const slot = EQ_SLOTS.find(s => s.key === slotKey);
+
+  if (slotKey === "weapon") {
+    const blade = _eqSlotData.get("weapon");
+    type WEntry = { kind: "equipped" | "stub"; label: string; wepFile: number };
+    const entries: WEntry[] = [];
+    if (blade?.equipped && blade.wepFile > 0) {
+      entries.push({ kind: "equipped", label: _eqWeaponName, wepFile: blade.wepFile });
+    }
+    for (const extra of WEAPON_INVENTORY_EXTRAS) {
+      if (extra.name === _eqWeaponName) continue;
+      if (blade?.equipped && extra.wepFile === blade.wepFile) continue;
+      entries.push({ kind: "stub", label: extra.name, wepFile: extra.wepFile });
+    }
+    if (entries.length === 0) return;
+
+    entries.forEach((entry, index) => {
+      const wrap = document.createElement("div");
+      wrap.style.cssText =
+        "display:flex;flex-direction:column;align-items:center;gap:6px;width:112px;pointer-events:auto";
+      const thumb = document.createElement("div");
+      thumb.className = "vs-eq-model-thumb";
+      thumb.dataset.wepFile = String(entry.wepFile);
+      thumb.dataset.previewKind = entry.kind;
+      thumb.style.cssText = [
+        "width:96px",
+        "height:96px",
+        "border-radius:8px",
+        "border:1px solid rgba(148,163,184,0.55)",
+        "background:radial-gradient(circle at 30% 10%,rgba(248,250,252,0.08),rgba(15,23,42,0.96))",
+        "box-shadow:0 10px 20px rgba(15,23,42,0.85)",
+        "overflow:hidden",
+        "position:relative",
+        "cursor:pointer",
+      ].join(";");
+
+      const tilt = -Math.PI / 4 + index * 0.04;
+      void mountWEPStaticViewer(thumb, entry.wepFile, tilt);
+
+      const cap = document.createElement("div");
+      cap.style.cssText =
+        "font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:0.06em;color:rgba(255,255,255,0.55);text-align:center;max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+      cap.textContent = entry.label;
+
+      const equipBtn = document.createElement("button");
+      equipBtn.type = "button";
+      equipBtn.textContent = "Equip";
+      equipBtn.style.cssText =
+        "font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;border:1px solid rgba(200,168,74,0.45);background:rgba(20,18,16,0.95);color:#c8a84a;cursor:pointer";
+      equipBtn.title = "Mock equip — does not write PS1 RAM yet";
+
+      const applySelection = (): void => {
+        if (entry.kind === "equipped") {
+          _eqUpdateDetail(screen, "weapon");
+          _eqRefreshCombatSummary(screen);
+          _eqUpdateInfoBar(screen, "weapon");
+        } else {
+          const stub = _eqStubEquipPreview(blade, entry.wepFile);
+          _eqUpdateDetail(screen, "weapon", { data: stub, displayName: entry.label });
+          _eqRefreshCombatSummary(screen);
+          _eqUpdateInfoBar(screen, "weapon", stub);
+        }
+      };
+
+      thumb.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        applySelection();
+      });
+      equipBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        applySelection();
+      });
+
+      wrap.appendChild(thumb);
+      wrap.appendChild(cap);
+      wrap.appendChild(equipBtn);
+      gallery.appendChild(wrap);
+    });
+
+    portraitCol.appendChild(gallery);
+    return;
+  }
+
+  if (slotKey === "shield") {
+    const shield = _eqSlotData.get("shield");
+    type SEntry = { kind: "equipped" | "stub"; label: string; wepFile: number };
+    const entries: SEntry[] = [];
+    if (shield?.equipped && shield.wepFile > 0) {
+      entries.push({
+        kind: "equipped",
+        label: _eqItemName("shield", shield, "Shield"),
+        wepFile: shield.wepFile,
+      });
+    }
+    for (const extra of SHIELD_INVENTORY_EXTRAS) {
+      const eqName = shield?.equipped ? _eqItemName("shield", shield, "Shield") : "";
+      if (extra.name === eqName) continue;
+      if (shield?.equipped && extra.wepFile === shield.wepFile) continue;
+      entries.push({ kind: "stub", label: extra.name, wepFile: extra.wepFile });
+    }
+    if (entries.length === 0) return;
+
+    entries.forEach((entry, index) => {
+      const wrap = document.createElement("div");
+      wrap.style.cssText =
+        "display:flex;flex-direction:column;align-items:center;gap:6px;width:112px;pointer-events:auto";
+      const thumb = document.createElement("div");
+      thumb.className = "vs-eq-model-thumb";
+      thumb.dataset.wepFile = String(entry.wepFile);
+      thumb.style.cssText = [
+        "width:96px",
+        "height:96px",
+        "border-radius:8px",
+        "border:1px solid rgba(148,163,184,0.55)",
+        "background:radial-gradient(circle at 30% 10%,rgba(248,250,252,0.08),rgba(15,23,42,0.96))",
+        "overflow:hidden",
+        "cursor:pointer",
+      ].join(";");
+      const tilt = -Math.PI / 4 + index * 0.04;
+      void mountWEPStaticViewer(thumb, entry.wepFile, tilt);
+
+      const cap = document.createElement("div");
+      cap.style.cssText =
+        "font-family:'Josefin Sans',sans-serif;font-size:9px;color:rgba(255,255,255,0.55);text-align:center;max-width:112px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap";
+      cap.textContent = entry.label;
+
+      const equipBtn = document.createElement("button");
+      equipBtn.type = "button";
+      equipBtn.textContent = "Equip";
+      equipBtn.style.cssText =
+        "font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;border:1px solid rgba(200,168,74,0.45);background:rgba(20,18,16,0.95);color:#c8a84a;cursor:pointer";
+
+      const applySelection = (): void => {
+        if (entry.kind === "equipped") {
+          _eqUpdateDetail(screen, "shield");
+          _eqRefreshCombatSummary(screen);
+          _eqUpdateInfoBar(screen, "shield");
+        } else {
+          const stub = _eqStubEquipPreview(shield, entry.wepFile);
+          _eqUpdateDetail(screen, "shield", { data: stub, displayName: entry.label });
+          _eqRefreshCombatSummary(screen);
+          _eqUpdateInfoBar(screen, "shield", stub);
+        }
+      };
+
+      thumb.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); applySelection(); });
+      equipBtn.addEventListener("click", (e) => { e.preventDefault(); e.stopPropagation(); applySelection(); });
+
+      wrap.appendChild(thumb);
+      wrap.appendChild(cap);
+      wrap.appendChild(equipBtn);
+      gallery.appendChild(wrap);
+    });
+
+    portraitCol.appendChild(gallery);
+    return;
+  }
+
+  // Armour / accessory: text cards only
+  const data = _eqSlotData.get(slotKey);
+  if (!data?.equipped) return;
+
+  const label = _eqItemName(slotKey, data, slot?.label ?? slotKey);
+  const card = document.createElement("button");
+  card.type = "button";
+  card.textContent = label;
+  card.style.cssText =
+    "min-width:120px;padding:12px 16px;border-radius:8px;border:1px solid rgba(148,163,184,0.45);background:rgba(15,23,42,0.6);color:#fff;font-family:'Josefin Sans',sans-serif;font-size:11px;cursor:pointer";
+  card.addEventListener("click", (e) => {
+    e.preventDefault();
+    _eqUpdateDetail(screen, slotKey);
+    _eqRefreshCombatSummary(screen);
+    _eqUpdateInfoBar(screen, slotKey);
+  });
+  gallery.appendChild(card);
+  portraitCol.appendChild(gallery);
 }
 
 function initEquipmentScreen(root: HTMLElement): void {
@@ -1822,34 +2490,20 @@ function initEquipmentScreen(root: HTMLElement): void {
     });
   });
 
-  // Slot rows
+  // Slot rows — no default selection; first click chooses category and shows centre + right detail
   screen.querySelectorAll<HTMLElement>(".vs-eq-slot-row").forEach(row => {
     row.addEventListener("click", () => {
       screen.querySelectorAll(".vs-eq-slot-row").forEach(r => r.classList.remove("active"));
       row.classList.add("active");
-      const slotKey = row.dataset.slot ?? "weapon";
+      const slotKey = row.dataset.slot ?? "";
+      if (!slotKey) return;
       _eqUpdateDetail(screen, slotKey);
+      _eqRefreshCombatSummary(screen);
       _eqUpdateInfoBar(screen, slotKey);
+      void _eqRenderCategoryGallery(screen, slotKey);
     });
   });
 
-  // Sub-tabs
-  screen.querySelectorAll<HTMLElement>(".vs-eq-sub-tab").forEach(tab => {
-    tab.addEventListener("click", () => {
-      const target = tab.dataset.subtab;
-      if (!target) return;
-      screen.querySelectorAll(".vs-eq-sub-tab").forEach(t => t.classList.remove("active"));
-      tab.classList.add("active");
-      screen.querySelectorAll<HTMLElement>(".vs-eq-sub-panel").forEach(p => {
-        if (p.dataset.subtabPanel === target) {
-          p.classList.add("active");
-        } else {
-          p.classList.remove("active");
-        }
-      });
-      _eqUpdateDetail(screen, _eqGetActiveSlot(screen));
-    });
-  });
 }
 
 async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
@@ -1864,43 +2518,61 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       weaponName,
       blade,
       grip,
+      weaponGem1,
+      weaponGem2,
+      weaponGem3,
       shield,
+      shieldGem1,
+      shieldGem2,
+      shieldGem3,
       armRight,
       armLeft,
       helm,
       breastplate,
       leggings,
       accessory,
-      strEquipped,
-      intEquipped,
       aglEquipped,
+      strBase,
+      intBase,
       rangeVal,
     ] = await Promise.all([
       ram.ashley.equip.weaponName(),
       ram.ashley.equip.weaponBlade(),
       ram.ashley.equip.weaponGrip(),
+      ram.ashley.equip.weaponGem1(),
+      ram.ashley.equip.weaponGem2(),
+      ram.ashley.equip.weaponGem3(),
       ram.ashley.equip.shield(),
+      ram.ashley.equip.shieldGem1(),
+      ram.ashley.equip.shieldGem2(),
+      ram.ashley.equip.shieldGem3(),
       ram.ashley.equip.armRight(),
       ram.ashley.equip.armLeft(),
       ram.ashley.equip.helm(),
       ram.ashley.equip.breastplate(),
       ram.ashley.equip.leggings(),
       ram.ashley.equip.accessory(),
-      ram.ashley.strEquipped(),
-      ram.ashley.intEquipped(),
       ram.ashley.aglEquipped(),
+      ram.ashley.strBase(),
+      ram.ashley.intBase(),
       ram.ashley.range(),
     ]);
 
     _eqWeaponName = weaponName;
-    _eqStrEqp = strEquipped;
-    _eqIntEqp = intEquipped;
     _eqAglEqp = aglEquipped;
+    _eqStrBase = strBase;
+    _eqIntBase = intBase;
     _eqWeaponCatId = blade.category;
     _eqRange = rangeVal;
     _eqSlotData.set("weapon",      blade);
     _eqSlotData.set("weaponGrip",  grip);
+    _eqSlotData.set("weaponGem1",  weaponGem1);
+    _eqSlotData.set("weaponGem2",  weaponGem2);
+    _eqSlotData.set("weaponGem3",  weaponGem3);
     _eqSlotData.set("shield",      shield);
+    _eqSlotData.set("shieldGem1",  shieldGem1);
+    _eqSlotData.set("shieldGem2",  shieldGem2);
+    _eqSlotData.set("shieldGem3",  shieldGem3);
     _eqSlotData.set("armRight",    armRight);
     _eqSlotData.set("armLeft",     armLeft);
     _eqSlotData.set("helm",        helm);
@@ -1934,9 +2606,16 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       });
     }
 
+    _eqRefreshCombatSummary(screen);
     const activeSlot = _eqGetActiveSlot(screen);
+    if (!activeSlot) {
+      _eqClearEquipmentDetail(screen);
+      _eqClearCategoryGallery(screen);
+      return;
+    }
     _eqUpdateDetail(screen, activeSlot);
     _eqUpdateInfoBar(screen, activeSlot);
+    void _eqRenderCategoryGallery(screen, activeSlot);
   } catch {
     // worker not active — leave current values
   }
@@ -1971,8 +2650,18 @@ function initTabs(root: HTMLElement): void {
       screen?.classList.add("active");
 
       if (target !== "equipment") {
-        const modelPanel = root.querySelector<HTMLElement>("#vs-eq-model-panel");
-        if (modelPanel) _safeUnmountWepViewer(modelPanel);
+        const eqScreen = root.querySelector<HTMLElement>('.vs-screen[data-screen="equipment"]');
+        if (eqScreen) _eqClearCategoryGallery(eqScreen);
+      }
+
+      if (target === "equipment") {
+        const eqScreen = root.querySelector<HTMLElement>('.vs-screen[data-screen="equipment"]');
+        if (eqScreen) {
+          eqScreen.querySelectorAll(".vs-eq-slot-row").forEach(r => r.classList.remove("active"));
+          _eqClearEquipmentDetail(eqScreen);
+          _eqClearCategoryGallery(eqScreen);
+          void refreshEquipmentScreen(root);
+        }
       }
     });
   });
@@ -2001,9 +2690,6 @@ function openMenu(root: HTMLElement): void {
 }
 
 function closeMenu(root: HTMLElement): void {
-  _eqModelAutoShown = false;
-  const modelPanel = root.querySelector<HTMLElement>("#vs-eq-model-panel");
-  if (modelPanel) _safeUnmountWepViewer(modelPanel);
   try {
     root.style.opacity = "0";
     pcsxResume();
