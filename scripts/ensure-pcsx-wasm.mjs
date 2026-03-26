@@ -6,7 +6,9 @@
  * - Build PCSX-wasm WASM/JS only when missing.
  * - Always (re)build the small Riskbreaker overlay IIFE if boot bundle is missing.
  *
- * This lets local dev + CI work without committing large generated artifacts.
+ * Netlify has no Nix: the PCSX **core** runtime files under `apps/web/public/pcsx-wasm/`
+ * (worker + wasm + pcsx_ui + css + worker_funcs) are **tracked in git** so `vite build` succeeds.
+ * Regenerate them after changing `packages/pcsx-wasm-core`: `pnpm -w run ensure:pcsx-wasm`.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -25,6 +27,7 @@ const requiredPcsx = [
   "pcsx_ww.wasm",
   path.join("css", "pcsx.css"),
   path.join("js", "pcsx_ui.js"),
+  path.join("js", "worker_funcs.js"),
 ];
 
 const riskbreakerBoot = path.join(
@@ -58,25 +61,31 @@ function haveEmcc() {
 }
 
 function buildPcsxWasm() {
-  // Always build via nix to ensure a reproducible toolchain.
-  // CI runs inside `nix develop` (emcc already on PATH); locally we use nix-shell as a wrapper.
-  const haveNixShell = spawnSync(
-    "sh",
-    ["-lc", "command -v nix-shell >/dev/null 2>&1"],
-    { stdio: "ignore" },
-  ).status === 0;
+  const haveNixShell =
+    spawnSync("sh", ["-lc", "command -v nix-shell >/dev/null 2>&1"], { stdio: "ignore" }).status ===
+    0;
 
-  if (!haveNixShell) {
-    throw new Error("nix-shell not found. Run inside `nix develop` or install Nix.");
+  if (haveNixShell) {
+    run("nix-shell", [
+      "-p",
+      "emscripten",
+      "gnumake",
+      "--run",
+      `cd "${pcsxWasmSrc}" && make clean && make`,
+    ]);
+    return;
   }
 
-  run("nix-shell", [
-    "-p",
-    "emscripten",
-    "gnumake",
-    "--run",
-    `cd "${pcsxWasmSrc}" && make clean && make`,
-  ]);
+  // Netlify / dev machines with emcc but no Nix
+  if (haveEmcc()) {
+    run("sh", ["-lc", `cd "${pcsxWasmSrc}" && make clean && make`]);
+    return;
+  }
+
+  throw new Error(
+    "Cannot build pcsx-wasm: need `nix-shell` with emscripten+gnumake, or emcc+make on PATH. " +
+      "For deploys, commit current files under apps/web/public/pcsx-wasm/ (see ensure-pcsx-wasm.mjs header).",
+  );
 }
 
 function materializePcsxWasmDist() {

@@ -38,13 +38,8 @@ packages/pcsx-wasm-core/pcsx_worker.wasm
 packages/pcsx-wasm-core/pcsx_ww.js
 packages/pcsx-wasm-core/pcsx_ww.wasm
 
-# Generated PCSX-wasm artifacts synced into the web public folder
-apps/web/public/pcsx-wasm/pcsx_worker.js
-apps/web/public/pcsx-wasm/pcsx_worker.wasm
-apps/web/public/pcsx-wasm/pcsx_ww.js
-apps/web/public/pcsx-wasm/pcsx_ww.wasm
-apps/web/public/pcsx-wasm/css/pcsx.css
-apps/web/public/pcsx-wasm/js/pcsx_ui.js
+# PCSX-wasm core runtime under public/ is tracked so Netlify/CI can build without Nix.
+# Regenerate after changing packages/pcsx-wasm-core: pnpm -w run ensure:pcsx-wasm (inside nix OR with emcc on PATH).
 
 # Generated PCSX kxkx artifacts materialized into dist/ (do not commit)
 packages/pcsx-wasm-core/dist/**
