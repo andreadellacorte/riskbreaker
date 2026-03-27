@@ -134,7 +134,8 @@ var SoundFeedStreamData;
 
 /** Retries when `onRuntimeInitialized` fires before assignWasmExports wires _get_ptr (intermittent on fast hosts / CDN). */
 var var_setup_retry_count = 0;
-var VAR_SETUP_MAX_RETRIES = 100;
+/** Cold CDN + wasm compile/inst. on Netlify can exceed 1s; keep total wait ~10s. */
+var VAR_SETUP_MAX_RETRIES = 1000;
 var VAR_SETUP_RETRY_MS = 10;
 var var_setup_retry_scheduled = false;
 

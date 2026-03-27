@@ -16,6 +16,7 @@ export default tseslint.config(
       "vitest.config.mts",
       "**/.turbo/**",
       "**/coverage/**",
+      "playwright-report/**",
       "apps/web/public/pcsx-wasm/**",
       "packages/pcsx-wasm-shell/shims/**",
       // PCSX-wasm fork artifacts + Emscripten glue are generated/minified and
