@@ -631,6 +631,44 @@ const CSS = `
   background: #141210;
 }
 
+.vs-eq-loadout-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0 14px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.vs-eq-apply-preset-btn {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(200, 168, 74, 0.4);
+  background: rgba(20, 18, 16, 0.95);
+  color: #c8a84a;
+  cursor: pointer;
+  transition: opacity 0.15s, border-color 0.15s;
+}
+
+.vs-eq-apply-preset-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.vs-eq-loadout-hint {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.38);
+  line-height: 1.35;
+}
+
 .vs-eq-slot-list {
   flex: 1;
   overflow-y: auto;
@@ -1173,13 +1211,13 @@ function buildMenu(): HTMLElement {
         <div class="vs-loadout">
           <!-- 3 loadout selector buttons -->
           <div class="vs-loadout-tabs">
-            <div class="vs-loadout-btn active" title="Loadout 1">
+            <div class="vs-loadout-btn active" data-loadout="1" title="Live — matches game save (peek)">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6.5 2 2 6.5l5 5-3.5 3.5L9 21l10-10L13.5 5l3.5-3.5zm0 2.83 2.17 2.17-3.17 3.17L3.33 8z"/></svg>
             </div>
-            <div class="vs-loadout-btn" title="Loadout 2">
+            <div class="vs-loadout-btn" data-loadout="2" title="Preset 2 — localStorage vs-loadout-2">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M15.5 2.1 13.41 4.19l1.4 1.4-7.37 7.38-1.41-1.41L4 13.56l1.41 1.41L4 16.38V20h3.62l1.41-1.41L10.44 20l2.01-2.01-1.41-1.41 7.37-7.37 1.41 1.41L21.9 8.5z"/></svg>
             </div>
-            <div class="vs-loadout-btn" title="Loadout 3">
+            <div class="vs-loadout-btn" data-loadout="3" title="Preset 3 — localStorage vs-loadout-3">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M10.5 1.5c-1.2 0-2.4.3-3.5.9L4.5 0 3 1.5l2.1 2.1C4 4.8 3 6.6 3 8.5c0 4.1 3.4 7.5 7.5 7.5S18 12.6 18 8.5 14.6 1.5 10.5 1.5zm0 13C7.5 14.5 5 12 5 9s2.5-5.5 5.5-5.5S16 6 16 9s-2.5 5.5-5.5 5.5z"/></svg>
             </div>
           </div>
@@ -1291,9 +1329,13 @@ function buildMenu(): HTMLElement {
         <!-- Left: slot list -->
         <div class="vs-eq-left">
           <div class="vs-eq-loadout-bar">
-            <div class="vs-eq-loadout-btn active" data-loadout="1">1</div>
-            <div class="vs-eq-loadout-btn" data-loadout="2">2</div>
-            <div class="vs-eq-loadout-btn" data-loadout="3">3</div>
+            <div class="vs-eq-loadout-btn active" data-loadout="1" title="Live — game save">1</div>
+            <div class="vs-eq-loadout-btn" data-loadout="2" title="Preset 2 (localStorage)">2</div>
+            <div class="vs-eq-loadout-btn" data-loadout="3" title="Preset 3 (localStorage)">3</div>
+          </div>
+          <div class="vs-eq-loadout-actions">
+            <button type="button" class="vs-eq-apply-preset-btn" id="vs-eq-apply-preset" disabled>Use preset on Ashley</button>
+            <span class="vs-eq-loadout-hint">1 = live game · 2–3 = browse presets · apply copies mock gear to live overlay (no RAM poke).</span>
           </div>
           <div class="vs-eq-slot-list">
             <div class="vs-eq-slot-row" data-slot="weapon">
@@ -1583,13 +1625,17 @@ async function refreshStats(root: HTMLElement): Promise<void> {
 async function refreshEquipment(root: HTMLElement): Promise<void> {
   const ram = getRam();
   if (!ram) return;
+  if (_activeLoadout !== 0) return;
 
   try {
-    const [weaponName, blade, shield] = await Promise.all([
+    const [weaponNameRam, bladeRam, shieldRam] = await Promise.all([
       ram.ashley.equip.weaponName(),
       ram.ashley.equip.weaponBlade(),
       ram.ashley.equip.shield(),
     ]);
+    const weaponName = _eqLocalWeaponOverride?.displayName ?? weaponNameRam;
+    const blade = _eqLocalWeaponOverride?.data ?? bladeRam;
+    const shield = _eqLocalShieldOverride?.data ?? shieldRam;
 
     const sel = <T extends HTMLElement>(id: string) => root.querySelector<T>(`#${id}`);
     const dots = `<div class="vs-weapon-tag-dot"></div><div class="vs-weapon-tag-dot"></div><div class="vs-weapon-tag-dot"></div>`;
@@ -1610,6 +1656,7 @@ async function refreshEquipment(root: HTMLElement): Promise<void> {
     const sMatEl = sel("vs-shield-mat");
 
     if (shield.equipped) {
+      if (shieldNameEl && _eqLocalShieldOverride) shieldNameEl.textContent = _eqLocalShieldOverride.displayName;
       if (sDpBar) sDpBar.style.width = shield.dpMax > 0 ? `${Math.round((shield.dpCur / shield.dpMax) * 100)}%` : "0%";
       if (sPpBar) sPpBar.style.width = shield.ppMax > 0 ? `${Math.round((shield.ppCur / shield.ppMax) * 100)}%` : "0%";
       if (sMatEl) sMatEl.innerHTML = `${dots} ${shield.materialName}`;
@@ -1620,6 +1667,53 @@ async function refreshEquipment(root: HTMLElement): Promise<void> {
     }
   } catch {
     // worker not active — leave current values
+  }
+}
+
+/** Ashley strip: live RAM (plus mock overrides) or preset labels only. */
+async function refreshAshleyLoadoutStrip(root: HTMLElement): Promise<void> {
+  if (_activeLoadout === 0) {
+    await refreshEquipment(root);
+    return;
+  }
+  _reloadSavedLoadoutsFromStorage();
+  const saved = _savedLoadouts[_activeLoadout - 1]!;
+  const sel = <T extends HTMLElement>(id: string) => root.querySelector<T>(`#${id}`);
+  const dots = `<div class="vs-weapon-tag-dot"></div><div class="vs-weapon-tag-dot"></div><div class="vs-weapon-tag-dot"></div>`;
+  const wLab = "Weapon";
+  const sLab = "Shield";
+  const w = saved.weapon;
+  const weaponNameEl = sel("vs-weapon-name");
+  if (weaponNameEl) {
+    if (!w) weaponNameEl.textContent = "—";
+    else {
+      const mat = w.materialName !== "—" ? w.materialName : "";
+      weaponNameEl.textContent = mat ? `${mat} ${wLab}` : w.label;
+    }
+  }
+  const wDpBar = sel("vs-weapon-dp-bar");
+  const wPpBar = sel("vs-weapon-pp-bar");
+  const wMatEl = sel("vs-weapon-mat");
+  if (wDpBar) wDpBar.style.width = "0%";
+  if (wPpBar) wPpBar.style.width = "0%";
+  if (wMatEl) wMatEl.innerHTML = `${dots} —`;
+
+  const sh = saved.shield;
+  const shieldNameEl = sel("vs-shield-name");
+  const sDpBar = sel("vs-shield-dp-bar");
+  const sPpBar = sel("vs-shield-pp-bar");
+  const sMatEl = sel("vs-shield-mat");
+  if (sh && shieldNameEl) {
+    const mat = sh.materialName !== "—" ? sh.materialName : "";
+    shieldNameEl.textContent = mat ? `${mat} ${sLab}` : sh.label;
+    if (sDpBar) sDpBar.style.width = "0%";
+    if (sPpBar) sPpBar.style.width = "0%";
+    if (sMatEl) sMatEl.innerHTML = `${dots} —`;
+  } else {
+    if (shieldNameEl) shieldNameEl.textContent = "—";
+    if (sDpBar) sDpBar.style.width = "0%";
+    if (sPpBar) sPpBar.style.width = "0%";
+    if (sMatEl) sMatEl.innerHTML = `${dots} —`;
   }
 }
 
@@ -1689,6 +1783,10 @@ const _eqAglBase = 0;
 let _eqRange = 0;
 // Loadout persistence — loadout 0 = RAM (live), 1 & 2 = localStorage
 let _activeLoadout = 0;
+/** When set (live loadout only), equipment UI uses this blade instead of RAM until cleared or loadout changes. Does not write PS1 memory. */
+let _eqLocalWeaponOverride: { displayName: string; data: EquipData } | null = null;
+/** Same idea as weapon — mock shield from preset / gallery stub. */
+let _eqLocalShieldOverride: { displayName: string; data: EquipData } | null = null;
 type SavedLoadout = Record<string, { materialName: string; label: string } | null>;
 function _loadoutKey(idx: number): string { return `vs-loadout-${idx + 1}`; }
 function _loadSavedLoadout(idx: number): SavedLoadout {
@@ -1696,6 +1794,145 @@ function _loadSavedLoadout(idx: number): SavedLoadout {
   catch { return {}; }
 }
 const _savedLoadouts: [SavedLoadout, SavedLoadout] = [_loadSavedLoadout(1), _loadSavedLoadout(2)];
+
+function _reloadSavedLoadoutsFromStorage(): void {
+  _savedLoadouts[0] = _loadSavedLoadout(1);
+  _savedLoadouts[1] = _loadSavedLoadout(2);
+}
+
+/** Match a saved slot entry to a stub inventory row by `label` or `materialName` (e.g. item name in JSON). */
+function _matchSavedToWepFile(
+  entry: { materialName: string; label: string } | null | undefined,
+  extras: readonly { name: string; wepFile: number }[],
+): number | undefined {
+  if (!entry) return undefined;
+  const candidates = [entry.label, entry.materialName].map(s => s.trim()).filter(s => s && s !== "—");
+  for (const extra of extras) {
+    const en = extra.name.toLowerCase();
+    for (const c of candidates) {
+      if (c.toLowerCase() === en) return extra.wepFile;
+    }
+  }
+  return undefined;
+}
+
+const EQ_SLOT_LABELS: Record<string, string> = {
+  weapon: "Weapon", shield: "Shield", armRight: "R.Arm", armLeft: "L.Arm",
+  helm: "Helm", breastplate: "Chest", leggings: "Legs", accessory: "Acc.",
+};
+
+function _eqFillSlotNamesFromSaved(screen: HTMLElement, saved: SavedLoadout): void {
+  Object.entries(EQ_SLOT_LABELS).forEach(([slot, label]) => {
+    const el = screen.querySelector<HTMLElement>(`[data-slot-name="${slot}"]`);
+    if (!el) return;
+    const se = saved[slot];
+    if (se) {
+      const mat = se.materialName !== "—" ? se.materialName : "";
+      el.textContent = mat ? `${mat} ${label}` : se.label;
+      el.style.color = "";
+    } else {
+      el.textContent = "—";
+      el.style.color = "";
+    }
+  });
+}
+
+function _eqRefreshSlotLabels(screen: HTMLElement): void {
+  if (_activeLoadout !== 0) return;
+  Object.entries(EQ_SLOT_LABELS).forEach(([slot, label]) => {
+    const el = screen.querySelector<HTMLElement>(`[data-slot-name="${slot}"]`);
+    if (!el) return;
+    const d = _eqSlotData.get(slot);
+    el.textContent = _eqItemName(slot, d, label);
+    el.style.color = d?.equipped ? (_eqMaterialColor(d.materialIndex) || "") : "";
+  });
+}
+
+function _syncLoadoutTabsUi(root: HTMLElement, idx0: number): void {
+  const n = String(idx0 + 1);
+  root.querySelectorAll<HTMLElement>(".vs-eq-loadout-btn[data-loadout]").forEach((b) => {
+    b.classList.toggle("active", b.dataset.loadout === n);
+  });
+  root.querySelectorAll<HTMLElement>(".vs-loadout-btn[data-loadout]").forEach((b) => {
+    b.classList.toggle("active", b.dataset.loadout === n);
+  });
+}
+
+function _updateApplyPresetButton(root: HTMLElement): void {
+  const btn = root.querySelector<HTMLButtonElement>("#vs-eq-apply-preset");
+  if (!btn) return;
+  const on = _activeLoadout >= 1;
+  btn.disabled = !on;
+  btn.title = on
+    ? "Apply this preset to Live (1): mock overlay + Ashley strip. Does not poke PS1 RAM."
+    : "Select preset 2 or 3 first, then apply to Live.";
+}
+
+function selectLoadout(root: HTMLElement, idx0: number): void {
+  _reloadSavedLoadoutsFromStorage();
+  _activeLoadout = idx0;
+  _syncLoadoutTabsUi(root, idx0);
+  const screen = root.querySelector<HTMLElement>('.vs-screen[data-screen="equipment"]');
+  if (idx0 >= 1) {
+    _eqLocalWeaponOverride = null;
+    _eqLocalShieldOverride = null;
+    if (screen) _eqFillSlotNamesFromSaved(screen, _savedLoadouts[idx0 - 1]!);
+  } else {
+    void refreshEquipmentScreen(root);
+  }
+  void refreshAshleyLoadoutStrip(root);
+  _updateApplyPresetButton(root);
+}
+
+async function applyPresetToLiveAshley(root: HTMLElement): Promise<void> {
+  if (_activeLoadout === 0) return;
+  const presetIdx = _activeLoadout;
+  _reloadSavedLoadoutsFromStorage();
+  const saved = _savedLoadouts[presetIdx - 1]!;
+  _eqLocalWeaponOverride = null;
+  _eqLocalShieldOverride = null;
+  _activeLoadout = 0;
+  _syncLoadoutTabsUi(root, 0);
+  _updateApplyPresetButton(root);
+
+  await refreshEquipmentScreen(root);
+
+  const screen = root.querySelector<HTMLElement>('.vs-screen[data-screen="equipment"]');
+  if (!screen) {
+    await refreshAshleyLoadoutStrip(root);
+    return;
+  }
+
+  const blade = _eqSlotData.get("weapon");
+  const wFile = _matchSavedToWepFile(saved.weapon, WEAPON_INVENTORY_EXTRAS);
+  if (wFile != null) {
+    const st = _eqStubEquipPreview(blade, wFile);
+    const name = WEAPON_INVENTORY_EXTRAS.find(e => e.wepFile === wFile)?.name ?? (saved.weapon?.label ?? "Weapon");
+    _eqLocalWeaponOverride = { displayName: name, data: st };
+    _eqSlotData.set("weapon", st);
+    _eqWeaponName = name;
+  }
+
+  const shield = _eqSlotData.get("shield");
+  const sFile = _matchSavedToWepFile(saved.shield, SHIELD_INVENTORY_EXTRAS);
+  if (sFile != null && saved.shield) {
+    const st = _eqStubEquipPreview(shield, sFile);
+    const name = SHIELD_INVENTORY_EXTRAS.find(e => e.wepFile === sFile)?.name ?? saved.shield.label;
+    _eqLocalShieldOverride = { displayName: name, data: st };
+    _eqSlotData.set("shield", st);
+    _eqRamItemName.set("shield", name);
+  }
+
+  _eqRefreshSlotLabels(screen);
+  _eqRefreshCombatSummary(screen);
+  const activeSlot = _eqGetActiveSlot(screen);
+  if (activeSlot) {
+    _eqUpdateDetail(screen, activeSlot);
+    _eqUpdateInfoBar(screen, activeSlot);
+    void _eqRenderCategoryGallery(screen, activeSlot);
+  }
+  await refreshAshleyLoadoutStrip(root);
+}
 
 /**
  * Fallback item names keyed by itemNameIndex (u16 at equip_data $0).
@@ -2338,33 +2575,58 @@ async function _eqRenderCategoryGallery(screen: HTMLElement, slotKey: string): P
 
       const equipBtn = document.createElement("button");
       equipBtn.type = "button";
-      equipBtn.textContent = "Equip";
+      equipBtn.textContent = entry.kind === "equipped" ? "Equipped" : "Equip";
+      equipBtn.disabled = entry.kind === "equipped";
       equipBtn.style.cssText =
         "font-family:'Josefin Sans',sans-serif;font-size:9px;letter-spacing:0.12em;text-transform:uppercase;padding:4px 10px;border-radius:4px;border:1px solid rgba(200,168,74,0.45);background:rgba(20,18,16,0.95);color:#c8a84a;cursor:pointer";
-      equipBtn.title = "Mock equip — does not write PS1 RAM yet";
+      if (entry.kind === "equipped") {
+        equipBtn.style.opacity = "0.55";
+        equipBtn.style.cursor = "default";
+        equipBtn.title = "Currently equipped";
+      } else {
+        equipBtn.title = "Equip on Ashley (UI + stats; does not write PS1 RAM)";
+      }
 
-      const applySelection = (): void => {
+      const applyPreview = (): void => {
         if (entry.kind === "equipped") {
           _eqUpdateDetail(screen, "weapon");
           _eqRefreshCombatSummary(screen);
           _eqUpdateInfoBar(screen, "weapon");
         } else {
-          const stub = _eqStubEquipPreview(blade, entry.wepFile);
+          const stub = _eqStubEquipPreview(_eqSlotData.get("weapon"), entry.wepFile);
           _eqUpdateDetail(screen, "weapon", { data: stub, displayName: entry.label });
           _eqRefreshCombatSummary(screen);
           _eqUpdateInfoBar(screen, "weapon", stub);
         }
       };
 
+      const commitEquip = (): void => {
+        if (entry.kind === "equipped") return;
+        if (_activeLoadout !== 0) return;
+        const committed = _eqStubEquipPreview(_eqSlotData.get("weapon"), entry.wepFile);
+        _eqLocalWeaponOverride = { displayName: entry.label, data: committed };
+        _eqSlotData.set("weapon", committed);
+        _eqWeaponName = entry.label;
+        const wEl = screen.querySelector<HTMLElement>('[data-slot-name="weapon"]');
+        if (wEl) {
+          wEl.textContent = _eqItemName("weapon", committed, "Weapon");
+          wEl.style.color = committed.equipped ? (_eqMaterialColor(committed.materialIndex) || "") : "";
+        }
+        _eqUpdateDetail(screen, "weapon");
+        _eqRefreshCombatSummary(screen);
+        _eqUpdateInfoBar(screen, "weapon");
+        void _eqRenderCategoryGallery(screen, "weapon");
+      };
+
       thumb.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        applySelection();
+        applyPreview();
       });
       equipBtn.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        applySelection();
+        commitEquip();
       });
 
       wrap.appendChild(thumb);
@@ -2476,36 +2738,15 @@ function initEquipmentScreen(root: HTMLElement): void {
   const screen = root.querySelector<HTMLElement>('.vs-screen[data-screen="equipment"]');
   if (!screen) return;
 
-  // Loadout buttons — 1 = live RAM, 2 & 3 = localStorage slots
-  screen.querySelectorAll<HTMLElement>(".vs-eq-loadout-btn").forEach(btn => {
+  screen.querySelectorAll<HTMLElement>(".vs-eq-loadout-btn[data-loadout]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const idx = parseInt(btn.dataset.loadout ?? "1", 10) - 1; // 0-based
-      _activeLoadout = idx;
-      screen.querySelectorAll(".vs-eq-loadout-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-
-      // For saved loadouts (idx 1 & 2), render slot names from localStorage
-      if (idx >= 1) {
-        const saved = _savedLoadouts[idx - 1];
-        const slotLabels: Record<string, string> = {
-          weapon: "Weapon", shield: "Shield", armRight: "R.Arm", armLeft: "L.Arm",
-          helm: "Helm", breastplate: "Chest", leggings: "Legs", accessory: "Acc.",
-        };
-        Object.entries(slotLabels).forEach(([slot, label]) => {
-          const el = screen.querySelector<HTMLElement>(`[data-slot-name="${slot}"]`);
-          if (!el) return;
-          const entry = saved[slot];
-          if (entry) {
-            const mat = entry.materialName !== "—" ? entry.materialName : "";
-            el.textContent = mat ? `${mat} ${label}` : label;
-          } else {
-            el.textContent = "—";
-          }
-        });
-      } else {
-        void refreshEquipmentScreen(root);
-      }
+      const idx = parseInt(btn.dataset.loadout ?? "1", 10) - 1;
+      selectLoadout(root, idx);
     });
+  });
+
+  root.querySelector<HTMLButtonElement>("#vs-eq-apply-preset")?.addEventListener("click", () => {
+    void applyPresetToLiveAshley(root);
   });
 
   // Slot rows — no default selection; first click chooses category and shows centre + right detail
@@ -2576,17 +2817,19 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       ram.ashley.range(),
     ]);
 
-    _eqWeaponName = weaponName;
+    const useLocalWeapon = _activeLoadout === 0 && _eqLocalWeaponOverride !== null;
+    const useLocalShield = _activeLoadout === 0 && _eqLocalShieldOverride !== null;
+    _eqWeaponName = useLocalWeapon ? _eqLocalWeaponOverride!.displayName : weaponName;
     _eqAglEqp = aglEquipped;
     _eqStrBase = strBase;
     _eqIntBase = intBase;
     _eqRange = rangeVal;
-    _eqSlotData.set("weapon",      blade);
+    _eqSlotData.set("weapon",      useLocalWeapon ? _eqLocalWeaponOverride!.data : blade);
     _eqSlotData.set("weaponGrip",  grip);
     _eqSlotData.set("weaponGem1",  weaponGem1);
     _eqSlotData.set("weaponGem2",  weaponGem2);
     _eqSlotData.set("weaponGem3",  weaponGem3);
-    _eqSlotData.set("shield",      shield);
+    _eqSlotData.set("shield",      useLocalShield ? _eqLocalShieldOverride!.data : shield);
     _eqSlotData.set("shieldGem1",  shieldGem1);
     _eqSlotData.set("shieldGem2",  shieldGem2);
     _eqSlotData.set("shieldGem3",  shieldGem3);
@@ -2608,19 +2851,15 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       if (name) _eqRamItemName.set(key as string, name);
     }));
 
-    // Update slot name elements using display name helper (only when viewing live RAM loadout)
+    if (useLocalShield) {
+      _eqRamItemName.set("shield", _eqLocalShieldOverride!.displayName);
+    }
+
     if (_activeLoadout === 0) {
-      const slotLabels: Record<string, string> = {
-        weapon: "Weapon", shield: "Shield", armRight: "R.Arm", armLeft: "L.Arm",
-        helm: "Helm", breastplate: "Chest", leggings: "Legs", accessory: "Acc.",
-      };
-      Object.entries(slotLabels).forEach(([slot, label]) => {
-        const el = screen.querySelector<HTMLElement>(`[data-slot-name="${slot}"]`);
-        if (!el) return;
-        const d = _eqSlotData.get(slot);
-        el.textContent = _eqItemName(slot, d, label);
-        el.style.color = d?.equipped ? (_eqMaterialColor(d.materialIndex) || "") : "";
-      });
+      _eqRefreshSlotLabels(screen);
+    } else {
+      _reloadSavedLoadoutsFromStorage();
+      _eqFillSlotNamesFromSaved(screen, _savedLoadouts[_activeLoadout - 1]!);
     }
 
     _eqRefreshCombatSummary(screen);
@@ -2717,7 +2956,7 @@ function openMenu(root: HTMLElement): void {
   void root.offsetWidth; // force reflow so opacity transition fires
   root.style.opacity = "1";
   void refreshStats(root);
-  void refreshEquipment(root);
+  void refreshAshleyLoadoutStrip(root);
   void refreshAbilities(root);
   void refreshEquipmentScreen(root);
 }
@@ -2759,6 +2998,13 @@ function install(): void {
   document.body.appendChild(root);
   initTabs(root);
   initEquipmentScreen(root);
+  root.querySelectorAll<HTMLElement>(".vs-loadout-tabs .vs-loadout-btn[data-loadout]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = parseInt(btn.dataset.loadout ?? "1", 10) - 1;
+      selectLoadout(root, idx);
+    });
+  });
+  _updateApplyPresetButton(root);
 
   console.info(`[vs-menu] build ${__RB_VS_MENU_BUILD__}`);
 
