@@ -139,11 +139,25 @@ var VAR_SETUP_MAX_RETRIES = 1000;
 var VAR_SETUP_RETRY_MS = 10;
 var var_setup_retry_scheduled = false;
 
-/** Emscripten sets Module["_get_ptr"] in assignWasmExports; global _get_ptr can be invisible from this strict script when pcsx_ww.js is injected via createElement("script"). */
+/** Prefer globalThis so we always read the same object pcsx_ww.js mutates (strict + dynamic script load). */
+function rb_active_module() {
+  return typeof globalThis !== "undefined" ? globalThis.Module : Module;
+}
+
+function rb_wasm_get_ptr_ready() {
+  if (typeof globalThis._get_ptr === "function") {
+    return true;
+  }
+  var M = rb_active_module();
+  return !!(M && typeof M["_get_ptr"] === "function");
+}
+
+/** Emscripten sets Module["_get_ptr"] in assignWasmExports; global _get_ptr is set alongside it in pcsx_ww.js. */
 function rb_get_ptr(idx) {
-  var f = Module["_get_ptr"];
-  if (typeof f !== "function" && typeof _get_ptr === "function") {
-    f = _get_ptr;
+  var M = rb_active_module();
+  var f = M && M["_get_ptr"];
+  if (typeof f !== "function" && typeof globalThis._get_ptr === "function") {
+    f = globalThis._get_ptr;
   }
   if (typeof f !== "function") {
     throw new TypeError("_get_ptr is not a function");
@@ -155,19 +169,32 @@ function var_setup() {
   if (typeof pcsx_worker !== "undefined" && pcsx_worker) {
     return;
   }
-  var ptrReady =
-    (typeof Module !== "undefined" && typeof Module["_get_ptr"] === "function") ||
-    typeof _get_ptr === "function";
-  if (!ptrReady) {
+  if (!rb_wasm_get_ptr_ready()) {
+    var M = rb_active_module();
+    // main() already ran — exports must exist; keep polling instead of throwing on a stale timer.
+    if (M && M.calledRun) {
+      var_setup_retry_count = 0;
+    }
     if (var_setup_retry_scheduled) {
       return;
     }
     var_setup_retry_count++;
     if (var_setup_retry_count > VAR_SETUP_MAX_RETRIES) {
       var_setup_retry_count = 0;
-      throw new Error(
+      if (rb_wasm_get_ptr_ready()) {
+        var_setup();
+        return;
+      }
+      if (M && M.calledRun && typeof M.cwrap === "function") {
+        console.error(
+          "pcsx_ui: _get_ptr still not visible after retries but runtime ran; worker may be missing",
+        );
+        return;
+      }
+      console.error(
         "pcsx_ui: wasm _get_ptr not ready after " + VAR_SETUP_MAX_RETRIES + " retries",
       );
+      return;
     }
     var_setup_retry_scheduled = true;
     setTimeout(function () {

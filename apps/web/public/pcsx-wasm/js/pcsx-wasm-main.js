@@ -27,14 +27,15 @@ function ensureVarSetupStarted() {
         return;
       }
 
+      var M = typeof globalThis !== "undefined" ? globalThis.Module : Module;
       var hasGetPtr =
-        typeof Module !== "undefined" &&
-        (typeof Module["_get_ptr"] === "function" || typeof _get_ptr === "function");
+        (M && typeof M["_get_ptr"] === "function") ||
+        typeof globalThis._get_ptr === "function";
       if (
         typeof var_setup === "function" &&
         hasGetPtr &&
-        typeof Module !== "undefined" &&
-        typeof Module.cwrap === "function"
+        M &&
+        typeof M.cwrap === "function"
       ) {
         var_setup();
         if (varSetupPoll) clearTimeout(varSetupPoll);
