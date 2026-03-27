@@ -173,6 +173,9 @@ function rb_wire_get_ptr_via_cwrap() {
   if (!M || typeof M.cwrap !== "function") return false;
   if (typeof globalThis._get_ptr === "function") return true;
   if (typeof M["_get_ptr"] === "function") return true;
+  // Do not cwrap before the runtime has run — cold wasm compile + early click can briefly
+  // expose cwrap while exports are still unstable; hard refresh makes that window longer.
+  if (!M.calledRun) return false;
   try {
     var fn = M.cwrap("_get_ptr", "number", ["number"]);
     if (typeof fn === "function") {
@@ -216,7 +219,11 @@ function var_setup() {
     rb_pcsx_boot_log("var_setup: skip (pcsx_worker already exists)");
     return;
   }
-  if (!rb_wasm_get_ptr_ready()) {
+  var ptrReady = rb_wasm_get_ptr_ready();
+  if (ptrReady) {
+    var_setup_retry_scheduled = false;
+  }
+  if (!ptrReady) {
     var M = rb_active_module();
     // main() already ran — exports must exist; keep polling instead of throwing on a stale timer.
     if (M && M.calledRun) {

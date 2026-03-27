@@ -68,15 +68,19 @@ function ensureVarSetupStarted() {
         typeof var_setup === "function" &&
         hasGetPtr &&
         M &&
-        typeof M.cwrap === "function"
+        typeof M.cwrap === "function" &&
+        M.calledRun
       ) {
         if (typeof globalThis.rb_pcsx_boot_log === "function") {
           globalThis.rb_pcsx_boot_log("ensureVarSetupStarted: calling var_setup from poll #" + pollN);
         }
         var_setup();
-        if (varSetupPoll) clearTimeout(varSetupPoll);
-        varSetupPoll = null;
-        return;
+        // Only stop polling once the worker exists — var_setup can no-op (retry in flight).
+        if (typeof pcsx_worker !== "undefined" && pcsx_worker) {
+          if (varSetupPoll) clearTimeout(varSetupPoll);
+          varSetupPoll = null;
+          return;
+        }
       }
     } catch {
       // Keep polling; wasm may not be ready yet.
