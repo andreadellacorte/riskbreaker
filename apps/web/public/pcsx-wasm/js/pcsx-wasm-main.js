@@ -39,9 +39,20 @@ function ensureVarSetupStarted() {
       }
 
       var M = typeof globalThis !== "undefined" ? globalThis.Module : Module;
-      var hasGetPtr =
-        (M && typeof M["_get_ptr"] === "function") ||
-        typeof globalThis._get_ptr === "function";
+      var hasGetPtr = false;
+      try {
+        if (typeof globalThis.rb_wasm_get_ptr_ready === "function") {
+          hasGetPtr = globalThis.rb_wasm_get_ptr_ready();
+        } else {
+          hasGetPtr =
+            (M && typeof M["_get_ptr"] === "function") ||
+            typeof globalThis._get_ptr === "function";
+        }
+      } catch {
+        hasGetPtr =
+          (M && typeof M["_get_ptr"] === "function") ||
+          typeof globalThis._get_ptr === "function";
+      }
       if (
         typeof globalThis.rb_pcsx_boot_log === "function" &&
         (pollN === 1 || pollN % 40 === 0)

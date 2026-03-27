@@ -164,13 +164,39 @@ function rb_active_module() {
   return typeof globalThis !== "undefined" ? globalThis.Module : Module;
 }
 
+/**
+ * Some glue builds resolve `_get_ptr` for `cwrap` but never assign `Module["_get_ptr"]` / `globalThis._get_ptr`.
+ * Then `calledRun` is true and `cwrap` works, yet direct export checks stay undefined — wire once.
+ */
+function rb_wire_get_ptr_via_cwrap() {
+  var M = rb_active_module();
+  if (!M || typeof M.cwrap !== "function") return false;
+  if (typeof globalThis._get_ptr === "function") return true;
+  if (typeof M["_get_ptr"] === "function") return true;
+  try {
+    var fn = M.cwrap("_get_ptr", "number", ["number"]);
+    if (typeof fn === "function") {
+      M["_get_ptr"] = fn;
+      globalThis._get_ptr = fn;
+      rb_pcsx_boot_log("wired _get_ptr via cwrap (direct Module export missing)");
+      return true;
+    }
+  } catch (e) {
+    rb_pcsx_boot_log("rb_wire_get_ptr_via_cwrap:", e && e.message ? e.message : e);
+  }
+  return false;
+}
+
 function rb_wasm_get_ptr_ready() {
+  rb_wire_get_ptr_via_cwrap();
   if (typeof globalThis._get_ptr === "function") {
     return true;
   }
   var M = rb_active_module();
   return !!(M && typeof M["_get_ptr"] === "function");
 }
+
+globalThis.rb_wasm_get_ptr_ready = rb_wasm_get_ptr_ready;
 
 /** Emscripten sets Module["_get_ptr"] in assignWasmExports; global _get_ptr is set alongside it in pcsx_ww.js. */
 function rb_get_ptr(idx) {
