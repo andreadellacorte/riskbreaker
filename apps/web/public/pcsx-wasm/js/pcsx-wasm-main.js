@@ -4,6 +4,11 @@
  * Boot: first file pick or click/key loads `pcsx_ww.js`; `var_setup()` in pcsx_ui.js
  * starts `pcsx_worker.js` and dispatches `pcsx-worker-ready`. If the user chose a disc
  * before the worker exists, we queue it and run `loaddisc` when ready (legacy-style).
+ *
+ * Why wait for click/keydown? Deferred load keeps first paint cheap, avoids pulling ~MB of
+ * JS/wasm until the user intends to play, and matches common audio/user-gesture expectations.
+ * For fixed timing in tests or debugging, add `?pcsxAutoload=1`. For `[pcsx-boot]` console
+ * traces add `?pcsxBootLog=1`.
  */
 
 let loadflg = false;
@@ -17,11 +22,16 @@ let varSetupPoll = null;
 function ensureVarSetupStarted() {
   if (varSetupPoll) return;
 
+  let pollN = 0;
   const tick = function () {
+    pollN += 1;
     try {
       // `var_setup()` depends on wasm exports like `_get_ptr` being available.
       // Once it runs it creates `pcsx_worker`, which unblocks the disc load path.
       if (typeof pcsx_worker !== "undefined" && pcsx_worker) {
+        if (typeof globalThis.rb_pcsx_boot_log === "function") {
+          globalThis.rb_pcsx_boot_log("ensureVarSetupStarted: worker exists after poll #" + pollN);
+        }
         if (varSetupPoll) clearTimeout(varSetupPoll);
         varSetupPoll = null;
         return;
@@ -32,11 +42,25 @@ function ensureVarSetupStarted() {
         (M && typeof M["_get_ptr"] === "function") ||
         typeof globalThis._get_ptr === "function";
       if (
+        typeof globalThis.rb_pcsx_boot_log === "function" &&
+        (pollN === 1 || pollN % 40 === 0)
+      ) {
+        globalThis.rb_pcsx_boot_log(
+          "ensureVarSetupStarted tick #" + pollN,
+          "hasGetPtr=" + hasGetPtr,
+          "calledRun=" + !!(M && M.calledRun),
+          "cwrap=" + (M ? typeof M.cwrap : "n/a"),
+        );
+      }
+      if (
         typeof var_setup === "function" &&
         hasGetPtr &&
         M &&
         typeof M.cwrap === "function"
       ) {
+        if (typeof globalThis.rb_pcsx_boot_log === "function") {
+          globalThis.rb_pcsx_boot_log("ensureVarSetupStarted: calling var_setup from poll #" + pollN);
+        }
         var_setup();
         if (varSetupPoll) clearTimeout(varSetupPoll);
         varSetupPoll = null;
@@ -49,6 +73,9 @@ function ensureVarSetupStarted() {
     varSetupPoll = setTimeout(tick, 50);
   };
 
+  if (typeof globalThis.rb_pcsx_boot_log === "function") {
+    globalThis.rb_pcsx_boot_log("ensureVarSetupStarted: poll timer started");
+  }
   varSetupPoll = setTimeout(tick, 50);
 }
 
@@ -62,8 +89,14 @@ document.getElementById("canvas").addEventListener("contextmenu", function (e) {
   e.preventDefault();
 });
 
-function loadScript() {
-  if (loadflg) return;
+/** @param {string} [reason] — for `?pcsxBootLog=1` only */
+function loadScript(reason) {
+  if (loadflg) {
+    if (typeof globalThis.rb_pcsx_boot_log === "function") {
+      globalThis.rb_pcsx_boot_log("loadScript skipped (already started); would-be trigger:", reason || "");
+    }
+    return;
+  }
   loadflg = true;
   // Ensure the worker bootstrap happens when the UI-thread WASM runtime is ready.
   // `pcsx_ui.js` defines `var_setup()`; pcsx-wasm-main is responsible for loading `pcsx_ww.js`,
@@ -78,6 +111,9 @@ function loadScript() {
   } catch {
     // Best-effort: if Module/var_setup are unavailable, the worker may still start
     // via upstream glue. The smoke test will catch regressions.
+  }
+  if (typeof globalThis.rb_pcsx_boot_log === "function") {
+    globalThis.rb_pcsx_boot_log("injecting pcsx_ww.js, trigger:", reason || "unknown");
   }
   console.log("load pcsx_ww.js");
   const rev =
@@ -105,10 +141,10 @@ function loadScript() {
 }
 
 window.addEventListener("click", function () {
-  loadScript();
+  loadScript("window-click");
 });
 window.addEventListener("keydown", function () {
-  loadScript();
+  loadScript("window-keydown");
 });
 
 window.addEventListener("pcsx-worker-ready", function () {
@@ -220,7 +256,7 @@ async function onDiscFilesSelected(files) {
   if (!files || files.length === 0) return;
 
   const fileArray = Array.from(files);
-  loadScript();
+  loadScript("iso-change");
 
   // Pre-read buffers so the queued disc load is immune to input element clearing.
   const discLoad = await prepareDiscLoadData(fileArray);
@@ -240,3 +276,23 @@ document.getElementById("iso_opener").addEventListener("change", async function 
   await onDiscFilesSelected(e.target.files);
   e.target.value = "";
 });
+
+(function pcsxMaybeAutoloadFromQuery() {
+  try {
+    if (new URLSearchParams(globalThis.location.search).get("pcsxAutoload") !== "1") {
+      return;
+    }
+    var run = function () {
+      loadScript("query-pcsxAutoload");
+    };
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      setTimeout(run, 0);
+    } else {
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(run, 0);
+      });
+    }
+  } catch {
+    /* ignore */
+  }
+})();

@@ -1,5 +1,25 @@
 "use strict";
 
+/**
+ * Verbose PCSX shell boot diagnostics. Add `?pcsxBootLog=1` to the URL (combine with other query params).
+ * Logs appear as `[pcsx-boot] …` in the devtools console.
+ */
+function rb_pcsx_boot_verbose() {
+  if (rb_pcsx_boot_verbose._v !== undefined) return rb_pcsx_boot_verbose._v;
+  try {
+    rb_pcsx_boot_verbose._v = new URLSearchParams(globalThis.location.search).get("pcsxBootLog") === "1";
+  } catch {
+    rb_pcsx_boot_verbose._v = false;
+  }
+  return rb_pcsx_boot_verbose._v;
+}
+function rb_pcsx_boot_log() {
+  if (!rb_pcsx_boot_verbose()) return;
+  var m = ["[pcsx-boot]"].concat(Array.prototype.slice.call(arguments));
+  console.log.apply(console, m);
+}
+globalThis.rb_pcsx_boot_log = rb_pcsx_boot_log;
+
 var do_iter = true;
 
 var Module = {
@@ -167,6 +187,7 @@ function rb_get_ptr(idx) {
 
 function var_setup() {
   if (typeof pcsx_worker !== "undefined" && pcsx_worker) {
+    rb_pcsx_boot_log("var_setup: skip (pcsx_worker already exists)");
     return;
   }
   if (!rb_wasm_get_ptr_ready()) {
@@ -179,6 +200,23 @@ function var_setup() {
       return;
     }
     var_setup_retry_count++;
+    if (
+      rb_pcsx_boot_verbose() &&
+      (var_setup_retry_count === 1 ||
+        var_setup_retry_count === 10 ||
+        var_setup_retry_count % 100 === 0)
+    ) {
+      rb_pcsx_boot_log(
+        "var_setup: waiting for _get_ptr; retry",
+        var_setup_retry_count,
+        "calledRun=",
+        !!(M && M.calledRun),
+        "typeof globalThis._get_ptr=",
+        typeof globalThis._get_ptr,
+        "typeof Module._get_ptr=",
+        M ? typeof M["_get_ptr"] : "no Module",
+      );
+    }
     if (var_setup_retry_count > VAR_SETUP_MAX_RETRIES) {
       var_setup_retry_count = 0;
       if (rb_wasm_get_ptr_ready()) {
@@ -186,11 +224,15 @@ function var_setup() {
         return;
       }
       if (M && M.calledRun && typeof M.cwrap === "function") {
+        rb_pcsx_boot_log(
+          "var_setup: gave up after max retries; runtime ran but _get_ptr never visible to shell",
+        );
         console.error(
           "pcsx_ui: _get_ptr still not visible after retries but runtime ran; worker may be missing",
         );
         return;
       }
+      rb_pcsx_boot_log("var_setup: gave up after max retries; wasm may never have instantiated");
       console.error(
         "pcsx_ui: wasm _get_ptr not ready after " + VAR_SETUP_MAX_RETRIES + " retries",
       );
@@ -205,14 +247,28 @@ function var_setup() {
   }
   var_setup_retry_count = 0;
 
-  SoundFeedStreamData = Module.cwrap("SoundFeedStreamData", "null", ["number", "number"]);
+  var M2 = rb_active_module();
+  SoundFeedStreamData = M2.cwrap("SoundFeedStreamData", "null", ["number", "number"]);
   vram_ptr = rb_get_ptr(0);
   padStatus1 = rb_get_ptr(1);
   padStatus2 = rb_get_ptr(2);
   SDL.defaults.copyOnLock = false;
   SDL.defaults.opaqueFrontBuffer = false;
-  cout_print("start worker")
-  pcsx_worker = new Worker("pcsx_worker.js");
+  cout_print("start worker");
+  try {
+    pcsx_worker = new Worker("pcsx_worker.js");
+  } catch (workerErr) {
+    rb_pcsx_boot_log("new Worker(pcsx_worker.js) failed:", workerErr);
+    throw workerErr;
+  }
+  rb_pcsx_boot_log(
+    "var_setup: worker started; ptrs",
+    "vram",
+    vram_ptr,
+    "pad",
+    padStatus1,
+    padStatus2,
+  );
   pcsx_worker.onmessage = pcsx_worker_onmessage;
   // Expose worker globally so emulator-peek.ts / emulator-poke.ts can reach it.
   globalThis.__riskbreakerPcsxWorker = pcsx_worker;
