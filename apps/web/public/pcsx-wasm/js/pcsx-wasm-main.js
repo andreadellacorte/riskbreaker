@@ -11,7 +11,8 @@
  * traces add `?pcsxBootLog=1`.
  */
 
-let loadflg = false;
+/** `idle` | `loading` | `done` — `loading` allows retry after script.onerror */
+let pcsxWwLoadState = "idle";
 /** @type {{ parts: { name: string, buffer: ArrayBuffer }[], transfers: ArrayBuffer[], primaryName: string } | null} */
 let pendingDiscLoad = null;
 /** @type {ReturnType<typeof setInterval> | null} */
@@ -91,18 +92,24 @@ document.getElementById("canvas").addEventListener("contextmenu", function (e) {
 
 /** @param {string} [reason] — for `?pcsxBootLog=1` only */
 function loadScript(reason) {
-  if (loadflg) {
+  if (pcsxWwLoadState === "done" || pcsxWwLoadState === "loading") {
     if (typeof globalThis.rb_pcsx_boot_log === "function") {
-      globalThis.rb_pcsx_boot_log("loadScript skipped (already started); would-be trigger:", reason || "");
+      globalThis.rb_pcsx_boot_log(
+        "loadScript skipped (state=" + pcsxWwLoadState + "); would-be trigger:",
+        reason || "",
+      );
     }
     return;
   }
-  loadflg = true;
+  pcsxWwLoadState = "loading";
   // Ensure the worker bootstrap happens when the UI-thread WASM runtime is ready.
   // `pcsx_ui.js` defines `var_setup()`; pcsx-wasm-main is responsible for loading `pcsx_ww.js`,
   // so we set the Emscripten hook just-in-time to avoid race conditions.
   try {
-    if (typeof globalThis.Module === "undefined") {
+    // Always alias: strict `var Module` from pcsx_ui must match `globalThis.Module` for dynamic pcsx_ww.js.
+    if (typeof Module !== "undefined") {
+      globalThis.Module = Module;
+    } else if (typeof globalThis.Module === "undefined") {
       globalThis.Module = {};
     }
     if (typeof var_setup === "function") {
@@ -133,6 +140,13 @@ function loadScript(reason) {
   }
   const script = document.createElement("script");
   script.src = rev.length > 0 ? "pcsx_ww.js?rbrev=" + encodeURIComponent(rev) : "pcsx_ww.js";
+  script.onerror = function () {
+    pcsxWwLoadState = "idle";
+    console.error("pcsx-wasm: failed to load pcsx_ww.js (network or blocked script). Check path / CDN.");
+  };
+  script.onload = function () {
+    pcsxWwLoadState = "done";
+  };
   document.body.appendChild(script);
 
   // Make worker bootstrap deterministic even if `Module.onRuntimeInitialized`
@@ -140,12 +154,21 @@ function loadScript(reason) {
   ensureVarSetupStarted();
 }
 
-window.addEventListener("click", function () {
-  loadScript("window-click");
-});
-window.addEventListener("keydown", function () {
-  loadScript("window-keydown");
-});
+// Capture phase: overlay / VS UI may stopPropagation on bubble — still need wasm to boot.
+window.addEventListener(
+  "click",
+  function () {
+    loadScript("window-click");
+  },
+  true,
+);
+window.addEventListener(
+  "keydown",
+  function () {
+    loadScript("window-keydown");
+  },
+  true,
+);
 
 window.addEventListener("pcsx-worker-ready", function () {
   flushPendingDisc();
