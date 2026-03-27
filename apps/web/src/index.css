@@ -19,6 +19,10 @@ body {
   min-height: 100vh;
 }
 
+#root {
+  min-height: 100vh;
+}
+
 a {
   color: #8ab4ff;
 }
@@ -52,4 +56,55 @@ pre {
   background: #0d0f14;
   padding: 0.75rem;
   border-radius: 6px;
+}
+
+.gallery-page {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  overflow: hidden;
+}
+
+.gallery-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.5rem;
+}
+
+.gallery-card {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.gallery-image-wrap {
+  flex: 1;
+  min-height: 0;
+}
+
+.gallery-card img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 1px solid #5a5a5a;
+  background: #000;
+}
+
+.gallery-caption {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.7rem;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  text-align: center;
+  color: #d8d8d8;
+  background: rgba(0, 0, 0, 0.65);
 }

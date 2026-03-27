@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 
+import GalleryPage from "./GalleryPage.js";
 import MockShellPage from "./MockShellPage.js";
 import PlaySpikePage from "./PlaySpikePage.js";
 
@@ -7,6 +8,7 @@ export default function App() {
   return (
     <Routes>
       <Route element={<PlaySpikePage />} path="/" />
+      <Route element={<GalleryPage />} path="/gallery" />
       <Route element={<PlaySpikePage />} path="/play/spike" />
       <Route element={<MockShellPage />} path="/mock" />
       <Route element={<Navigate replace to="/" />} path="*" />
