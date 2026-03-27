@@ -50,12 +50,12 @@ export default defineConfig({
       exclude: coverageExclude,
       /** Whole-repo aggregate (~2026-03); raise as tests land. */
       thresholds: {
-        // Current changes include large emulator/static-tree removals and new web-only
-        // code paths; reduce global thresholds so the pre-commit hook reflects reality.
-        lines: 40,
-        functions: 40,
+        // Last measured (pnpm test:coverage): ~51 stmts / ~51 branches / ~61 funcs / ~53 lines.
+        // Keep a small margin under aggregate % so V8 rounding and churn do not flake pre-commit.
+        lines: 51,
+        functions: 58,
         branches: 50,
-        statements: 40,
+        statements: 49,
       },
     },
   },
