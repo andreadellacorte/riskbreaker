@@ -6,6 +6,7 @@ import { defineConfig } from "vite";
 
 import { workspaceAliases } from "../../vite.workspace.mjs";
 import { overlayReloadPlugin } from "./vite-plugin-overlay-reload.js";
+import { pcsxWasmWatchPlugin } from "./vite-plugin-pcsx-wasm-watch.js";
 import { preloadPlugin } from "./vite-plugin-preload.js";
 import { psxRamApiPlugin } from "./vite-plugin-psx-ram-api.js";
 
@@ -15,7 +16,13 @@ const monorepoRoot = path.resolve(appDir, "..", "..");
 export default defineConfig({
   // Load .env / .env.local from the monorepo root, not from apps/web/.
   envDir: monorepoRoot,
-  plugins: [react(), psxRamApiPlugin(), overlayReloadPlugin(), preloadPlugin({ repoRoot: monorepoRoot })],
+  plugins: [
+    react(),
+    psxRamApiPlugin(),
+    pcsxWasmWatchPlugin(),
+    overlayReloadPlugin(),
+    preloadPlugin({ repoRoot: monorepoRoot }),
+  ],
   resolve: {
     alias: workspaceAliases(monorepoRoot),
   },

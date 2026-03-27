@@ -1,11 +1,9 @@
-// @ts-ignore — bundled as data URL by esbuild
+// @ts-expect-error — bundled as data URL by esbuild
 import ashleyPortraitUrl from "./assets/ashley-portrait.png";
-// @ts-ignore — bundled as data URL by esbuild
+// @ts-expect-error — bundled as data URL by esbuild
 import locationEntranceUrl from "./assets/location-entrance-to-darkness.png";
-// @ts-ignore — bundled as data URL by esbuild
+// @ts-expect-error — bundled as data URL by esbuild
 import locationEntranceGifUrl from "./assets/location-entrance-to-darkness.gif";
-// @ts-ignore — bundled as data URL by esbuild
-import workshopBgUrl from "./assets/workshop-bg.png";
 import { mountWEPStaticViewer, unmountWEPViewer } from "./wep-viewer.js";
 
 /**
@@ -1681,12 +1679,13 @@ const EQ_DEF_LIMB_ROWS: readonly { slot: string; label: string }[] = [
 ];
 
 // Map slot key → EquipData stored on last refresh
-const _eqSlotData = new Map<string, import("./ram/index.js").EquipData>();
+const _eqSlotData = new Map<string, EquipData>();
 // Map slot key → item name read from RAM (when the in-game menu has loaded the table)
 const _eqRamItemName = new Map<string, string>();
 let _eqWeaponName = "—";
 let _eqAglEqp = 0;
-let _eqStrBase = 0, _eqIntBase = 0, _eqAglBase = 0;
+let _eqStrBase = 0, _eqIntBase = 0;
+const _eqAglBase = 0;
 let _eqRange = 0;
 // Loadout persistence — loadout 0 = RAM (live), 1 & 2 = localStorage
 let _activeLoadout = 0;
@@ -1841,7 +1840,7 @@ function _eqMaterialColor(materialIndex: number): string {
 }
 
 /** Real item name — RAM table first, static fallback second, slot label last resort. */
-function _eqItemName(slotKey: string, data: import("./ram/index.js").EquipData | undefined, slotLabel: string): string {
+function _eqItemName(slotKey: string, data: EquipData | undefined, slotLabel: string): string {
   if (!data?.equipped) return "—";
   if (slotKey === "weapon") return _eqWeaponName;
   return _eqRamItemName.get(slotKey) ?? ITEM_NAME_FALLBACK[data.itemNameIndex] ?? slotLabel;
@@ -1948,7 +1947,7 @@ function _eqRefreshCombatSummary(screen: HTMLElement): void {
     }
   };
 
-  const eqPiece = (d: import("./ram/index.js").EquipData | undefined): { str: number; int: number } =>
+  const eqPiece = (d: EquipData | undefined): { str: number; int: number } =>
     !d?.equipped ? { str: 0, int: 0 } : { str: d.str ?? 0, int: d.int ?? 0 };
 
   const weaponBlade = _eqSlotData.get("weapon");
@@ -2265,7 +2264,7 @@ function _eqClearCategoryGallery(screen: HTMLElement): void {
   const gallery = screen.querySelector<HTMLElement>("#vs-eq-category-gallery");
   if (!gallery) return;
   gallery.querySelectorAll<HTMLElement>(".vs-eq-model-thumb").forEach((thumb) => {
-    unmountWEPViewer(thumb);
+    _safeUnmountWepViewer(thumb);
   });
   gallery.remove();
 }
@@ -2603,7 +2602,7 @@ async function refreshEquipmentScreen(root: HTMLElement): Promise<void> {
       ["shield", shield], ["armRight", armRight], ["armLeft", armLeft],
       ["helm", helm], ["breastplate", breastplate], ["leggings", leggings], ["accessory", accessory],
     ].map(async ([key, data]) => {
-      const d = data as import("./ram/index.js").EquipData;
+      const d = data as EquipData;
       if (!d.equipped) return;
       const name = await ram.itemName(d.itemNameIndex);
       if (name) _eqRamItemName.set(key as string, name);
@@ -2644,12 +2643,28 @@ type PcsxGlobals = {
   __riskbreakerPcsxResume?: () => void;
 };
 
+function vsMenuDebug(): boolean {
+  return (globalThis as VsMenuGlobals).__riskbreakerVsMenuDebug === true;
+}
+
 function pcsxPause(): void {
-  (globalThis as PcsxGlobals).__riskbreakerPcsxPause?.();
+  const fn = (globalThis as PcsxGlobals).__riskbreakerPcsxPause;
+  if (!fn) {
+    console.warn("[vs-menu] pcsxPause: __riskbreakerPcsxPause missing (disc not running / worker not ready?)");
+    return;
+  }
+  if (vsMenuDebug()) console.info("[vs-menu] pcsxPause → worker");
+  fn();
 }
 
 function pcsxResume(): void {
-  (globalThis as PcsxGlobals).__riskbreakerPcsxResume?.();
+  const fn = (globalThis as PcsxGlobals).__riskbreakerPcsxResume;
+  if (!fn) {
+    console.warn("[vs-menu] pcsxResume: __riskbreakerPcsxResume missing");
+    return;
+  }
+  if (vsMenuDebug()) console.info("[vs-menu] pcsxResume → worker");
+  fn();
 }
 
 // ── Tab switching ─────────────────────────────────────────────────────────────

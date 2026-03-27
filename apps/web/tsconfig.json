@@ -16,6 +16,7 @@
   },
   "include": [
     "src/**/*",
+    "e2e/**/*.ts",
     "vite.config.ts",
     "../packages/pcsx-wasm-shell/src/**/*.ts"
   ]

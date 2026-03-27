@@ -56,7 +56,20 @@ export default tseslint.config(
     },
   },
   {
+    files: ["plugins/vagrant-story/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        console: "readonly",
+        process: "readonly",
+      },
+    },
+  },
+  {
     files: ["**/*.{ts,tsx,mts,cts}"],
+    ignores: [
+      "plugins/vagrant-story/src/emulator-overlay-panel.ts",
+      "plugins/vagrant-story/src/vs-fullscreen-menu.ts",
+    ],
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -67,6 +80,40 @@ export default tseslint.config(
       "@typescript-eslint/consistent-type-imports": [
         "error",
         { prefer: "type-imports", fixStyle: "inline-type-imports" },
+      ],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      "plugins/vagrant-story/src/emulator-overlay-panel.ts",
+      "plugins/vagrant-story/src/vs-fullscreen-menu.ts",
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ["./plugins/vagrant-story/tsconfig.browser.json"],
+        tsconfigRootDir: rootDir,
+      },
+    },
+    rules: {
+      "@typescript-eslint/consistent-type-imports": [
+        "error",
+        { prefer: "type-imports", fixStyle: "inline-type-imports" },
+      ],
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+        },
       ],
     },
   },

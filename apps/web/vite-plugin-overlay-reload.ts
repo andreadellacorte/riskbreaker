@@ -6,8 +6,9 @@ const appDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(appDir, "../..");
 
 /**
- * Watches the esbuild-emitted overlay JS files in public/ and triggers a
- * full page reload in the browser whenever they change.
+ * Watches Riskbreaker + PCSX artifacts under public/ and triggers a full page
+ * reload when they change (esbuild --watch for overlay bundles; sync-pcsx-wasm
+ * or `make` for worker / pcsx_ui).
  */
 export function overlayReloadPlugin(): Plugin {
   return {
@@ -16,6 +17,10 @@ export function overlayReloadPlugin(): Plugin {
       const files = [
         path.join(root, "apps/web/public/pcsx-wasm/js/riskbreaker-vs-panel.js"),
         path.join(root, "apps/web/public/pcsx-wasm/js/riskbreaker-vs-menu.js"),
+        path.join(root, "apps/web/public/pcsx-wasm/pcsx_worker.js"),
+        path.join(root, "apps/web/public/pcsx-wasm/pcsx_worker.wasm"),
+        path.join(root, "apps/web/public/pcsx-wasm/js/pcsx_ui.js"),
+        path.join(root, "apps/web/public/pcsx-wasm/js/worker_funcs.js"),
       ];
 
       for (const file of files) {

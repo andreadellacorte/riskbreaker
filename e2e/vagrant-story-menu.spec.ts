@@ -79,14 +79,20 @@ test.describe("VS overlay menu — f key open/close with pause/resume", () => {
 
     // Install worker-ack listener to track actual emulator pause/resume state
     await page.evaluate(() => {
-      const g = globalThis as Record<string, any>;
+      type G = typeof globalThis & {
+        __emulatorPaused: boolean;
+        __soundFrames: number;
+        __riskbreakerPcsxWorker: Worker;
+      };
+      const g = globalThis as G;
       g.__emulatorPaused = false;
       g.__soundFrames = 0;
-      const worker = g.__riskbreakerPcsxWorker as Worker;
+      const worker = g.__riskbreakerPcsxWorker;
       worker.addEventListener("message", (e: MessageEvent) => {
-        if (e.data?.cmd === "pause_ack")          g.__emulatorPaused = true;
-        if (e.data?.cmd === "resume_ack")         g.__emulatorPaused = false;
-        if (e.data?.cmd === "SoundFeedStreamData") g.__soundFrames++;
+        const cmd = (e.data as { cmd?: string } | undefined)?.cmd;
+        if (cmd === "pause_ack") g.__emulatorPaused = true;
+        if (cmd === "resume_ack") g.__emulatorPaused = false;
+        if (cmd === "SoundFeedStreamData") g.__soundFrames++;
       });
     });
 
@@ -95,15 +101,19 @@ test.describe("VS overlay menu — f key open/close with pause/resume", () => {
     await page.keyboard.press("f");
     const menu = page.locator("#vs-menu-root");
     await expect(menu).toHaveClass(/vs-open/);
-    await page.waitForFunction(() => (globalThis as Record<string, any>).__emulatorPaused === true, null, { timeout: 2000 });
+    await page.waitForFunction(() => (globalThis as { __emulatorPaused?: boolean }).__emulatorPaused === true, null, {
+      timeout: 2000,
+    });
 
     // Press 'f' again → menu closes and emulator resumes (verify via sound frames)
     await page.keyboard.press("f");
     await expect(menu).not.toHaveClass(/vs-open/);
-    await page.waitForFunction(() => (globalThis as Record<string, any>).__emulatorPaused === false, null, { timeout: 2000 });
-    const framesAfterResume = await page.evaluate(() => (globalThis as Record<string, any>).__soundFrames);
+    await page.waitForFunction(() => (globalThis as { __emulatorPaused?: boolean }).__emulatorPaused === false, null, {
+      timeout: 2000,
+    });
+    const framesAfterResume = await page.evaluate(() => (globalThis as { __soundFrames?: number }).__soundFrames ?? 0);
     await page.waitForFunction(
-      (baseline: number) => (globalThis as Record<string, any>).__soundFrames > baseline + 5,
+      (baseline: number) => ((globalThis as { __soundFrames?: number }).__soundFrames ?? 0) > baseline + 5,
       framesAfterResume,
       { timeout: 3000 },
     );
@@ -113,16 +123,18 @@ test.describe("VS overlay menu — f key open/close with pause/resume", () => {
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "f", repeat: true, bubbles: true }));
     });
     await expect(menu).not.toHaveClass(/vs-open/);
-    expect(await page.evaluate(() => (globalThis as Record<string, any>).__emulatorPaused)).toBe(false);
+    expect(await page.evaluate(() => (globalThis as { __emulatorPaused?: boolean }).__emulatorPaused)).toBe(false);
 
     // Open again, then repeated keydown while open must NOT close or resume
     await page.keyboard.press("f");
     await expect(menu).toHaveClass(/vs-open/);
-    await page.waitForFunction(() => (globalThis as Record<string, any>).__emulatorPaused === true, null, { timeout: 2000 });
+    await page.waitForFunction(() => (globalThis as { __emulatorPaused?: boolean }).__emulatorPaused === true, null, {
+      timeout: 2000,
+    });
     await page.evaluate(() => {
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "f", repeat: true, bubbles: true }));
     });
     await expect(menu).toHaveClass(/vs-open/);
-    expect(await page.evaluate(() => (globalThis as Record<string, any>).__emulatorPaused)).toBe(true);
+    expect(await page.evaluate(() => (globalThis as { __emulatorPaused?: boolean }).__emulatorPaused)).toBe(true);
   });
 });

@@ -230,12 +230,19 @@ var main_onmessage = function (event) {
 
 		case "pause":
 			pcsx_paused = true;
+			cout_print("[worker] pause (pcsx_paused=true)");
 			postMessage({ cmd: "pause_ack" });
 			break;
 
 		case "resume":
 			pcsx_paused = false;
 			postMessage({ cmd: "resume_ack" });
+			// After pause, the next pcsx_mainloop tick skipped _one_iter(), so nothing
+			// re-queued the setTimeout from workerMain.c — we must restart the loop.
+			// IMPORTANT: call via setTimeout(0): emcc -O3 Closure was stripping a direct
+			// pcsx_mainloop() here as “dead code” after postMessage, breaking resume.
+			cout_print("[worker] resume → scheduling pcsx_mainloop (0ms)");
+			setTimeout(pcsx_mainloop, 0);
 			break;
 
 		case "peek":

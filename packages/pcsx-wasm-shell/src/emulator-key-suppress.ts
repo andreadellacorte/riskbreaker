@@ -1,8 +1,15 @@
 const PAD_STRIDE = 24;
 const suppressMasks: [number, number] = [0, 0];
 
+type KeySuppressionGlobals = typeof globalThis & {
+  __riskbreakerApplyKeySuppression: (states: Uint8Array) => void;
+  __riskbreakerSuppressButton: (pad: 0 | 1, btn: number) => void;
+  __riskbreakerReleaseButton: (pad: 0 | 1, btn: number) => void;
+};
+
 export function installKeySuppression(): void {
-  (globalThis as any).__riskbreakerApplyKeySuppression = (states: Uint8Array): void => {
+  const g = globalThis as KeySuppressionGlobals;
+  g.__riskbreakerApplyKeySuppression = (states: Uint8Array): void => {
     for (let p = 0; p < 2; p++) {
       if (suppressMasks[p] === 0) continue;
       const off = p * PAD_STRIDE;
@@ -13,10 +20,10 @@ export function installKeySuppression(): void {
     }
   };
 
-  (globalThis as any).__riskbreakerSuppressButton = (pad: 0 | 1, btn: number): void => {
+  g.__riskbreakerSuppressButton = (pad: 0 | 1, btn: number): void => {
     suppressMasks[pad] |= (1 << btn);
   };
-  (globalThis as any).__riskbreakerReleaseButton = (pad: 0 | 1, btn: number): void => {
+  g.__riskbreakerReleaseButton = (pad: 0 | 1, btn: number): void => {
     suppressMasks[pad] &= ~(1 << btn);
   };
 }

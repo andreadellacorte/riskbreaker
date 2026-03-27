@@ -36,7 +36,7 @@ describe("EmulatorRuntimeAdapter", () => {
     fakeRam[0] = 0xde;
     fakeRam[1] = 0xad;
     const bridge: IMemoryBridge = {
-      peek: (_address, _length) => Promise.resolve(fakeRam),
+      peek: () => Promise.resolve(fakeRam),
     };
     const rt = new EmulatorRuntimeAdapter(undefined, bridge);
     rt.loadManifest(testManifest());

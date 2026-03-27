@@ -7,7 +7,6 @@ describe("SaveSlotBrowser", () => {
     const codec: ISaveCodec = {
       id: "test",
       decodeSlot: () => ({ hp: 100 }),
-      encodeSlot: () => new Uint8Array(0),
     };
     const browser = new SaveSlotBrowser(codec);
     const preview = browser.previewSlot(0, new Uint8Array([1, 2, 3]));
