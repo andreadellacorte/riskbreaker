@@ -132,11 +132,23 @@ var cout_print = Module.print;
 var pcsx_worker;
 var SoundFeedStreamData;
 
+/** Emscripten sets Module["_get_ptr"] in assignWasmExports; global _get_ptr can be invisible from this strict script when pcsx_ww.js is injected via createElement("script"). */
+function rb_get_ptr(idx) {
+  var f = Module["_get_ptr"];
+  if (typeof f !== "function" && typeof _get_ptr === "function") {
+    f = _get_ptr;
+  }
+  if (typeof f !== "function") {
+    throw new TypeError("_get_ptr is not a function");
+  }
+  return f(idx);
+}
+
 function var_setup() {
   SoundFeedStreamData = Module.cwrap("SoundFeedStreamData", "null", ["number", "number"]);
-  vram_ptr = _get_ptr(0);
-  padStatus1 = _get_ptr(1);
-  padStatus2 = _get_ptr(2);  
+  vram_ptr = rb_get_ptr(0);
+  padStatus1 = rb_get_ptr(1);
+  padStatus2 = rb_get_ptr(2);
   SDL.defaults.copyOnLock = false;
   SDL.defaults.opaqueFrontBuffer = false;
   cout_print("start worker")

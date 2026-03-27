@@ -137,6 +137,29 @@ function materializePcsxWasmDist() {
   fs.copyFileSync(runtimeUi, path.join(pcsxWasmDist, "js", "pcsx_ui.js"));
 }
 
+/** Hand-authored shell under runtime/ must reach public/ even when wasm artifacts already exist (CI cache). */
+function syncRuntimePcsxShellIntoPublic() {
+  if (!fs.existsSync(pcsxWasmSrc)) {
+    return;
+  }
+  const runtimeUi = path.join(pcsxWasmSrc, "runtime", "js", "pcsx_ui.js");
+  const runtimeCss = path.join(pcsxWasmSrc, "runtime", "css", "pcsx.css");
+  const destUi = path.join(publicDir, "js", "pcsx_ui.js");
+  const destCss = path.join(publicDir, "css", "pcsx.css");
+  if (!exists(runtimeUi) || !exists(runtimeCss)) {
+    return;
+  }
+  fs.mkdirSync(path.dirname(destUi), { recursive: true });
+  fs.mkdirSync(path.dirname(destCss), { recursive: true });
+  function copyIfNewer(src, dst) {
+    if (!exists(dst) || fs.statSync(src).mtimeMs > fs.statSync(dst).mtimeMs) {
+      fs.copyFileSync(src, dst);
+    }
+  }
+  copyIfNewer(runtimeUi, destUi);
+  copyIfNewer(runtimeCss, destCss);
+}
+
 function main() {
   // Overlay is small enough that "missing" is the only thing we care about.
   if (!exists(riskbreakerBoot) || forceBuild) {
@@ -151,6 +174,8 @@ function main() {
       cwd: root,
     });
   }
+
+  syncRuntimePcsxShellIntoPublic();
 
   const needPcsx = requiredPcsx.some((rel) => !exists(path.join(publicDir, rel)));
   if (!needPcsx && !forceBuild) {

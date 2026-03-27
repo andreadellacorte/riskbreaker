@@ -21,3 +21,10 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Match Vite dev server (apps/web/vite.config.ts): helps Chromium crossOriginIsolated + worker/WASM paths.
+[[headers]]
+  for = "/pcsx-wasm/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "credentialless"
