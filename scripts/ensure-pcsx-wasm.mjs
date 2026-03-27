@@ -36,6 +36,8 @@ const riskbreakerBoot = path.join(
   "js",
   "riskbreaker-pcsx-wasm-boot.js",
 );
+const vsPanelJs = path.join(publicDir, "js", "riskbreaker-vs-panel.js");
+const vsMenuJs = path.join(publicDir, "js", "riskbreaker-vs-menu.js");
 const forceBuild = process.env.RISKBREAKER_FORCE_PCSX_WASM === "1";
 
 function exists(p) {
@@ -139,6 +141,13 @@ function main() {
   // Overlay is small enough that "missing" is the only thing we care about.
   if (!exists(riskbreakerBoot) || forceBuild) {
     run("node", [path.join(root, "packages", "pcsx-wasm-shell", "build.mjs")], {
+      cwd: root,
+    });
+  }
+
+  // VS plugin IIFEs (gitignored) — must run on CI/Netlify, not only when dev runs the plugin package.
+  if (!exists(vsPanelJs) || !exists(vsMenuJs) || forceBuild) {
+    run("node", [path.join(root, "plugins", "vagrant-story", "build-overlay-panel.mjs")], {
       cwd: root,
     });
   }

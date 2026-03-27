@@ -204,9 +204,20 @@ export function installPsxRamApiClient(): void {
     return;
   }
 
-  // Fallback: SSE (works on pre-built static pages like pcsx-wasm/index.html)
-  // Auto-reconnects: EventSource natively retries on error; we just log it.
-  // Do NOT call es.close() on error — that permanently kills the connection.
+  // Fallback: SSE (Vite dev server exposes /api/v1/psxram-events). Static hosts (e.g. Netlify)
+  // rewrite unknown paths to SPA HTML → EventSource MIME errors and console noise — skip.
+  const port = typeof location !== "undefined" ? location.port : "";
+  const host = typeof location !== "undefined" ? location.hostname : "";
+  const devLikely =
+    port === "5173" ||
+    port === "4173" ||
+    host === "localhost" ||
+    host === "127.0.0.1";
+  if (!devLikely) {
+    console.info("[psxram-api] skipping SSE (static deploy — PSX RAM API is dev-server only)");
+    return;
+  }
+
   const es = new EventSource(EVENTS_PATH);
   es.addEventListener("message", (ev) => handleSseEvent(ev.data as string));
   es.addEventListener("open", () =>
