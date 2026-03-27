@@ -27,9 +27,12 @@ function ensureVarSetupStarted() {
         return;
       }
 
+      var hasGetPtr =
+        typeof Module !== "undefined" &&
+        (typeof Module["_get_ptr"] === "function" || typeof _get_ptr === "function");
       if (
         typeof var_setup === "function" &&
-        typeof _get_ptr === "function" &&
+        hasGetPtr &&
         typeof Module !== "undefined" &&
         typeof Module.cwrap === "function"
       ) {
@@ -76,8 +79,23 @@ function loadScript() {
     // via upstream glue. The smoke test will catch regressions.
   }
   console.log("load pcsx_ww.js");
+  const rev =
+    typeof document !== "undefined"
+      ? (document.querySelector('meta[name="riskbreaker-pcsx-asset-revision"]')?.getAttribute("content") ?? "").trim()
+      : "";
+  if (rev.length > 0 && typeof globalThis.Module !== "undefined") {
+    const enc = encodeURIComponent(rev);
+    const prevLocate = globalThis.Module.locateFile;
+    globalThis.Module.locateFile = function (path, prefix) {
+      const base = typeof prevLocate === "function" ? prevLocate(path, prefix) : (prefix || "") + path;
+      if (path.endsWith(".wasm")) {
+        return base + (base.indexOf("?") >= 0 ? "&" : "?") + "rbrev=" + enc;
+      }
+      return base;
+    };
+  }
   const script = document.createElement("script");
-  script.src = "pcsx_ww.js";
+  script.src = rev.length > 0 ? "pcsx_ww.js?rbrev=" + encodeURIComponent(rev) : "pcsx_ww.js";
   document.body.appendChild(script);
 
   // Make worker bootstrap deterministic even if `Module.onRuntimeInitialized`

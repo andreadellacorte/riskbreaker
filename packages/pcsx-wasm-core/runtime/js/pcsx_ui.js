@@ -132,6 +132,12 @@ var cout_print = Module.print;
 var pcsx_worker;
 var SoundFeedStreamData;
 
+/** Retries when `onRuntimeInitialized` fires before assignWasmExports wires _get_ptr (intermittent on fast hosts / CDN). */
+var var_setup_retry_count = 0;
+var VAR_SETUP_MAX_RETRIES = 100;
+var VAR_SETUP_RETRY_MS = 10;
+var var_setup_retry_scheduled = false;
+
 /** Emscripten sets Module["_get_ptr"] in assignWasmExports; global _get_ptr can be invisible from this strict script when pcsx_ww.js is injected via createElement("script"). */
 function rb_get_ptr(idx) {
   var f = Module["_get_ptr"];
@@ -145,6 +151,32 @@ function rb_get_ptr(idx) {
 }
 
 function var_setup() {
+  if (typeof pcsx_worker !== "undefined" && pcsx_worker) {
+    return;
+  }
+  var ptrReady =
+    (typeof Module !== "undefined" && typeof Module["_get_ptr"] === "function") ||
+    typeof _get_ptr === "function";
+  if (!ptrReady) {
+    if (var_setup_retry_scheduled) {
+      return;
+    }
+    var_setup_retry_count++;
+    if (var_setup_retry_count > VAR_SETUP_MAX_RETRIES) {
+      var_setup_retry_count = 0;
+      throw new Error(
+        "pcsx_ui: wasm _get_ptr not ready after " + VAR_SETUP_MAX_RETRIES + " retries",
+      );
+    }
+    var_setup_retry_scheduled = true;
+    setTimeout(function () {
+      var_setup_retry_scheduled = false;
+      var_setup();
+    }, VAR_SETUP_RETRY_MS);
+    return;
+  }
+  var_setup_retry_count = 0;
+
   SoundFeedStreamData = Module.cwrap("SoundFeedStreamData", "null", ["number", "number"]);
   vram_ptr = rb_get_ptr(0);
   padStatus1 = rb_get_ptr(1);
