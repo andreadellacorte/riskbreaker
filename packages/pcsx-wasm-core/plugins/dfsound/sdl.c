@@ -43,7 +43,10 @@ static void SOUND_FillAudio(void *unused, Uint8 *stream, int len) {
 		lBytes+=2;
 	}
 	#ifdef __EMSCRIPTEN__
-    EM_ASM_({pcsx_worker.postMessage({cmd:"soundBytes", lBytes: $0});}, lBytes);
+	EM_ASM_({
+		if (typeof pcsx_worker !== "undefined" && pcsx_worker)
+			pcsx_worker.postMessage({ cmd: "soundBytes", lBytes: $0 });
+	}, lBytes);
 	#endif
 	// Fill remaining space with zero
 	while (len > 0) {
@@ -137,7 +140,10 @@ void SoundFeedStreamData(unsigned char *pSound, long lBytes) {
 		if (((iWritePos + 1) % iBufSize) == iReadPos) {
 			//printf("sound buffer full\n");
 			#ifdef __EMSCRIPTEN__
-			EM_ASM_({pcsx_worker.postMessage({cmd:"soundBytes", lBytes: $0});}, old_lBytes-lBytes);
+			EM_ASM_({
+				if (typeof pcsx_worker !== "undefined" && pcsx_worker)
+					pcsx_worker.postMessage({ cmd: "soundBytes", lBytes: $0 });
+			}, old_lBytes - lBytes);
 			#endif
 			break;}
 

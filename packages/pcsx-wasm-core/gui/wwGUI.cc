@@ -109,6 +109,10 @@ int main()
     sdl_ximage = SDL_CreateRGBSurface(SDL_HWSURFACE, 640, 480, 32, 0x00ff0000, 0x0000ff00, 0x000000ff, 0);
   }
   psxVuw = (unsigned short *)psxVub;
+  // Must run before SetupSound(): SOUND_FillAudio (sdl.c) posts to pcsx_worker via EM_ASM.
+  // onRuntimeInitialized also calls var_setup, but if that defers (ptr retry), callMain still
+  // reaches here — creating the worker synchronously before SDL_OpenAudio avoids a crash.
+  EM_ASM({ var_setup(); });
   SetupSound();
   LoadPADConfig();
   EM_ASM(
@@ -135,6 +139,5 @@ int main()
   InitKeyboard();
   emscripten_set_gamepadconnected_callback(0, 1, gamepad_callback);
   emscripten_set_gamepaddisconnected_callback(0, 1, gamepad_callback);
-  EM_ASM({ var_setup(); });
   emscripten_exit_with_live_runtime();
 }
