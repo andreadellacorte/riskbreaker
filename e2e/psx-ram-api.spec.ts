@@ -35,7 +35,9 @@ async function waitForPcsxGameActive(page: Page) {
 /** Load the emulator and wait for the disc to be running AND the SSE subscriber to register. */
 async function bootDisc(page: Page) {
   const bin = resolveDiscBin();
-  if (!bin) throw new Error("No disc fixture found — place 240pTestSuitePS1-EMU.bin in e2e/fixtures/ or set E2E_PS1_DISC_BIN");
+  if (!bin) {
+    throw new Error("No disc fixture — beforeAll should have skipped");
+  }
   await page.goto("/play/spike");
   await page.waitForURL(/\/pcsx-wasm\/index\.html/, { timeout: 30_000 });
   await page.locator("#iso_opener").setInputFiles(bin);
@@ -58,6 +60,13 @@ test.describe.configure({ mode: "serial" });
 
 test.describe("PSX RAM API — live emulator endpoints", () => {
   test.setTimeout(180_000);
+
+  test.beforeAll(() => {
+    test.skip(
+      !resolveDiscBin(),
+      "No disc fixture — place 240pTestSuitePS1-EMU.bin in e2e/fixtures/ (see README), set E2E_PS1_DISC_BIN, or run node scripts/fetch-e2e-240p-fixture.mjs (CI fetches this before integration e2e).",
+    );
+  });
 
   test("GET /api/v1/cpu/ram/raw returns 2 MB binary", async ({ page, request }) => {
     await bootDisc(page);

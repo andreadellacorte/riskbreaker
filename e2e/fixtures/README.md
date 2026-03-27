@@ -8,6 +8,8 @@
 
 This file is **safe to commit**: it is homebrew test software, not a commercial game.
 
+The repo does **not** require committing it: **CI** downloads the same artifact with `node scripts/fetch-e2e-240p-fixture.mjs` before integration Playwright tests. Locally you can run that script once or drop the `.bin` here manually.
+
 ## Using your own `.bin` (e.g. Vagrant Story)
 
 To run the same integration test against another single-track image you **own or have the right to use**, set:

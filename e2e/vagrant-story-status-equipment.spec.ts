@@ -138,10 +138,12 @@ test.describe("VS equipment — preload", () => {
     await expect(screen.locator("[data-slot-name='weapon']"))
       .not.toHaveText("—", { timeout: 10_000 });
 
-    // Weapon row active by default — detail reflects Fandango immediately
+    await screen.locator(".vs-eq-slot-row[data-slot='weapon']").click();
+
+    // Detail panel follows focused slot — select weapon row explicitly for stable UX.
     await expect(screen.locator("#vs-eq-detail-name")).toHaveText("Fandango");
     await expect(screen.locator("#vs-eq-detail-sub")).toContainText("Bronze");
-    await expect(screen.locator("#vs-eq-detail-sub")).toContainText("Edged/One-Handed");
+    await expect(screen.locator("#vs-eq-detail-sub")).toContainText("One-Handed");
     await expect(screen.locator("#vs-eq-detail-sub")).toContainText("Range");
   });
 
@@ -188,7 +190,7 @@ test.describe("VS equipment — preload", () => {
     await expect(infoBar).not.toContainText("R.Arm");
   });
 
-  test("Model sub-tab is weapon-only and renders viewer canvas", async ({ page }) => {
+  test("weapon category gallery mounts Three.js canvas inside thumbnails", async ({ page }) => {
     test.setTimeout(240_000);
 
     const discRes = await page.request.get("/api/v1/preload/disc");
@@ -212,18 +214,18 @@ test.describe("VS equipment — preload", () => {
     await expect(screen.locator("[data-slot-name='weapon']"))
       .not.toHaveText("—", { timeout: 10_000 });
 
-    const modelTab = screen.locator(".vs-eq-sub-tab[data-subtab='model']");
-    const modelPanel = screen.locator("#vs-eq-model-panel");
+    await screen.locator(".vs-eq-slot-row[data-slot='weapon']").click();
 
-    // Weapon row is active by default: model tab should be shown and render.
-    await expect(modelTab).toBeVisible();
-    await modelTab.click();
-    await expect(modelPanel).toHaveClass(/active/);
-    await expect(modelPanel.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
+    const gallery = screen.locator("#vs-eq-category-gallery");
+    await expect(gallery).toBeVisible({ timeout: 15_000 });
+    await expect(gallery.locator(".vs-eq-model-thumb canvas").first()).toBeAttached({
+      timeout: 20_000,
+    });
 
-    // Switching to armor slot hides model tab and disposes viewer.
     await screen.locator(".vs-eq-slot-row[data-slot='armRight']").click();
-    await expect(modelTab).toBeHidden();
-    await expect(modelPanel.locator("canvas")).toHaveCount(0);
+    await expect(screen.locator("#vs-eq-category-gallery .vs-eq-model-thumb canvas")).toHaveCount(
+      0,
+      { timeout: 10_000 },
+    );
   });
 });

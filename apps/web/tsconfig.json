@@ -18,6 +18,7 @@
     "src/**/*",
     "e2e/**/*.ts",
     "vite.config.ts",
+    "vite-plugin*.test.ts",
     "../packages/pcsx-wasm-shell/src/**/*.ts"
   ]
 }

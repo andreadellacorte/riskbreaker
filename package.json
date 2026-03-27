@@ -21,6 +21,8 @@
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "e2e": "playwright test",
+    "e2e:mock-core": "playwright test --project=mock-core",
+    "e2e:integration": "playwright test --project=conditional-integration",
     "e2e:ui": "playwright test --ui",
     "verify:playstation-riskbreaker-controls": "node scripts/verify-playstation-riskbreaker-controls.mjs",
     "prepare": "husky"

@@ -8,7 +8,7 @@
  *
  * Fixtures:
  *   vs-save-2026-03-24 — Fandango, no shield (see file comment in profile below).
- *   vs-save-2026-03-26 — Tovarisch + Buckler + same leather kit (ARM snapshot in Playwright error-context).
+ *   vs-save-2026-03-26 — Tovarisch + Buckler + same leather kit (stats differ slightly from 03-24).
  */
 
 import { existsSync } from "node:fs";

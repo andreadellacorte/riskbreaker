@@ -16,7 +16,8 @@ jobs:
   nix:
     name: Nix — lint, build, typecheck, unit, Playwright
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Cold cache: nix develop (incl. emscripten) + playwright --with-deps + e2e can exceed 45m.
+    timeout-minutes: 120
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,7 +31,7 @@ jobs:
       - name: Install dependencies and run checks
         run: |
           nix develop --accept-flake-config --command bash -euxo pipefail -c \
-            "pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium && pnpm lint && pnpm build && pnpm typecheck && pnpm test && pnpm e2e"
+            "pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium && pnpm lint && pnpm build && pnpm typecheck && pnpm test && pnpm exec playwright test --project=mock-core && node scripts/fetch-e2e-240p-fixture.mjs && pnpm exec playwright test --project=conditional-integration"
 
   terraform:
     name: Terraform — fmt, validate, plan, apply (main)
