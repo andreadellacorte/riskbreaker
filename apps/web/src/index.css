@@ -1,9 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;600;700&display=swap");
+
 :root {
   font-family:
-    system-ui,
-    -apple-system,
-    Segoe UI,
-    Roboto,
+    "Josefin Sans",
+    "Segoe UI",
+    Arial,
     sans-serif;
   line-height: 1.5;
   color: #e8e8ef;
@@ -60,38 +61,47 @@ pre {
 
 .gallery-page {
   width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
   background: #000;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .gallery-grid {
   width: 100%;
-  height: 100%;
+  min-height: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(2, minmax(72vh, auto));
+  gap: 0.75rem;
+  padding: 0.75rem;
+  justify-items: center;
 }
 
 .gallery-card {
+  width: 100%;
+  height: 100%;
   margin: 0;
   background: #000;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .gallery-image-wrap {
   flex: 1;
   min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .gallery-card img {
   display: block;
-  width: 100%;
+  width: auto;
   height: 100%;
+  max-width: 100%;
   object-fit: contain;
   border: 1px solid #5a5a5a;
   background: #000;
@@ -100,8 +110,8 @@ pre {
 .gallery-caption {
   flex-shrink: 0;
   margin: 0;
-  padding: 0.2rem 0.5rem;
-  font-size: 0.7rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 1.05rem;
   line-height: 1.2;
   letter-spacing: 0.02em;
   text-align: center;

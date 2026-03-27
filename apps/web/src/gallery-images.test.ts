@@ -3,11 +3,9 @@ import { describe, expect, it } from "vitest";
 import { galleryImages } from "./gallery-images.js";
 
 describe("galleryImages", () => {
-  it("lists the four uploaded images with public gallery paths", () => {
-    expect(galleryImages).toHaveLength(4);
+  it("lists the remaster screens with public gallery paths", () => {
+    expect(galleryImages).toHaveLength(2);
     expect(galleryImages.map((img) => img.src)).toEqual([
-      "/gallery/playstation-boot.png",
-      "/gallery/riskbreaker-overlay.png",
       "/gallery/vagrant-story-menu.png",
       "/gallery/equipment-screen.png",
     ]);
