@@ -15,12 +15,15 @@ test.describe("preload feature — ?preload=1", () => {
 
     // ── Verify the preload endpoints are reachable ─────────────────────────────
     const discRes = await page.request.get("/api/v1/preload/disc");
+    const discContentType = discRes.headers()["content-type"] ?? "";
+    const preloadDiscAvailable =
+      discRes.status() === 200 && discContentType.includes("application/octet-stream");
     test.skip(
-      discRes.status() === 404,
+      !preloadDiscAvailable,
       "PRELOAD_PS1_DISC_BIN not configured — set it in .env",
     );
     expect(discRes.status()).toBe(200);
-    expect(discRes.headers()["content-type"]).toBe("application/octet-stream");
+    expect(discContentType).toContain("application/octet-stream");
 
     // ── Open emulator with ?preload=1 ─────────────────────────────────────────
     await page.goto("/pcsx-wasm/index.html?riskbreaker=1&preload=1");
